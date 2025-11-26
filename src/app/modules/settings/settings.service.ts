@@ -25,6 +25,15 @@ const upsertSettings = async (data: Partial<ISettings>): Promise<ISettings> => {
 const getSettings = async (key: string) => {
      return await settingsCache.wrapSingle(key, async () => {
           const settings: any = await Settings.findOne();
+          if (!settings) {
+               await Settings.create({
+                    privacyPolicy: '',
+                    aboutUs: '',
+                    support: '',
+                    termsOfService: '',
+                    userAgreement: '',
+               });
+          }
           if (key) {
                if (settings[key] !== undefined) {
                     return settings[key];

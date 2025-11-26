@@ -6,4 +6,5 @@ export interface ISettings extends Document {
      aboutUs: string;
      support: string;
      termsOfService: string;
+     userAgreement: string;
 }

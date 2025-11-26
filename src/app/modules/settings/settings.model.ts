@@ -19,6 +19,10 @@ const settingsSchema = new Schema<ISettings>(
                type: String,
                default: '',
           },
+          userAgreement: {
+               type: String,
+               default: '',
+          },
      },
      { timestamps: true },
 );
