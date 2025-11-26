@@ -20,7 +20,7 @@ export default {
           jwt_refresh_expire_in: process.env.JWT_REFRESH_EXPIRE_IN,
      },
      server: {
-          name: process.env.SERVER_NAME,
+          name: process.env.SERVER_NAME
      },
 
      email: {
@@ -38,6 +38,13 @@ export default {
           google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
           facebook_client_secret: process.env.FACEBOOK_CLIENT_SECRET,
           callback_url: process.env.GOOGLE_CALLBACK_URL,
+     },
+     redis: {
+          password: process.env.REDIS_PASSWORD,
+          url: process.env.REDIS_URL,
+          host: process.env.REDIS_HOST,
+          port: process.env.REDIS_PORT,
+          db: process.env.REDIS_DB,
      },
      twilio: {
           accountSid: process.env.TWILIO_ACCOUNT_SID || '',

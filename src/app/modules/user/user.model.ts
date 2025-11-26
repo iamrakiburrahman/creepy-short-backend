@@ -23,6 +23,10 @@ const userSchema = new Schema<IUser, UserModel>(
                unique: true,
                lowercase: true,
           },
+          phone: {
+               type: String,
+               required: true
+          },
           password: {
                type: String,
                required: function () {
@@ -33,10 +37,6 @@ const userSchema = new Schema<IUser, UserModel>(
                minlength: 8,
           },
           image: {
-               type: String,
-               default: '',
-          },
-          phone: {
                type: String,
                default: '',
           },
@@ -57,10 +57,6 @@ const userSchema = new Schema<IUser, UserModel>(
                type: String,
                default: '',
           },
-          joinDate: {
-               type: Date,
-               default: Date.now,
-          },
           // OAuth fields
           googleId: {
                type: String,
@@ -73,6 +69,21 @@ const userSchema = new Schema<IUser, UserModel>(
           oauthProvider: {
                type: String,
                enum: ['google', 'facebook'],
+          },
+          pageAccess: {
+               type: [
+                    {
+                         name: {
+                              type: String,
+                              default: '',
+                         },
+                         access: {
+                              type: Boolean,
+                              default: false,
+                         },
+                    },
+               ],
+               default: [],
           },
           authentication: {
                type: {

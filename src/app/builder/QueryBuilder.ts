@@ -1,6 +1,9 @@
 import { FilterQuery, Query } from 'mongoose';
 import AppError from '../../errors/AppError';
 import { StatusCodes } from 'http-status-codes';
+export const excludeFields = () => {
+     return ['searchTerm', 'sort', 'limit', 'page', 'fields', 'maxPrice', 'minPrice', 'dateRange', 'year', 'month', 'day', 'dateFilter'];
+};
 
 class QueryBuilder<T> {
      public modelQuery: Query<T[], T>;

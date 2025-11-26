@@ -16,14 +16,14 @@ passport.use(
           async (accessToken, refreshToken, profile, done) => {
                try {
                     console.log('Google Profile:', profile);
-
+                    
                     // Check if user exists by Google ID
                     let user = await User.findOne({ googleId: profile.id });
-
+                    
                     if (!user) {
                          // Check if user exists by email
                          user = await User.findOne({ email: profile.emails?.[0]?.value });
-
+                         
                          if (user) {
                               // Update existing user with Google ID
                               user.googleId = profile.id;
@@ -42,7 +42,7 @@ passport.use(
                               });
                          }
                     }
-
+                    
                     done(null, user);
                } catch (error) {
                     console.error('Google OAuth Error:', error);
@@ -64,14 +64,14 @@ passport.use(
           async (accessToken, refreshToken, profile, done) => {
                try {
                     console.log('Facebook Profile:', profile);
-
+                    
                     // Check if user exists by Facebook ID
                     let user = await User.findOne({ facebookId: profile.id });
-
+                    
                     if (!user) {
                          // Check if user exists by email
                          user = await User.findOne({ email: profile.emails?.[0]?.value });
-
+                         
                          if (user) {
                               // Update existing user with Facebook ID
                               user.facebookId = profile.id;
@@ -90,7 +90,7 @@ passport.use(
                               });
                          }
                     }
-
+                    
                     done(null, user);
                } catch (error) {
                     console.error('Facebook OAuth Error:', error);

@@ -1,4 +1,5 @@
 import { Model, Types } from 'mongoose';
+import { IUser } from '../user/user.interface';
 
 export interface IReaction {
      userId: Types.ObjectId;
@@ -19,6 +20,20 @@ export type IMessage = {
      isPinned: boolean;
      pinnedBy?: Types.ObjectId;
      pinnedAt?: Date;
+     pinnedByUsers: {
+          userId: Types.ObjectId;
+          pinnedAt: Date;
+     }[];
+     deletedForUsers: {
+          userId: Types.ObjectId;
+          deletedAt: Date;
+     }[];
+     iconViewed: Types.ObjectId[];
+     // Reply functionality fields
+     replyTo?: Types.ObjectId | IMessage;
+     replyText?: string; // Original message text being replied to
+     replySender?: Types.ObjectId | IUser; // Original message sender
+     replyType?: 'text' | 'image' | 'doc' | 'both'; // Original message type
 };
 
 export type MessageModel = Model<IMessage, Record<string, unknown>>;

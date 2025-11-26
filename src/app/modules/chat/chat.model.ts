@@ -7,7 +7,14 @@ const chatSchema = new Schema<IChat>(
           lastMessage: { type: Schema.Types.ObjectId, ref: 'Message' },
           status: { type: String, enum: ['active', 'deleted'], default: 'active' },
           isDeleted: { type: Boolean, default: false },
-          deletedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+          deletedByDetails: [
+               {
+                    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+                    deletedAt: { type: Date, default: Date.now },
+               },
+          ],
+
+          lastMessageAt: Date,
           readBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
           // New fields
           mutedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
@@ -18,7 +25,21 @@ const chatSchema = new Schema<IChat>(
                     blockedAt: { type: Date, default: Date.now },
                },
           ],
-          pinnedMessages: [{ type: Schema.Types.ObjectId, ref: 'Message' }],
+          userPinnedMessages: [
+               {
+                    userId: {
+                         type: Schema.Types.ObjectId,
+                         ref: 'User',
+                         required: true,
+                    },
+                    pinnedMessages: [
+                         {
+                              type: Schema.Types.ObjectId,
+                              ref: 'Message',
+                         },
+                    ],
+               },
+          ],
      },
      {
           timestamps: true,

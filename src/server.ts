@@ -9,19 +9,21 @@ import { logger } from './shared/logger';
 import { socketHelper } from './helpers/socketHelper';
 import { setupProcessHandlers } from './DB/processHandlers';
 import { setupSecurity } from './DB/security';
-import { setupCluster } from './DB/cluster';
+import { connectToRedis } from './DB/redis';
+import { setupQueueEvents, setupWorkerEvents } from './DB/bullMQ';
+import { startRealtimeMonitoring } from './scripts/startRealtimeMonitoring';
 
-// Define the types for the servers
-let httpServer: HttpServer;
-let socketServer: SocketServer;
+export let httpServer: HttpServer;
+export let socketServer: SocketServer;
 
-// Function to start the server
-export async function startServer() {
+async function startServer(): Promise<void> {
      try {
-          // Validate config
+          // Validate config first
           validateConfig();
-          // Connect to the database
+
+          // Connect to database 
           await connectToDatabase();
+
           // Create HTTP server
           httpServer = createServer(app);
           const httpPort = Number(config.port);
@@ -33,33 +35,59 @@ export async function startServer() {
           httpServer.headersTimeout = 60000;
 
           // Start HTTP server
-          httpServer.listen(httpPort, ipAddress, () => {
-               logger.info(colors.bgCyan(`♻️  Application listening on http://${ipAddress}:${httpPort}`));
+          await new Promise<void>((resolve, reject) => {
+               httpServer.listen(httpPort, ipAddress, () => {
+                    logger.info(colors.bgCyan.bold.white(`♻️  Server (PID: ${process.pid}) listening on http://${ipAddress}:${httpPort}`));
+                    resolve();
+               });
+               httpServer.on('error', reject);
           });
 
-          // Set up Socket.io server on same port as HTTP server
+          // Set up Socket.io server
           socketServer = new SocketServer(httpServer, {
                cors: {
                     origin: config.allowed_origins || '*',
+                    credentials: true,
                },
+               pingTimeout: 60000,
+               pingInterval: 25000,
           });
+
           socketHelper.socket(socketServer);
-          //@ts-ignore
-          global.io = socketServer;
-          logger.info(colors.yellow(`♻️  Socket is listening on same port ${httpPort}`));
+
+          (global as any).io = socketServer;
+
+          logger.info(colors.bgYellow(`♻️  Socket.IO ready on PID ${process.pid}`));
+
      } catch (error) {
-          logger.error(colors.red('Failed to start server'), error);
+          logger.error(colors.red(`Server (PID: ${process.pid}) failed to start:`), error);
+          throw error;
+     }
+}
+// ==========================================
+// ENTRY POINT - Runs once at startup
+// ==========================================
+async function main() {
+     try {
+          // Setup security headers
+          setupSecurity();
+          // Setup graceful shutdown handlers
+          setupProcessHandlers();
+          // Start the server
+          await startServer();
+          // Connect to Redis
+          await connectToRedis();
+          // Setup BullMQ events
+          setupQueueEvents();
+          setupWorkerEvents();
+          // Start monitoring (only in production)
+          if (config.node_env === 'production') {
+               startRealtimeMonitoring();
+          }
+          logger.info(colors.green.bold(`✅ Server bootstrap completed successfully (PID: ${process.pid})`));
+     } catch (error) {
+          logger.error(colors.red('❌ Bootstrap failed:'), error);
           process.exit(1);
      }
 }
-// Set up error handlers
-setupProcessHandlers();
-// Set up security middleware
-setupSecurity();
-if (config.node_env === 'production') {
-     setupCluster();
-} else {
-     startServer();
-}
-// Export server instances
-export { httpServer, socketServer };
+main();

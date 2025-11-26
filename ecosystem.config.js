@@ -1,42 +1,65 @@
-// ecosystem.config.js
 module.exports = {
-     apps: [
-          {
-               // PM2-তে আপনার অ্যাপ্লিকেশনের নাম। এটি দিয়ে আপনি অ্যাপটি কন্ট্রোল করবেন।
-               name: 'jonowoods-backend',
+  apps: [
+    {
+      name: 'templete-backend',
+      script: 'dist/server.js',
 
-               // আপনার বিল্ড হওয়া মূল সার্ভার ফাইলটির পাথ।
-               // `npm run build` কমান্ড চালানোর পর tsc এই ফাইলটি তৈরি করে।
-               script: 'dist/server.js',
+      // Cluster Configuration
+      instances: 'max', // সব CPU core use করবে (production এ best)
+      exec_mode: 'cluster',
 
-               // এই অপশনটি আপনার সার্ভারের পারফরম্যান্স বহুগুণ বাড়িয়ে দেবে।
-               // 'max' মানে হলো আপনার সার্ভারের যতগুলো CPU কোর আছে, সবগুলো ব্যবহার করে অ্যাপটি চালানো হবে।
-               instances: 'max',
+      // Restart Policy
+      autorestart: true,
+      max_restarts: 10, // 5 থেকে 10 করলাম (বেশি flexible)
+      min_uptime: '10s', // 10 second uptime থাকতে হবে restart count করার আগে
+      restart_delay: 4000, // Restart এর আগে 4 second wait
 
-               // 'cluster' মোড Node.js-এর বিল্ট-ইন 'cluster' মডিউল ব্যবহার করে,
-               // যা একাধিক প্রসেসের মধ্যে নেটওয়ার্ক লোড ব্যালেন্স করে।
-               exec_mode: 'cluster',
+      // Resource Limits
+      max_memory_restart: '1G', // 1GB exceed করলে restart
 
-               // অ্যাপ্লিকেশনটি কোনো কারণে ক্র্যাশ করলে স্বয়ংক্রিয়ভাবে রিস্টার্ট হবে কিনা।
-               // প্রোডাকশনের জন্য এটি 'true' রাখা খুবই জরুরি।
-               autorestart: true,
+      // Graceful Shutdown
+      kill_timeout: 5000, // 5 second এর মধ্যে graceful shutdown না হলে force kill
+      wait_ready: false, // এটা false করলাম (তোমার code এ ready signal নাই)
+      listen_timeout: 10000, // Server listen করতে 10 second পর্যন্ত wait করবে
 
-               // প্রোডাকশনে ফাইল পরিবর্তনের সাথে সাথে অ্যাপ রিস্টার্ট করা উচিত নয়।
-               // নতুন কোড ডেপ্লয় করার জন্য CI/CD পাইপলাইন ব্যবহার করা হয়। তাই এটি 'false' থাকবে।
-               watch: false,
+      // File Watching
+      watch: false, // Production এ never true করবে না
+      ignore_watch: ['node_modules', 'logs', '.git'],
 
-               // আপনার অ্যাপ্লিকেশনটি সর্বোচ্চ কতটুকু মেমোরি ব্যবহার করতে পারবে তা নির্ধারণ করে।
-               // যদি এর চেয়ে বেশি মেমোরি ব্যবহার করে, PM2 স্বয়ংক্রিয়ভাবে অ্যাপটি রিস্টার্ট করবে।
-               // এটি মেমোরি লিক (memory leak) সমস্যা থেকে বাঁচাতে সাহায্য করে।
-               max_memory_restart: '1G', // উদাহরণস্বরূপ ১ গিগাবাইট
+      // Logging
+      error_file: 'logs/pm2-err.log',
+      out_file: 'logs/pm2-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+      merge_logs: true, // সব instance এর logs একসাথে
+      log_type: 'json', // JSON format এ logs (parsing এ সহজ)
 
-               // প্রোডাকশন এনভায়রনমেন্টের জন্য ভেরিয়েবল সেট করা।
-               // আপনার CI/CD পাইপলাইনে pm2 startOrReload ecosystem.config.js --env production কমান্ডটি ব্যবহার করবেন।
-               env_production: {
-                    NODE_ENV: 'production',
-                    // এখানে অন্যান্য প্রোডাকশন-স্পেসিফিক ভেরিয়েবলও যোগ করতে পারেন,
-                    // তবে ডাটাবেজ পাসওয়ার্ডের মতো গোপন তথ্য GitHub Secrets থেকে দেওয়াই সবচেয়ে নিরাপদ।
-               },
-          },
-     ],
-};
+      // Environment Variables
+      env_production: {
+        NODE_ENV: 'production',
+        PORT: 3000,
+      },
+
+      env_development: {
+        NODE_ENV: 'development',
+        PORT: 3000,
+      },
+
+      // Advanced Options
+      source_map_support: true, // Source maps support (debugging এ helpful)
+      instance_var: 'INSTANCE_ID', // প্রতি instance এ unique ID
+
+      // Monitoring
+      vizion: false, // Git metadata tracking (optional)
+      post_update: ['npm install'], // Update এর পর automatically npm install
+
+      // Graceful reload
+      shutdown_with_message: false,
+
+      // Cron restart (optional - রাতে 2am এ restart)
+      // cron_restart: '0 2 * * *',
+
+      // Performance
+      node_args: '--max-old-space-size=2048', // 2GB heap size
+    },
+  ]
+}

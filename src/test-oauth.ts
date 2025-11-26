@@ -1,7 +1,8 @@
 // Simple OAuth Configuration Test
 // This file helps verify that OAuth is properly configured
 
-import config from './config';
+import config from "./config";
+
 
 console.log('=== OAuth Configuration Test ===');
 console.log('');
@@ -29,7 +30,7 @@ console.log('');
 
 // Check Session Configuration
 console.log('Session Configuration:');
-console.log('Session Secret:', config.express_sessoin ? '✅ Set' : '❌ Missing');
+console.log('Session Secret:', config.express_session ? '✅ Set' : '❌ Missing');
 console.log('');
 
 // Check Database Configuration
@@ -41,21 +42,21 @@ console.log('=== Configuration Summary ===');
 const hasGoogle = config.social.google_client_id && config.social.google_client_secret;
 const hasFacebook = config.social.facebook_client_id && config.social.facebook_client_secret;
 const hasJWT = config.jwt.jwt_secret && config.jwt.jwt_refresh_secret;
-const hasSession = config.express_sessoin;
+const hasSession = config.express_session;
 const hasDB = config.database_url;
 
 if (hasGoogle && hasFacebook && hasJWT && hasSession && hasDB) {
-     console.log('✅ All configurations are properly set!');
-     console.log('✅ OAuth should work correctly.');
+    console.log('✅ All configurations are properly set!');
+    console.log('✅ OAuth should work correctly.');
 } else {
-     console.log('❌ Some configurations are missing:');
-     if (!hasGoogle) console.log('  - Google OAuth credentials');
-     if (!hasFacebook) console.log('  - Facebook OAuth credentials');
-     if (!hasJWT) console.log('  - JWT secrets');
-     if (!hasSession) console.log('  - Session secret');
-     if (!hasDB) console.log('  - Database URL');
-     console.log('');
-     console.log('Please check your .env file and ensure all required variables are set.');
+    console.log('❌ Some configurations are missing:');
+    if (!hasGoogle) console.log('  - Google OAuth credentials');
+    if (!hasFacebook) console.log('  - Facebook OAuth credentials');
+    if (!hasJWT) console.log('  - JWT secrets');
+    if (!hasSession) console.log('  - Session secret');
+    if (!hasDB) console.log('  - Database URL');
+    console.log('');
+    console.log('Please check your .env file and ensure all required variables are set.');
 }
 
 console.log('');

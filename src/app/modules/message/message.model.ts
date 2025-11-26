@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema, Types, model } from 'mongoose';
 import { IMessage, MessageModel } from './message.interface';
 
 const messageSchema = new Schema<IMessage, MessageModel>(
@@ -34,7 +34,7 @@ const messageSchema = new Schema<IMessage, MessageModel>(
                default: false,
                required: true,
           },
-          // New pinned message fields
+          // Pinned message fields
           isPinned: {
                type: Boolean,
                default: false,
@@ -45,6 +45,60 @@ const messageSchema = new Schema<IMessage, MessageModel>(
           },
           pinnedAt: {
                type: Date,
+          },
+          pinnedByUsers: [
+               {
+                    userId: {
+                         type: Schema.Types.ObjectId,
+                         ref: 'User',
+                         required: true,
+                    },
+                    pinnedAt: {
+                         type: Date,
+                         default: Date.now,
+                    },
+               },
+          ],
+          // NEW: Track which users have deleted this message from their view
+          deletedForUsers: [
+               {
+                    userId: {
+                         type: Schema.Types.ObjectId,
+                         ref: 'User',
+                         required: true,
+                    },
+                    deletedAt: {
+                         type: Date,
+                         default: Date.now,
+                    },
+               },
+          ],
+          // Reply functionality fields
+          replyTo: {
+               type: Schema.Types.ObjectId,
+               ref: 'Message',
+               default: null,
+          },
+          replyText: {
+               type: String, // Store the original text of the message being replied to
+          },
+          replySender: {
+               type: Schema.Types.ObjectId,
+               ref: 'User', // Store the sender of the original message
+          },
+          replyType: {
+               type: String,
+               enum: ['text', 'image', 'doc', 'both'],
+               // Store the type of the original message
+          },
+          iconViewed: {
+               type: [
+                    {
+                         type: Types.ObjectId,
+                         ref: 'User',
+                    },
+               ],
+               default: [],
           },
           reactions: [
                {
@@ -69,5 +123,9 @@ const messageSchema = new Schema<IMessage, MessageModel>(
           timestamps: true,
      },
 );
+
+// Index for better query performance
+messageSchema.index({ chatId: 1, createdAt: -1 });
+messageSchema.index({ replyTo: 1 });
 
 export const Message = model<IMessage, MessageModel>('Message', messageSchema);

@@ -3,7 +3,8 @@ import { ICategory } from './category.interface';
 import { Category } from './category.model';
 import unlinkFile from '../../../shared/unlinkFile';
 import AppError from '../../../errors/AppError';
-
+import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
+const categoryCache = createCacheHelper('category');
 const createCategoryToDB = async (payload: ICategory) => {
      const { name, image } = payload;
      const isExistName = await Category.findOne({ name: name });
@@ -16,11 +17,16 @@ const createCategoryToDB = async (payload: ICategory) => {
           unlinkFile(image);
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Category');
      }
+     await categoryCache.clearLists();
      return createCategory;
 };
 
 const getCategoriesFromDB = async (): Promise<ICategory[]> => {
-     const result = await Category.find({});
+     const result = await categoryCache.wrapList(
+          {},
+          async () => await Category.find({}),
+          CACHE_TTL.VERY_LONG
+     );
      return result;
 };
 
@@ -38,7 +44,7 @@ const updateCategoryToDB = async (id: string, payload: ICategory) => {
      const updateCategory = await Category.findOneAndUpdate({ _id: id }, payload, {
           new: true,
      });
-
+     await categoryCache.clearAfterUpdate(id);
      return updateCategory;
 };
 
@@ -47,6 +53,7 @@ const deleteCategoryToDB = async (id: string): Promise<ICategory | null> => {
      if (!deleteCategory) {
           throw new AppError(StatusCodes.BAD_REQUEST, "Category doesn't exist");
      }
+     await categoryCache.clearAfterUpdate(id);
      return deleteCategory;
 };
 

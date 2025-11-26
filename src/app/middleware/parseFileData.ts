@@ -3,7 +3,7 @@ import { getSingleFilePath, getMultipleFilesPath, IFolderName } from '../../shar
 
 interface FileFieldConfig {
      fieldName: IFolderName;
-     forceMultiple?: boolean;
+     forceMultiple?: boolean; 
      forceSingle?: boolean;
 }
 
@@ -14,7 +14,7 @@ const parseFileData = (...fields: FieldInput[]) => {
           try {
                const fileData: Record<string, string | string[] | null> = {};
                let fieldsToProcess: FileFieldConfig[] = [];
-               fields.forEach((field) => {
+               fields.forEach(field => {
                     if (typeof field === 'string') {
                          fieldsToProcess.push({ fieldName: field });
                     } else {

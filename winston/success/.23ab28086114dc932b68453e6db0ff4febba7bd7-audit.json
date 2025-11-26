@@ -1,15 +1,135 @@
 {
-     "keep": {
-          "days": true,
-          "amount": 1
-     },
-     "auditLog": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\.23ab28086114dc932b68453e6db0ff4febba7bd7-audit.json",
-     "files": [
-          {
-               "date": 1759027158426,
-               "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\28-09-2025-08-success.log",
-               "hash": "5c30afacc1bc2db0343084d3ee00a648e85c23d7eaa70207b51544cd46e830d7"
-          }
-     ],
-     "hashType": "sha256"
+    "keep": {
+        "days": true,
+        "amount": 1
+    },
+    "auditLog": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\.23ab28086114dc932b68453e6db0ff4febba7bd7-audit.json",
+    "files": [
+        {
+            "date": 1763211611713,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\15-11-2025-19-success.log",
+            "hash": "4798a7e6868f70936c68220d22ec66dcee3b1e992375ef4ae357eacfeada02b8"
+        },
+        {
+            "date": 1763215223408,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\15-11-2025-20-success.log",
+            "hash": "6752a6231464c4b376fb148635d31bf7175bdae7fc519d902c2033bd7c1ab950"
+        },
+        {
+            "date": 1763218829192,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\15-11-2025-21-success.log",
+            "hash": "4da6d3b2f4ecbf6ca3dc3e0585d51ca21b513d63b75b6ac4663dd5b4fe98fefd"
+        },
+        {
+            "date": 1763222429649,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\15-11-2025-22-success.log",
+            "hash": "c2a06ef85f4677cd348de3deb713ae5826d847d2b263c1fb0dfbc3fbca2d737a"
+        },
+        {
+            "date": 1763226030120,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\15-11-2025-23-success.log",
+            "hash": "6546d0b0fe8b34369c374ba96891dbb97b1983a1e2d008ccec48f1b42d680a05"
+        },
+        {
+            "date": 1763229630541,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-00-success.log",
+            "hash": "5021918bd7cc85a46e9ebdc92c6975d446c08843b322df9f6e520905db76097b"
+        },
+        {
+            "date": 1763233230993,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-01-success.log",
+            "hash": "78c4be561f71f414b1ba847351e8ec333c6b732b376ddaccba8d1388b1d69138"
+        },
+        {
+            "date": 1763236800279,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-02-success.log",
+            "hash": "ac02a2c2b24b1838046dffdb0a94202bf8e1c886e30077da83cd3ab31dc248b4"
+        },
+        {
+            "date": 1763240400821,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-03-success.log",
+            "hash": "ac78d1796461882c47ecf375a24213a240ce90678c7d9f861aaf43ed4c4577cb"
+        },
+        {
+            "date": 1763244000613,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-04-success.log",
+            "hash": "a9201675525d2ed65189b64d906883d7e7ccd8c4c8f3bd858facf512eb7c1787"
+        },
+        {
+            "date": 1763247632933,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-05-success.log",
+            "hash": "cdeabaf9c843ae8f9779b9667a6797806afbab4d302d3b50b18c5c886b687d97"
+        },
+        {
+            "date": 1763251233351,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-06-success.log",
+            "hash": "321141e4fe13276e7201df61c7201cfdec93f154dd9306a0312c117bbfd410b7"
+        },
+        {
+            "date": 1763254833853,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-07-success.log",
+            "hash": "ba15af6774ed7e49261ee462dce3eecac422fbf0b3929d33a3f939a125c3b05b"
+        },
+        {
+            "date": 1763258434307,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-08-success.log",
+            "hash": "05ee3f2ea56d66873dec2ba3cc70d7aa532dcdeee3ab392a13c71aa0a624a54f"
+        },
+        {
+            "date": 1763262034684,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-09-success.log",
+            "hash": "3ef650fcb14f472dcb9170a47bbf1782b93319232f1a3bdcc9b988b58ef27aa3"
+        },
+        {
+            "date": 1763265635156,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-10-success.log",
+            "hash": "b67167602b61275ea644aa3c1033db5b85e7d90315b675f1ecc34ded5dc3e1ee"
+        },
+        {
+            "date": 1763269247936,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-11-success.log",
+            "hash": "76bb4adadd4619a4a2f1ba91afe0ff761c79fc5eb420817e479e3bfad73a9e9f"
+        },
+        {
+            "date": 1763274714768,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-12-success.log",
+            "hash": "d71808827cea926c6122599b0d5c6bb4dd3286c5028205236250e6d3b879db0c"
+        },
+        {
+            "date": 1763276457762,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-13-success.log",
+            "hash": "0f60715585c70856219cace799fc02aa52d91eea0ef72da6d21834bce8ea3aeb"
+        },
+        {
+            "date": 1763280058191,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-14-success.log",
+            "hash": "80514ac14a66bb62c0e82f3b52c1f1eba63b590ee369caac541f91bba5e4ca7a"
+        },
+        {
+            "date": 1763283657088,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-15-success.log",
+            "hash": "bd6eb01153ffdc343cb801b90ca9a2d12f5bf8493d122dd72de7907f44af6815"
+        },
+        {
+            "date": 1763287205193,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-16-success.log",
+            "hash": "ab17fa98cbe7c8710c2fc06f19750040dda576db246881d58c3f9d9ecdbbc1ca"
+        },
+        {
+            "date": 1763290805626,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-17-success.log",
+            "hash": "f570b5ca867298227d49ba47c6489f567c7d696240314054ec1d47bb9968a36e"
+        },
+        {
+            "date": 1763294406061,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-18-success.log",
+            "hash": "89bbbacc01d0627714b9eb956415dbc52876d682b1b4d12769de778b1aea79d7"
+        },
+        {
+            "date": 1763298006274,
+            "name": "C:\\Users\\Rakibur Rahman\\Desktop\\backend-templete\\winston\\success\\16-11-2025-19-success.log",
+            "hash": "9a77174863c56f7af2aee3928bbe83f2dd4eae9d05ad2cb83af98eb0422c9fbf"
+        }
+    ],
+    "hashType": "sha256"
 }

@@ -23,12 +23,10 @@ A comprehensive Node.js API template with professional OAuth authentication impl
 ## OAuth Implementation
 
 ### Supported Providers
-
 - **Google OAuth 2.0**: Full Google login integration
 - **Facebook OAuth**: Facebook login integration
 
 ### OAuth Flow
-
 1. User clicks OAuth login button
 2. Redirected to provider (Google/Facebook)
 3. User authenticates with provider
@@ -37,7 +35,6 @@ A comprehensive Node.js API template with professional OAuth authentication impl
 6. User is redirected to frontend with tokens
 
 ### OAuth Routes
-
 ```
 GET /api/v1/auth/google          - Initiate Google OAuth
 GET /api/v1/auth/google/callback - Google OAuth callback
@@ -120,8 +117,8 @@ REDIS_MAX_MEMORY_POLICY=allkeys-lru
 4. Go to Credentials → Create Credentials → OAuth 2.0 Client ID
 5. Set Application Type to "Web application"
 6. Add authorized redirect URIs:
-     - `http://localhost:5000/api/v1/auth/google/callback` (development)
-     - `https://yourdomain.com/api/v1/auth/google/callback` (production)
+   - `http://localhost:5000/api/v1/auth/google/callback` (development)
+   - `https://yourdomain.com/api/v1/auth/google/callback` (production)
 7. Copy Client ID and Client Secret to your `.env` file
 
 ### Facebook OAuth Setup
@@ -130,7 +127,7 @@ REDIS_MAX_MEMORY_POLICY=allkeys-lru
 2. Create a new app
 3. Add Facebook Login product
 4. Configure OAuth settings:
-     - Valid OAuth Redirect URIs: `http://localhost:5000/api/v1/auth/facebook/callback`
+   - Valid OAuth Redirect URIs: `http://localhost:5000/api/v1/auth/facebook/callback`
 5. Copy App ID and App Secret to your `.env` file
 
 ## Installation
@@ -152,7 +149,6 @@ npm start
 ## API Endpoints
 
 ### Authentication
-
 ```
 POST /api/v1/auth/login              - User login
 POST /api/v1/auth/verify-email       - Verify email with OTP
@@ -164,7 +160,6 @@ POST /api/v1/auth/resend-otp         - Resend OTP
 ```
 
 ### OAuth Authentication
-
 ```
 GET /api/v1/auth/google              - Google OAuth login
 GET /api/v1/auth/google/callback     - Google OAuth callback
@@ -173,7 +168,6 @@ GET /api/v1/auth/facebook/callback   - Facebook OAuth callback
 ```
 
 ### User Management
-
 ```
 GET /api/v1/users/profile            - Get user profile
 PATCH /api/v1/users/profile          - Update user profile
@@ -181,7 +175,6 @@ POST /api/v1/users                   - Create new user
 ```
 
 ### Redis Management (Admin Only)
-
 ```
 GET /api/v1/redis/health             - Redis health status
 GET /api/v1/redis/metrics            - Redis performance metrics
@@ -196,26 +189,26 @@ GET /api/v1/redis/prometheus         - Prometheus metrics
 
 ```typescript
 interface IUser {
-     name: string;
-     role: USER_ROLES;
-     email: string;
-     password?: string; // Optional for OAuth users
-     image?: string;
-     status: 'active' | 'blocked';
-     verified: boolean;
-     isDeleted: boolean;
-     stripeCustomerId: string;
-
-     // OAuth fields
-     googleId?: string;
-     facebookId?: string;
-     oauthProvider?: 'google' | 'facebook';
-
-     authentication?: {
-          isResetPassword: boolean;
-          oneTimeCode: number;
-          expireAt: Date;
-     };
+  name: string;
+  role: USER_ROLES;
+  email: string;
+  password?: string; // Optional for OAuth users
+  image?: string;
+  status: 'active' | 'blocked';
+  verified: boolean;
+  isDeleted: boolean;
+  stripeCustomerId: string;
+  
+  // OAuth fields
+  googleId?: string;
+  facebookId?: string;
+  oauthProvider?: 'google' | 'facebook';
+  
+  authentication?: {
+    isResetPassword: boolean;
+    oneTimeCode: number;
+    expireAt: Date;
+  };
 }
 ```
 
@@ -285,39 +278,48 @@ const cachedUser = await redisCacheService.get('user:123');
 await redisCacheService.delete('user:123');
 
 // Cache-first pattern
-const user = await redisCacheService.getOrSet('user:123', () => User.findById(123), { ttl: 300 });
+const user = await redisCacheService.getOrSet(
+  'user:123',
+  () => User.findById(123),
+  { ttl: 300 }
+);
 ```
 
 #### Using Redis Helpers
 
 ```typescript
-import { cacheFirstQuery, cacheUserData, invalidateEntityCache, checkRateLimit } from '../helpers/redisHelper';
+import { 
+  cacheFirstQuery, 
+  cacheUserData, 
+  invalidateEntityCache,
+  checkRateLimit 
+} from '../helpers/redisHelper';
 
 // Cache database queries
 const users = await cacheFirstQuery(
-     'users:all',
-     () => User.find(),
-     600, // 10 minutes TTL
+  'users:all',
+  () => User.find(),
+  600 // 10 minutes TTL
 );
 
 // Cache user-specific data
 const userProfile = await cacheUserData(
-     userId,
-     'profile',
-     () => getUserProfile(userId),
-     300, // 5 minutes TTL
+  userId,
+  'profile',
+  () => getUserProfile(userId),
+  300 // 5 minutes TTL
 );
 
 // Rate limiting
 const rateLimit = await checkRateLimit(
-     'api',
-     userId,
-     100, // 100 requests
-     3600, // per hour
+  'api',
+  userId,
+  100,  // 100 requests
+  3600  // per hour
 );
 
 if (!rateLimit.allowed) {
-     throw new Error('Rate limit exceeded');
+  throw new Error('Rate limit exceeded');
 }
 
 // Invalidate cache after updates
@@ -327,22 +329,30 @@ await invalidateEntityCache('user', userId);
 #### Middleware Usage
 
 ```typescript
-import { cacheGetRequest, invalidateAfterMutation } from '../helpers/redisHelper';
+import { 
+  cacheGetRequest, 
+  invalidateAfterMutation 
+} from '../helpers/redisHelper';
 
 // Cache GET requests
-router.get('/users', cacheGetRequest({ ttl: 300 }), UserController.getUsers);
-
-// Auto-invalidate cache after mutations
-router.post(
-     '/users',
-     invalidateAfterMutation('user', 'create', {
-          invalidatePatterns: ['users:*'],
-          invalidateRelated: ['stats'],
-     }),
-     UserController.createUser,
+router.get('/users', 
+  cacheGetRequest({ ttl: 300 }), 
+  UserController.getUsers
 );
 
-router.put('/users/:id', invalidateAfterMutation('user', 'update'), UserController.updateUser);
+// Auto-invalidate cache after mutations
+router.post('/users', 
+  invalidateAfterMutation('user', 'create', {
+    invalidatePatterns: ['users:*'],
+    invalidateRelated: ['stats']
+  }), 
+  UserController.createUser
+);
+
+router.put('/users/:id', 
+  invalidateAfterMutation('user', 'update'), 
+  UserController.updateUser
+);
 ```
 
 ### Redis Monitoring
@@ -350,46 +360,41 @@ router.put('/users/:id', invalidateAfterMutation('user', 'update'), UserControll
 The template includes comprehensive Redis monitoring:
 
 #### Health Check
-
 ```bash
 GET /api/v1/redis/health
 ```
 
 Response:
-
 ```json
 {
-     "success": true,
-     "data": {
-          "redis": {
-               "connected": true,
-               "healthCheck": true,
-               "status": "healthy"
-          },
-          "metrics": {
-               "uptime": 86400,
-               "connectedClients": 5,
-               "usedMemory": 1048576,
-               "hitRatio": 85.5
-          }
-     }
+  "success": true,
+  "data": {
+    "redis": {
+      "connected": true,
+      "healthCheck": true,
+      "status": "healthy"
+    },
+    "metrics": {
+      "uptime": 86400,
+      "connectedClients": 5,
+      "usedMemory": 1048576,
+      "hitRatio": 85.5
+    }
+  }
 }
 ```
 
 #### Performance Metrics
-
 ```bash
 GET /api/v1/redis/metrics
 ```
 
 #### Cache Statistics
-
 ```bash
 GET /api/v1/redis/stats
 ```
 
 #### Prometheus Integration
-
 ```bash
 GET /api/v1/redis/prometheus
 ```
@@ -397,42 +402,37 @@ GET /api/v1/redis/prometheus
 ### Best Practices
 
 1. **Use appropriate TTL values**:
-
-     - User sessions: 1-24 hours
-     - API responses: 5-15 minutes
-     - Database queries: 10-60 minutes
-     - Static content: 1-24 hours
+   - User sessions: 1-24 hours
+   - API responses: 5-15 minutes
+   - Database queries: 10-60 minutes
+   - Static content: 1-24 hours
 
 2. **Implement cache invalidation**:
-
-     - Use middleware for automatic invalidation
-     - Invalidate related caches when data changes
-     - Use patterns for bulk invalidation
+   - Use middleware for automatic invalidation
+   - Invalidate related caches when data changes
+   - Use patterns for bulk invalidation
 
 3. **Monitor Redis performance**:
-
-     - Check hit ratios regularly
-     - Monitor memory usage
-     - Watch for slow queries
-     - Set up alerts for critical metrics
+   - Check hit ratios regularly
+   - Monitor memory usage
+   - Watch for slow queries
+   - Set up alerts for critical metrics
 
 4. **Security considerations**:
-
-     - Use strong Redis passwords
-     - Restrict network access
-     - Enable SSL/TLS in production
-     - Regularly update Redis version
+   - Use strong Redis passwords
+   - Restrict network access
+   - Enable SSL/TLS in production
+   - Regularly update Redis version
 
 5. **Error handling**:
-     - Always handle Redis failures gracefully
-     - Implement fallback mechanisms
-     - Log Redis errors for monitoring
-     - Use circuit breakers for resilience
+   - Always handle Redis failures gracefully
+   - Implement fallback mechanisms
+   - Log Redis errors for monitoring
+   - Use circuit breakers for resilience
 
 ### Redis Setup
 
 #### Local Development
-
 ```bash
 # Install Redis
 sudo apt-get install redis-server  # Ubuntu/Debian
@@ -446,7 +446,6 @@ redis-cli ping
 ```
 
 #### Production Setup
-
 ```bash
 # Configure Redis persistence
 echo "appendonly yes" >> /etc/redis/redis.conf
@@ -467,32 +466,28 @@ sudo systemctl restart redis
 #### Common Issues
 
 1. **Connection refused**:
-
-     - Check if Redis server is running
-     - Verify host and port configuration
-     - Check firewall settings
+   - Check if Redis server is running
+   - Verify host and port configuration
+   - Check firewall settings
 
 2. **Authentication failed**:
-
-     - Verify Redis password
-     - Check username (Redis 6+)
-     - Ensure proper ACL configuration
+   - Verify Redis password
+   - Check username (Redis 6+)
+   - Ensure proper ACL configuration
 
 3. **High memory usage**:
-
-     - Check TTL settings
-     - Monitor key expiration
-     - Adjust memory policy
-     - Consider data compression
+   - Check TTL settings
+   - Monitor key expiration
+   - Adjust memory policy
+   - Consider data compression
 
 4. **Low hit ratio**:
-     - Review caching strategy
-     - Adjust TTL values
-     - Check cache invalidation logic
-     - Monitor access patterns
+   - Review caching strategy
+   - Adjust TTL values
+   - Check cache invalidation logic
+   - Monitor access patterns
 
 #### Debug Commands
-
 ```bash
 # Check Redis info
 redis-cli info
@@ -511,33 +506,32 @@ redis-cli --bigkeys
 
 ```typescript
 interface IUser {
-     name: string;
-     role: USER_ROLES;
-     email: string;
-     password?: string; // Optional for OAuth users
-     image?: string;
-     status: 'active' | 'blocked';
-     verified: boolean;
-     isDeleted: boolean;
-     stripeCustomerId: string;
-
-     // OAuth fields
-     googleId?: string;
-     facebookId?: string;
-     oauthProvider?: 'google' | 'facebook';
-
-     authentication?: {
-          isResetPassword: boolean;
-          oneTimeCode: number;
-          expireAt: Date;
-     };
+  name: string;
+  role: USER_ROLES;
+  email: string;
+  password?: string; // Optional for OAuth users
+  image?: string;
+  status: 'active' | 'blocked';
+  verified: boolean;
+  isDeleted: boolean;
+  stripeCustomerId: string;
+  
+  // OAuth fields
+  googleId?: string;
+  facebookId?: string;
+  oauthProvider?: 'google' | 'facebook';
+  
+  authentication?: {
+    isResetPassword: boolean;
+    oneTimeCode: number;
+    expireAt: Date;
+  };
 }
 ```
 
 ## OAuth User Flow
 
 ### New OAuth User
-
 1. User clicks "Login with Google/Facebook"
 2. OAuth provider authenticates user
 3. System checks if user exists by OAuth ID
@@ -548,14 +542,12 @@ interface IUser {
 8. JWT tokens are generated and returned
 
 ### Existing OAuth User
-
 1. User clicks "Login with Google/Facebook"
 2. OAuth provider authenticates user
 3. System finds user by OAuth ID
 4. User is logged in with JWT tokens
 
 ### Mixed Authentication
-
 - Users can link multiple OAuth providers to same email
 - System prevents duplicate accounts
 - OAuth users are auto-verified
@@ -837,4 +829,3 @@ npx ts-node-dev --transpile-only src/server.ts
   "lint:fix": "eslint src/**/*.ts --fix",                           # Fixes code style issues automatically
   "format": "prettier . --write"                                    # Formats code consistently with Prettier
 }
-```

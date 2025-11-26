@@ -4,7 +4,11 @@ export type IChat = {
      participants: Types.ObjectId[];
      lastMessage: Types.ObjectId;
      read: boolean;
-     deletedBy: [Types.ObjectId];
+     deletedByDetails: {
+          userId: Types.ObjectId;
+          deletedAt: Date;
+     }[];
+     lastMessageAt: Date;
      isDeleted: boolean;
      status: 'active' | 'deleted';
      readBy: Types.ObjectId[];
@@ -16,5 +20,8 @@ export type IChat = {
           blocked: Types.ObjectId;
           blockedAt: Date;
      }[];
-     pinnedMessages: Types.ObjectId[]; // Pinned message IDs
+     userPinnedMessages: {
+          userId: Types.ObjectId;
+          pinnedMessages: Types.ObjectId[];
+     }[];
 };

@@ -8,8 +8,14 @@ import { IUser } from './user.interface';
 import { User } from './user.model';
 import AppError from '../../../errors/AppError';
 import generateOTP from '../../../utils/generateOTP';
+import { EmailQueueHelper } from '../../../helpers/bullMQ/bullHelper';
+import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
+
+const userCache = createCacheHelper('user');
+
 // create user
 const createUserToDB = async (payload: IUser): Promise<IUser> => {
+
      //set role
      const user = await User.isExistUserByEmail(payload.email);
      if (user) {
@@ -23,13 +29,14 @@ const createUserToDB = async (payload: IUser): Promise<IUser> => {
 
      //send email
      const otp = generateOTP(4);
-     const values = {
-          name: createUser.name,
-          otp: otp,
-          email: createUser.email!,
-     };
-     const createAccountTemplate = emailTemplate.createAccount(values);
-     emailHelper.sendEmail(createAccountTemplate);
+     // const values = {
+     //      name: createUser.name,
+     //      otp: otp,
+     //      email: createUser.email!,
+     // };
+     // const createAccountTemplate = emailTemplate.createAccount(values);
+     // emailHelper.sendEmail(createAccountTemplate);
+     await EmailQueueHelper.sendWelcomeEmail(createUser.email!, createUser.name, otp);
 
      //save to DB
      const authentication = {
@@ -37,9 +44,11 @@ const createUserToDB = async (payload: IUser): Promise<IUser> => {
           expireAt: new Date(Date.now() + 3 * 60000),
      };
      await User.findOneAndUpdate({ _id: createUser._id }, { $set: { authentication } });
-
+     await userCache.clearLists();
      return createUser;
 };
+
+
 
 // create Admin
 const createAdminToDB = async (payload: Partial<IUser>): Promise<IUser> => {
@@ -65,20 +74,24 @@ const createAdminToDB = async (payload: Partial<IUser>): Promise<IUser> => {
           oneTimeCode: otp,
           expireAt: new Date(Date.now() + 3 * 60000),
      };
-     await User.findOneAndUpdate({ _id: createAdmin._id }, { $set: { authentication } });
-
+     await User.findOneAndUpdate(
+          { _id: createAdmin._id },
+          { $set: { authentication } }
+     );
+     await userCache.clearLists();
      return createAdmin;
 };
 
 // get user profile
 const getUserProfileFromDB = async (user: JwtPayload): Promise<Partial<IUser>> => {
-     const { id } = user;
-     const isExistUser = await User.isExistUserById(id);
-     if (!isExistUser) {
-          throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
-     }
-
-     return isExistUser;
+     return await userCache.wrapSingle(user.id, async () => {
+          const { id } = user;
+          const isExistUser = await User.isExistUserById(id);
+          if (!isExistUser) {
+               throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+          }
+          return isExistUser;
+     }, CACHE_TTL.MEDIUM)
 };
 
 // update user profile
@@ -90,14 +103,14 @@ const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Pro
      }
 
      //unlink file here
-     if (payload.image) {
+     if (payload.image && isExistUser.image) {
           unlinkFile(isExistUser.image);
      }
 
      const updateDoc = await User.findOneAndUpdate({ _id: id }, payload, {
           new: true,
      });
-
+     await userCache.clearAfterUpdate(id);
      return updateDoc;
 };
 
@@ -119,7 +132,7 @@ const deleteUser = async (id: string) => {
      await User.findByIdAndUpdate(id, {
           $set: { isDeleted: true },
      });
-
+     await userCache.clearAfterUpdate(id);
      return true;
 };
 
@@ -160,7 +173,7 @@ const findAllUsers = async (page: number = 1, limit: number = 10) => {
           total,
           page,
           limit,
-          totalPages: Math.ceil(total / limit),
+          totalPages: Math.ceil(total / limit)
      };
 };
 
@@ -179,7 +192,7 @@ const findUsersByRole = async (role: USER_ROLES, page: number = 1, limit: number
           total,
           page,
           limit,
-          totalPages: Math.ceil(total / limit),
+          totalPages: Math.ceil(total / limit)
      };
 };
 
@@ -187,7 +200,7 @@ const findUsersByRole = async (role: USER_ROLES, page: number = 1, limit: number
 const findOAuthUsers = async (provider?: 'google' | 'facebook') => {
      const query = {
           oauthProvider: { $exists: true, $ne: null },
-          isDeleted: { $ne: true },
+          isDeleted: { $ne: true }
      };
 
      if (provider) {
@@ -201,7 +214,7 @@ const findOAuthUsers = async (provider?: 'google' | 'facebook') => {
 const findLocalUsers = async () => {
      return await User.find({
           oauthProvider: { $exists: false },
-          isDeleted: { $ne: true },
+          isDeleted: { $ne: true }
      }).select('-password');
 };
 
@@ -211,16 +224,22 @@ const searchUsers = async (searchTerm: string, page: number = 1, limit: number =
      const regex = new RegExp(searchTerm, 'i');
 
      const users = await User.find({
-          $or: [{ name: regex }, { email: regex }],
-          isDeleted: { $ne: true },
+          $or: [
+               { name: regex },
+               { email: regex }
+          ],
+          isDeleted: { $ne: true }
      })
           .skip(skip)
           .limit(limit)
           .select('-password');
 
      const total = await User.countDocuments({
-          $or: [{ name: regex }, { email: regex }],
-          isDeleted: { $ne: true },
+          $or: [
+               { name: regex },
+               { email: regex }
+          ],
+          isDeleted: { $ne: true }
      });
 
      return {
@@ -228,7 +247,7 @@ const searchUsers = async (searchTerm: string, page: number = 1, limit: number =
           total,
           page,
           limit,
-          totalPages: Math.ceil(total / limit),
+          totalPages: Math.ceil(total / limit)
      };
 };
 
@@ -239,7 +258,7 @@ const getUserStats = async () => {
      const facebookUsers = await User.countDocuments({ facebookId: { $exists: true, $ne: null } });
      const localUsers = await User.countDocuments({
           oauthProvider: { $exists: false },
-          isDeleted: { $ne: true },
+          isDeleted: { $ne: true }
      });
      const verifiedUsers = await User.countDocuments({ verified: true, isDeleted: { $ne: true } });
      const blockedUsers = await User.countDocuments({ status: 'blocked', isDeleted: { $ne: true } });
@@ -250,7 +269,7 @@ const getUserStats = async () => {
           facebookUsers,
           localUsers,
           verifiedUsers,
-          blockedUsers,
+          blockedUsers
      };
 };
 
@@ -263,7 +282,7 @@ const linkOAuthAccount = async (userId: string, provider: 'google' | 'facebook',
 
      const updateData: any = {
           oauthProvider: provider,
-          verified: true,
+          verified: true
      };
 
      if (provider === 'google') {

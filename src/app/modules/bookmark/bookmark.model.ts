@@ -23,6 +23,7 @@ const bookmarkSchema = new Schema<IBookmark>(
 
 export const Bookmark = model<IBookmark>('Bookmark', bookmarkSchema);
 
+
 // {
 //   "referenceId": "60d5f1d0d4b7b13992b0f92a",
 //   "referenceType": "video"

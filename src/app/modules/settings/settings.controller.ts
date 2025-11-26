@@ -14,7 +14,7 @@ const addSetting = catchAsync(async (req, res) => {
 });
 
 const getSettings = catchAsync(async (req, res): Promise<void> => {
-     const result = await settingsService.getSettings(req.query.title as string);
+     const result = await settingsService.getSettings(req.query.key as string);
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,
@@ -22,7 +22,6 @@ const getSettings = catchAsync(async (req, res): Promise<void> => {
           data: result,
      });
 });
-
 const getPrivacyPolicy = catchAsync(async (req, res): Promise<void> => {
      const result = await settingsService.getPrivacyPolicy();
      sendResponse(res, {

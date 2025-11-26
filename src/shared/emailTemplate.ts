@@ -1,10 +1,10 @@
-import { IContact, ICreateAccount, IHelpContact, IResetPassword, IResetPasswordByEmail } from '../types/emailTemplate';
+import { IBlockAccount, IContact, ICreateAccount, IHelpContact, IHelpReplay, IResetPassword, IResetPasswordByEmail } from '../types/emailTemplate';
 
 const createAccount = (values: ICreateAccount) => {
-     const data = {
-          to: values.email,
-          subject: 'Verify your account',
-          html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
+    const data = {
+        to: values.email,
+        subject: 'Verify your account',
+        html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
     <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: center;">
         <img src="https://i.postimg.cc/6pgNvKhD/logo.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
           <h2 style="color: #277E16; font-size: 24px; margin-bottom: 20px;">Hey! ${values.name}, Your Account Credentials</h2>
@@ -15,14 +15,14 @@ const createAccount = (values: ICreateAccount) => {
         </div>
     </div>
 </body>`,
-     };
-     return data;
+    };
+    return data;
 };
 const contact = (values: IContact) => {
-     const data = {
-          to: values.email,
-          subject: 'We’ve Received Your Message – Thank You!',
-          html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">      
+    const data = {
+        to: values.email,
+        subject: 'We’ve Received Your Message – Thank You!',
+        html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">      
       <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
           <img src="https://res.cloudinary.com/ddhhyc6mr/image/upload/v1742293522/buzzy-box-logo.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
           <h2 style="color: #277E16; font-size: 24px; margin-bottom: 20px; text-align: center;">Thank You for Contacting Us, ${values.name}!</h2>
@@ -51,14 +51,14 @@ const contact = (values: IContact) => {
           </p>
       </div>
   </body>`,
-     };
-     return data;
+    };
+    return data;
 };
 const resetPassword = (values: IResetPassword) => {
-     const data = {
-          to: values.email,
-          subject: 'Reset your password',
-          html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
+    const data = {
+        to: values.email,
+        subject: 'Reset your password',
+        html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
     <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
         <img src="https://i.postimg.cc/6pgNvKhD/logo.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
         <div style="text-align: center;">
@@ -69,14 +69,14 @@ const resetPassword = (values: IResetPassword) => {
         </div>
     </div>
 </body>`,
-     };
-     return data;
+    };
+    return data;
 };
 const resetPasswordByUrl = (values: IResetPasswordByEmail) => {
-     const data = {
-          to: values.email,
-          subject: 'Reset Your Password',
-          html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
+    const data = {
+        to: values.email,
+        subject: 'Reset Your Password',
+        html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
       <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
         <img src="https://i.postimg.cc/6pgNvKhD/logo.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
         <div style="text-align: center;">
@@ -88,15 +88,15 @@ const resetPasswordByUrl = (values: IResetPasswordByEmail) => {
         </div>
       </div>
     </body>`,
-     };
-     return data;
+    };
+    return data;
 };
 
 const contactFormTemplate = (values: IHelpContact) => {
-     const data = {
-          to: values.email,
-          subject: 'Thank you for reaching out to us',
-          html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
+    const data = {
+        to: values.email,
+        subject: 'Thank you for reaching out to us',
+        html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
     <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
         <img src="https://i.postimg.cc/6pgNvKhD/logo.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
         <div style="text-align: center;">
@@ -112,14 +112,75 @@ const contactFormTemplate = (values: IHelpContact) => {
         </div>
     </div>
 </body>`,
-     };
-     return data;
+    };
+    return data;
 };
+const helpReplyTemplate = (values: IHelpReplay, adminMessage: string) => {
+    const data = {
+        to: values.email,
+        subject: 'Response to Your Help Request',
+        html: `<body style="font-family: 'Roboto', sans-serif; background-color: #f3f3f3; margin: 0; padding: 0; color: #333;">
+  <div style="max-width: 650px; margin: 40px auto; background-color: #fff; border-radius: 8px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); padding: 25px; color: #333;">
+    <img src="https://res.cloudinary.com/dreiyzj42/image/upload/v1762927212/sundarbanila_hp4s7g.png" alt="Logo" style="display: block; margin: 0 auto 20px; width: 150px;" />
+    
+    <div style="text-align: left; padding: 0 20px;">
+      <p style="font-size: 18px; color: #555; line-height: 1.6; margin-bottom: 15px;">Hello ${values.name},</p>
+      <p style="font-size: 16px; color: #555; line-height: 1.7; margin-bottom: 20px;">Thank you for reaching out! We’ve received your message and our team is working on it. Below are the details:</p>
 
+      <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196F3;">
+        <p style="font-size: 16px; color: #333; font-weight: bold; margin-bottom: 10px;">Your Message:</p>
+        <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 20px;">"${values.message}"</p>
+      </div>
+
+      <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #388e3c;">
+        <p style="font-size: 16px; color: #333; font-weight: bold; margin-bottom: 10px;">Our Response:</p>
+        <p style="font-size: 16px; color: #388e3c; line-height: 1.6;">"${adminMessage}"</p>
+      </div>
+
+      <p style="font-size: 16px; color: #555; line-height: 1.7; margin-bottom: 20px;">If you have further questions or need additional assistance, feel free to reach out. We're here to help.</p>
+      
+      <div style="border-top: 1px solid #f1f1f1; padding-top: 20px; text-align: center;">
+        <p style="font-size: 14px; color: #888;">Best regards,</p>
+        <p style="font-size: 16px; font-weight: bold; color: #333;">Support Team</p>
+        <p style="font-size: 14px; color: #888;">Company Name | <a href="https://www.companywebsite.com" style="color: #2196F3; text-decoration: none;">www.companywebsite.com</a></p>
+      </div>
+    </div>
+  </div>
+</body>`,
+    };
+    return data;
+};
+const blockAccountTemplate = (values: IBlockAccount) => {
+  const data = {
+    to: values.email,
+    subject: 'Account Blocked Notification',
+    html: `<body style="font-family: 'Roboto', sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; color: #333;">
+  <div style="max-width: 650px; margin: 40px auto; background-color: #fff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); padding: 30px; color: #333;">
+    <img src="https://res.cloudinary.com/dreiyzj42/image/upload/v1762927212/sundarbanila_hp4s7g.png" alt="Logo" style="display: block; margin: 0 auto 25px; width: 160px;" />
+    
+    <div style="text-align: left; padding: 0 20px;">
+      <p style="font-size: 20px; color: #444; line-height: 1.6; margin-bottom: 15px;">Hello ${values.name},</p>
+      <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 25px;">We regret to inform you that your account has been blocked due to a violation of our Terms of Service. Please find the details below:</p>
+      
+      <p style="font-size: 16px; color: #555; line-height: 1.7; margin-bottom: 25px;">If you believe this action was taken in error or wish to appeal the decision, please feel free to reach out to us. We're happy to assist you further.</p>
+      
+      <div style="border-top: 2px solid #f1f1f1; padding-top: 30px; text-align: center;">
+        <p style="font-size: 14px; color: #888; margin: 0;">Best regards,</p>
+        <p style="font-size: 16px; font-weight: bold; color: #333;">Support Team</p>
+        <p style="font-size: 14px; color: #888; margin-top: 5px;">Company Name | <a href="https://www.companywebsite.com" style="color: #2196F3; text-decoration: none;">www.companywebsite.com</a></p>
+      </div>
+    </div>
+  </div>
+</body>`,
+  };
+  return data;
+};
 export const emailTemplate = {
-     createAccount,
-     resetPassword,
-     resetPasswordByUrl,
-     contactFormTemplate,
-     contact,
+    createAccount,
+    resetPassword,
+    resetPasswordByUrl,
+    contactFormTemplate,
+    contact,
+    helpReplyTemplate,
+    blockAccountTemplate,
 };

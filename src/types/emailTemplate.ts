@@ -16,7 +16,7 @@ export interface IHelpContact {
      name: string;
      email: string;
      phone?: string;
-     read: boolean;
+     read?: boolean;
      message: string;
 }
 export type IContact = {
@@ -24,4 +24,13 @@ export type IContact = {
      email: string;
      subject: string;
      message: string;
+};
+export interface IHelpReplay {
+     name: string;
+     email: string;
+     message: string;
+}
+export type IBlockAccount = {
+     name: string;
+     email: string;
 };

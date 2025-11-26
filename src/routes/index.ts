@@ -2,8 +2,7 @@ import express from 'express';
 import { UserRouter } from '../app/modules/user/user.route';
 import { AuthRouter } from '../app/modules/auth/auth.route';
 import SettingsRouter from '../app/modules/settings/settings.route';
-import { UserManagementsRouter } from '../app/modules/userManagements/userManagements.router';
-import { DramaManagementRoutes } from '../app/modules/dramaManagement/dramaManagement.route';
+import { AdminRoutes } from '../app/modules/admin/admin.route';
 
 const router = express.Router();
 const routes = [
@@ -20,12 +19,8 @@ const routes = [
           route: SettingsRouter,
      },
      {
-          path: '/user-managements',
-          route: UserManagementsRouter,
-     },
-     {
-          path: '/drama-managements',
-          route: DramaManagementRoutes,
+          path: '/admin',
+          route: AdminRoutes,
      }
 ];
 
