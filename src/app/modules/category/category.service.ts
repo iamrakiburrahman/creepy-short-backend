@@ -6,15 +6,13 @@ import AppError from '../../../errors/AppError';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 const categoryCache = createCacheHelper('category');
 const createCategoryToDB = async (payload: ICategory) => {
-     const { name, image } = payload;
+     const { name } = payload;
      const isExistName = await Category.findOne({ name: name });
      if (isExistName) {
-          unlinkFile(image);
           throw new AppError(StatusCodes.NOT_ACCEPTABLE, 'This Category Name Already Exist');
      }
      const createCategory: any = await Category.create(payload);
      if (!createCategory) {
-          unlinkFile(image);
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Category');
      }
      await categoryCache.clearLists();
@@ -36,11 +34,6 @@ const updateCategoryToDB = async (id: string, payload: ICategory) => {
      if (!isExistCategory) {
           throw new AppError(StatusCodes.BAD_REQUEST, "Category doesn't exist");
      }
-
-     if (payload.image) {
-          unlinkFile(isExistCategory?.image);
-     }
-
      const updateCategory = await Category.findOneAndUpdate({ _id: id }, payload, {
           new: true,
      });
