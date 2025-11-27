@@ -5,6 +5,8 @@ import { JwtPayload } from 'jsonwebtoken';
 
 import { Types } from 'mongoose';
 import AppError from '../../../errors/AppError';
+import axios from 'axios';
+import config from '../../../config';
 
 const createTrailer = async (user: JwtPayload, payload: ITrailer): Promise<ITrailer> => {
      try {
@@ -103,8 +105,8 @@ const uploadThumbnail = async (payload: { thumbnailUrl: string }) => {
      console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
      return thumbnailUrl;
 };
-const saveVideoMetadata = async (id: string, payload: IVideo) => {
-     const { videoId, title, description, thumbnailUrl, duration, equipment } = payload;
+const saveVideoMetadata = async (id: string, payload: ITrailer) => {
+     const { videoId, title, description, thumbnailUrl, duration } = payload;
 
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
@@ -112,12 +114,12 @@ const saveVideoMetadata = async (id: string, payload: IVideo) => {
 
      console.log('💾 Saving video metadata for:', videoId);
 
-     const libraryId = config.bunnyCDN.stream_library_id as string;;
+     const libraryId = config.bunnyCDN.stream_library_id as string;
 
      // Generate secure URLs
      // const secureUrls = getSecureVideoUrl(videoId, libraryId);
 
-     const video = await VideoLibrary.create({
+     const video = await Trailer.create({
           videoId,
           libraryId,
           title: title || 'Untitled Video',
@@ -126,13 +128,53 @@ const saveVideoMetadata = async (id: string, payload: IVideo) => {
           thumbnailUrl: thumbnailUrl,
           status: 'processing',
           duration: duration || 0,
-          equipment: equipment || [],
           uploadedBy: new Types.ObjectId(id),
           uploadedAt: new Date(),
      });
 
      console.log('✅ Video metadata saved successfully');
      return video;
+};
+const generateUploadUrl = async (payload: { title?: string; fileName: string }) => {
+     const { title, fileName } = payload;
+
+     if (!fileName) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'File name is required');
+     }
+
+     console.log('🎬 Creating video object for:', title || fileName);
+
+     const createResponse = await axios.post(
+          `https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos`,
+          {
+               title: title || fileName,
+          },
+          {
+               headers: {
+                    'AccessKey': config.bunnyCDN.stream_api_key,
+                    'Content-Type': 'application/json',
+               },
+          },
+     );
+
+     const videoId = createResponse.data.guid;
+     const libraryId = config.bunnyCDN.stream_library_id as string;
+
+     console.log('✅ Video object created with ID:', videoId);
+
+     const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
+     const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
+     // // Generate secure embed URL with token
+     // const secureUrls = getSecureVideoUrl(videoId, libraryId);
+     // Step 2: Generate upload URL
+
+     return {
+          videoId,
+          uploadUrl,
+          apiKey: config.bunnyCDN.stream_api_key,
+          embedUrl,
+          libraryId,
+     };
 };
 export const TrailerServices = {
      createTrailer,

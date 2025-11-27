@@ -33,6 +33,7 @@
           "@types/bcrypt": "^5.0.2",
           "@types/express-session": "^1.18.2",
           "@unknow69/leo-generator": "^1.3.1",
+          "axios": "^1.13.2",
           "bcrypt": "^5.1.1",
           "bullmq": "^5.63.1",
           "colors": "^1.4.0",

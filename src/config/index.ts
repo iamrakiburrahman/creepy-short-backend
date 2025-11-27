@@ -20,7 +20,7 @@ export default {
           jwt_refresh_expire_in: process.env.JWT_REFRESH_EXPIRE_IN,
      },
      server: {
-          name: process.env.SERVER_NAME
+          name: process.env.SERVER_NAME,
      },
 
      email: {
@@ -57,6 +57,18 @@ export default {
           stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
           stripe_webhook_url: process.env.STRIPE_WEBHOOK_URL,
           stripe_product_id: process.env.STRIPE_PRODUCT_ID,
+     },
+     bunnyCDN: {
+          apiKey: process.env.BUNNY_CDN_API_KEY,
+          storageZone: process.env.BUNNY_CDN_STORAGE_ZONE,
+          hostname: process.env.BUNNY_CDN_STORAGE_HOST_NAME,
+          region: process.env.BUNNY_CDN_STORAGE_ZONE_REGION,
+          pullZoneUrl: process.env.BUNNY_PULL_ZONE_URL,
+          bunny_token: process.env.BUNNY_TOKEN_AUTHENTICATION,
+          stream_api_key: process.env.BUNNY_STREAM_API_KEY,
+          stream_library_id: process.env.BUNNY_STREAM_LIBRARY_ID,
+          stream_cdn_hostname: process.env.BUNNY_STREAM_CDN_HOSTNAME,
+          token_auth_key: process.env.BUNNY_TOKEN_AUTH_KEY,
      },
      super_admin: {
           email: process.env.SUPER_ADMIN_EMAIL,
