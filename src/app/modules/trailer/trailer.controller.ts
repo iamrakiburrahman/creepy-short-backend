@@ -66,6 +66,42 @@ const deleteTrailer = catchAsync(async (req, res) => {
           data: result,
      });
 });
+const generateUploadUrl = catchAsync(async (req, res) => {
+     const result = await TrailerServices.generateUploadUrl(req.body);
+     sendResponse(res, {
+          success: true,
+          statusCode: StatusCodes.OK,
+          message: 'Upload URL generated successfully',
+          data: result,
+     });
+});
+
+const uploadThumbnail = catchAsync(async (req, res) => {
+     const { videoId } = req.params;
+     const { thumbnailUrl } = req.body;
+
+     const result = await TrailerServices.uploadThumbnail(videoId, thumbnailUrl);
+
+     sendResponse(res, {
+          success: true,
+          statusCode: StatusCodes.OK,
+          message: 'Thumbnail uploaded successfully',
+          data: { result },
+     });
+});
+
+const saveVideoMetadata = catchAsync(async (req, res) => {
+     const { id: userId } = req.user as { id: string }; // Assuming you have auth middleware that sets req.user
+
+     const result = await TrailerServices.saveVideoMetadata(userId, req.body);
+
+     sendResponse(res, {
+          success: true,
+          statusCode: StatusCodes.CREATED,
+          message: 'Video metadata saved successfully',
+          data: result,
+     });
+});
 
 export const TrailerController = {
      createTrailer,

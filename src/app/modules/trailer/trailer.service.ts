@@ -72,39 +72,48 @@ const deleteTrailer = async (id: string): Promise<ITrailer> => {
 
      return result;
 };
-const uploadThumbnail = async (payload: { thumbnailUrl: string }) => {
-     const { thumbnailUrl } = payload;
-
-     if (!thumbnailUrl) {
+const uploadThumbnail = async (
+     videoId: string, 
+     thumbnailFile: Express.Multer.File
+) => {
+     if (!thumbnailFile) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
      }
-     // console.log('🖼️ Uploading thumbnail for video:', videoId);
 
-     // await axios.post(
-     //      `https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`,
-     //      thumbnailFile.buffer,
-     //      {
-     //           headers: {
-     //                AccessKey: config.bunnyCDN.stream_api_key,
-     //                "Content-Type": thumbnailFile.mimetype || "image/jpeg",
-     //           },
-     //           maxBodyLength: Infinity,
-     //      }
-     // )
-     // await VideoLibrary.findOneAndUpdate(
-     //      { videoId },
-     //      {
-     //           $set: {
-     //                videoId,
-     //                libraryId: config.bunnyCDN.stream_library_id,
-     //           },
-     //      },
-     //      { upsert: true }
-     // )
-     // const thumbnailUrl = `https://iframe.mediadelivery.net/api/thumbnail/${config.bunnyCDN.stream_library_id}/${videoId}?width=240&height=135&time=1`
+     console.log('🖼️ Uploading thumbnail for video:', videoId);
+
+     // Upload to BunnyCDN
+     await axios.post(
+          `https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`,
+          thumbnailFile.buffer,
+          {
+               headers: {
+                    AccessKey: config.bunnyCDN.stream_api_key,
+                    "Content-Type": thumbnailFile.mimetype || "image/jpeg",
+               },
+               maxBodyLength: Infinity,
+          }
+     );
+
+     // Update database
+     await Trailer.findOneAndUpdate(
+          { videoId },
+          {
+               $set: {
+                    videoId,
+                    libraryId: config.bunnyCDN.stream_library_id,
+               },
+          },
+          { upsert: true }
+     );
+
+     // Generate thumbnail URL
+     const thumbnailUrl = `https://iframe.mediadelivery.net/api/thumbnail/${config.bunnyCDN.stream_library_id}/${videoId}?width=240&height=135&time=1`;
+     
      console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
      return thumbnailUrl;
 };
+
 const saveVideoMetadata = async (id: string, payload: ITrailer) => {
      const { videoId, title, description, thumbnailUrl, duration } = payload;
 
@@ -115,9 +124,6 @@ const saveVideoMetadata = async (id: string, payload: ITrailer) => {
      console.log('💾 Saving video metadata for:', videoId);
 
      const libraryId = config.bunnyCDN.stream_library_id as string;
-
-     // Generate secure URLs
-     // const secureUrls = getSecureVideoUrl(videoId, libraryId);
 
      const video = await Trailer.create({
           videoId,
@@ -135,6 +141,7 @@ const saveVideoMetadata = async (id: string, payload: ITrailer) => {
      console.log('✅ Video metadata saved successfully');
      return video;
 };
+
 const generateUploadUrl = async (payload: { title?: string; fileName: string }) => {
      const { title, fileName } = payload;
 
@@ -146,9 +153,7 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
 
      const createResponse = await axios.post(
           `https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos`,
-          {
-               title: title || fileName,
-          },
+          { title: title || fileName },
           {
                headers: {
                     'AccessKey': config.bunnyCDN.stream_api_key,
@@ -164,9 +169,6 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
 
      const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
      const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
-     // // Generate secure embed URL with token
-     // const secureUrls = getSecureVideoUrl(videoId, libraryId);
-     // Step 2: Generate upload URL
 
      return {
           videoId,
@@ -182,4 +184,7 @@ export const TrailerServices = {
      getSingleTrailer,
      updateTrailer,
      deleteTrailer,
+     generateUploadUrl,
+     uploadThumbnail,
+     saveVideoMetadata,
 };
