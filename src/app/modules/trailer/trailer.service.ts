@@ -1,28 +1,10 @@
 import { StatusCodes } from 'http-status-codes';
 import { ITrailer } from './trailer.interface';
 import { Trailer } from './trailer.model';
-import { JwtPayload } from 'jsonwebtoken';
-
 import { Types } from 'mongoose';
 import AppError from '../../../errors/AppError';
 import axios from 'axios';
 import config from '../../../config';
-
-const createTrailer = async (user: JwtPayload, payload: ITrailer): Promise<ITrailer> => {
-     try {
-          const result = await Trailer.create(payload);
-          if (!result) {
-               throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Trailer, please try again with valid data.');
-          }
-
-          return result;
-     } catch (error: any) {
-          if (error.code === 11000) {
-               throw new AppError(StatusCodes.CONFLICT, 'Duplicate entry found');
-          }
-          throw error;
-     }
-};
 
 const getAllTrailers = async (userId: string) => {};
 
@@ -72,10 +54,7 @@ const deleteTrailer = async (id: string): Promise<ITrailer> => {
 
      return result;
 };
-const uploadThumbnail = async (
-     videoId: string, 
-     thumbnailFile: Express.Multer.File
-) => {
+const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
      if (!thumbnailFile) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
      }
@@ -83,17 +62,13 @@ const uploadThumbnail = async (
      console.log('🖼️ Uploading thumbnail for video:', videoId);
 
      // Upload to BunnyCDN
-     await axios.post(
-          `https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`,
-          thumbnailFile.buffer,
-          {
-               headers: {
-                    AccessKey: config.bunnyCDN.stream_api_key,
-                    "Content-Type": thumbnailFile.mimetype || "image/jpeg",
-               },
-               maxBodyLength: Infinity,
-          }
-     );
+     await axios.post(`https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`, thumbnailFile.buffer, {
+          headers: {
+               'AccessKey': config.bunnyCDN.stream_api_key,
+               'Content-Type': thumbnailFile.mimetype || 'image/jpeg',
+          },
+          maxBodyLength: Infinity,
+     });
 
      // Update database
      await Trailer.findOneAndUpdate(
@@ -104,17 +79,17 @@ const uploadThumbnail = async (
                     libraryId: config.bunnyCDN.stream_library_id,
                },
           },
-          { upsert: true }
+          { upsert: true },
      );
 
      // Generate thumbnail URL
      const thumbnailUrl = `https://iframe.mediadelivery.net/api/thumbnail/${config.bunnyCDN.stream_library_id}/${videoId}?width=240&height=135&time=1`;
-     
+
      console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
      return thumbnailUrl;
 };
 
-const saveVideoMetadata = async (id: string, payload: ITrailer) => {
+const createTrailer = async (id: string, payload: ITrailer) => {
      const { videoId, title, description, thumbnailUrl, duration } = payload;
 
      if (!videoId) {
@@ -186,5 +161,4 @@ export const TrailerServices = {
      deleteTrailer,
      generateUploadUrl,
      uploadThumbnail,
-     saveVideoMetadata,
 };

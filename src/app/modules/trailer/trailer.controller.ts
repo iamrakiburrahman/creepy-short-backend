@@ -2,20 +2,7 @@ import { TrailerServices } from './trailer.service';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
-import pick from '../../../shared/pick';
 
-const createTrailer = catchAsync(async (req, res) => {
-     const trailerData = req.body;
-
-     const result = await TrailerServices.createTrailer(req.user!, trailerData);
-
-     sendResponse(res, {
-          statusCode: StatusCodes.CREATED,
-          success: true,
-          message: 'Trailer created successfully',
-          data: result,
-     });
-});
 
 const updateTrailer = catchAsync(async (req, res) => {
      const { id } = req.params;
@@ -90,26 +77,25 @@ const uploadThumbnail = catchAsync(async (req, res) => {
      });
 });
 
-const saveVideoMetadata = catchAsync(async (req, res) => {
+const createTrailer = catchAsync(async (req, res) => {
      const { id: userId } = req.user as { id: string }; // Assuming you have auth middleware that sets req.user
 
-     const result = await TrailerServices.saveVideoMetadata(userId, req.body);
+     const result = await TrailerServices.createTrailer(userId, req.body);
 
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.CREATED,
-          message: 'Video metadata saved successfully',
+          message: 'Trailer created successfully',
           data: result,
      });
 });
 
 export const TrailerController = {
-     createTrailer,
      updateTrailer,
      getSingleTrailer,
      getAllTrailers,
      deleteTrailer,
      generateUploadUrl,
      uploadThumbnail,
-     saveVideoMetadata,
+     createTrailer,
 };
