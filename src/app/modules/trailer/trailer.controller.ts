@@ -109,4 +109,7 @@ export const TrailerController = {
      getSingleTrailer,
      getAllTrailers,
      deleteTrailer,
+     generateUploadUrl,
+     uploadThumbnail,
+     saveVideoMetadata,
 };
