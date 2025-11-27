@@ -1,0 +1,129 @@
+{
+  "info": {
+    "name": "Trailer API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Trailer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"sample_title\",\n  \"duration\": \"sample_duration\",\n  \"color\": \"sample_color\",\n  \"contentName\": \"sample_contentName\",\n  \"description\": \"sample_description\",\n  \"videoUrl\": \"sample_videoUrl\",\n  \"videoId\": \"sample_videoId\",\n  \"libraryId\": \"sample_libraryId\",\n  \"thumbnailUrl\": \"sample_thumbnailUrl\",\n  \"status\": \"sample_status\",\n  \"views\": 123\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/trailer",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "trailer"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get All Trailers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/trailer",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "trailer"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Trailer by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/trailer/{{trailer_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "trailer",
+            "{{trailer_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Trailer",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"sample_title\",\n  \"duration\": \"sample_duration\",\n  \"color\": \"sample_color\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/trailer/{{trailer_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "trailer",
+            "{{trailer_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Trailer",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/trailer/{{trailer_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "trailer",
+            "{{trailer_id}}"
+          ]
+        }
+      }
+    }
+  ]
+}

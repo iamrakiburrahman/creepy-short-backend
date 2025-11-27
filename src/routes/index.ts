@@ -1,13 +1,14 @@
-import express from 'express';
+import express, { Router } from 'express';
 import { UserRouter } from '../app/modules/user/user.route';
 import { AuthRouter } from '../app/modules/auth/auth.route';
 import SettingsRouter from '../app/modules/settings/settings.route';
 import { AdminRoutes } from '../app/modules/admin/admin.route';
 import { UserManagementsRouter } from '../app/modules/userManagements/userManagements.router';
 import { CategoryRoutes } from '../app/modules/category/category.route';
+import { TrailerRoutes } from '../app/modules/trailer/trailer.route'
 
 const router = express.Router();
-const routes = [
+const routes: { path: string; route: Router }[] = [
      {
           path: '/auth',
           route: AuthRouter,
@@ -31,7 +32,7 @@ const routes = [
      {
           path: '/category',
           route: CategoryRoutes,
-     }
+     },
 ];
 
 routes.forEach((element) => {
