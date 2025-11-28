@@ -3,7 +3,7 @@
      "version": "1.0.0",
      "main": "index.js",
      "scripts": {
-          "dev": "concurrently \"ts-node-dev --respawn --transpile-only src/server.ts\" \"npm run stripe\" \"npm run docker:up\"",
+          "dev": "concurrently \"ts-node-dev --respawn --transpile-only src/server.ts\" \"npm run docker:up\"",
           "test": "jest",
           "docker:up": "docker-compose up -d",
           "docker:down": "docker-compose down",

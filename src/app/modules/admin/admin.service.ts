@@ -21,7 +21,7 @@ const createAdminToDB = async (payload: IUser): Promise<IUser> => {
      if (createAdmin) {
           await User.findByIdAndUpdate({ _id: createAdmin?._id }, { verified: true }, { new: true });
      }
-    await adminCache.clearLists();
+     await adminCache.clearLists();
      return createAdmin;
 };
 
@@ -38,15 +38,34 @@ const getAdminFromDB = async (): Promise<IUser[]> => {
      return await adminCache.wrapList(
           {},
           async () => {
-               const admins = await User.find({ role: 'ADMIN' }).select('name email profile contact location');
+               const admins = await User.find({ role: 'ADMIN' }).select('name email profile phone location pageAccess');
                return admins;
           },
           CACHE_TTL.VERY_LONG,
      );
 };
+const updateAdminFromDB = async (id: string, payload: Partial<IUser>) => {
+     const isExistAdmin = await User.findById(id);
+     if (!isExistAdmin) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to update Admin');
+     }
+     if (payload.password) {
+          delete payload.password;
+     }
+     if (payload.email) {
+          delete payload.email;
+     }
+     if (payload.role) {
+          delete payload.role;
+     }
 
+     const updatedAdmin = await User.findByIdAndUpdate(id, payload, { new: true });
+     await adminCache.clearAfterUpdate(id);
+     return updatedAdmin;
+};
 export const AdminService = {
      createAdminToDB,
      deleteAdminFromDB,
      getAdminFromDB,
+     updateAdminFromDB,
 };
