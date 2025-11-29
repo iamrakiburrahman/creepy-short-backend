@@ -21,7 +21,7 @@ router
           UserController.updateProfile,
      );
 
-router.route('/').post(authLimiter, validateRequest(UserValidation.createUserZodSchema), UserController.createUser);
+router.route('/register').post(authLimiter, validateRequest(UserValidation.createUserZodSchema), UserController.createUser);
 
 // Admin routes for user management
 router.route('/admin').post(

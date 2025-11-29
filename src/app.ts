@@ -14,21 +14,18 @@ import getUploadDirectory from './utils/getUploadDirectory';
 import handleStripeWebhook from './helpers/stripe/handleStripeWebhook';
 import { corsOptions, generalLimiter, getSessionConfig } from './DB/security';
 
-
-
 const app: Application = express();
-if (config.node_env === 'production') {
+const isProd = config.node_env === 'production';
+if (isProd) {
      app.set('trust proxy', 1);
+} else {
+     app.set('trust proxy', 'loopback');
 }
 
 // ==========================================
 // WEBHOOK (Before body parser)
 // ==========================================
-app.post(
-     '/api/v1/stripe/webhook',
-     express.raw({ type: 'application/json' }),
-     handleStripeWebhook
-);
+app.post('/api/v1/stripe/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // ==========================================
 // VIEW ENGINE
@@ -45,10 +42,7 @@ app.use(Morgan.errorHandler);
 // ==========================================
 // CORS CONFIGURATION
 // ==========================================
-export const allowedOrigins =
-     config.node_env === 'production'
-          ? config.allowed_origins?.split(',') || []
-          : '*';
+export const allowedOrigins = config.node_env === 'production' ? config.allowed_origins?.split(',') || [] : '*';
 
 app.use(cors(corsOptions));
 
@@ -99,7 +93,7 @@ app.use(
                     res.setHeader('Content-Type', 'image/svg+xml');
                }
           },
-     })
+     }),
 );
 
 // ==========================================
