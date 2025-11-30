@@ -1,0 +1,68 @@
+import { StatusCodes } from 'http-status-codes';
+import catchAsync from '../../../shared/catchAsync';
+import sendResponse from '../../../shared/sendResponse';
+
+const createMovie = catchAsync(async (req, res) => {
+     const result = await MovieService.createMovie(req.body);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.CREATED,
+          success: true,
+          message: 'Movie created successfully',
+          data: result,
+     });
+});
+
+const getAllMoviesFromDB = catchAsync(async (req, res) => {
+     const result = await MovieService.getAllMoviesFromDB();
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Movies retrieved successfully',
+          data: result,
+     });
+});
+
+const getMovieFromDB = catchAsync(async (req, res) => {
+     const result = await MovieService.getMovieFromDB(req.params.id);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Movie retrieved successfully',
+          data: result,
+     });
+});
+
+const updateMovieFromDB = catchAsync(async (req, res) => {
+     const result = await MovieService.updateMovieFromDB(req.params.id, req.body);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Movie updated successfully',
+          data: result,
+     });
+});
+
+const deleteMovieFromDB = catchAsync(async (req, res) => {
+     const result = await MovieService.deleteMovieFromDB(req.params.id);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Movie deleted successfully',
+          data: result,
+     });
+});
+
+
+
+export const MovieController = {
+     createMovie,
+     getAllMoviesFromDB,
+     getMovieFromDB,
+     updateMovieFromDB,
+     deleteMovieFromDB,
+};

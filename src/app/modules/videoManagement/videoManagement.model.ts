@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IMovie, IVideo } from './management.interface';
+import { IMovie, IVideo } from './videoManagement.interface';
 
 // --- Movie Schema ---
 const movieSchema = new Schema<IMovie>(
@@ -27,6 +27,8 @@ const videoSchema = new Schema<IVideo>(
           description: { type: String },
           duration: { type: Number, required: true },
           videoUrl: { type: String, required: true },
+          videoId: { type: String, required: true },
+          libraryId: { type: String, required: true },
           thumbnailUrl: { type: String, required: true },
           // Links to the main Movie or Series
           movieId: { type: Schema.Types.ObjectId, ref: 'Movie', required: true },
