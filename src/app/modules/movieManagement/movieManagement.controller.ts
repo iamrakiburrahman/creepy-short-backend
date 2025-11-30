@@ -1,9 +1,10 @@
 import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
+import { MovieService } from './movieManagement.service';
 
 const createMovie = catchAsync(async (req, res) => {
-     const result = await MovieService.createMovie(req.body);
+     const result = await MovieService.createMovieToDB(req.body);
 
      sendResponse(res, {
           statusCode: StatusCodes.CREATED,
@@ -14,7 +15,7 @@ const createMovie = catchAsync(async (req, res) => {
 });
 
 const getAllMoviesFromDB = catchAsync(async (req, res) => {
-     const result = await MovieService.getAllMoviesFromDB();
+     const result = await MovieService.getAllMoviesFromDB(req.query);
 
      sendResponse(res, {
           statusCode: StatusCodes.OK,
@@ -56,8 +57,6 @@ const deleteMovieFromDB = catchAsync(async (req, res) => {
           data: result,
      });
 });
-
-
 
 export const MovieController = {
      createMovie,
