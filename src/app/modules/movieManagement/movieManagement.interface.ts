@@ -15,5 +15,6 @@ export interface IMovie {
      totalViews: number;
      rating: number;
      releaseDate: Date;
+     isReleased: boolean;
      isDeleted: boolean;
 }

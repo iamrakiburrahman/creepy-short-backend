@@ -4,6 +4,7 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 import { IMovie } from './movieManagement.interface';
 import { MovieModel } from './movieManagement.model';
+import unlinkFile from '../../../shared/unlinkFile';
 const movieCache = createCacheHelper('movieCache');
 const createMovieToDB = async (payload: IMovie) => {
      const result = await MovieModel.create(payload);
@@ -45,6 +46,13 @@ const getMovieFromDB = async (id: string) => {
 };
 
 const updateMovieFromDB = async (id: string, payload: IMovie) => {
+     const existingMovie = await MovieModel.findById(id);
+     if (!existingMovie) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
+     }
+     if (payload.thumbnailUrl && existingMovie.thumbnailUrl) {
+          unlinkFile(existingMovie.thumbnailUrl);
+     }
      const result = await MovieModel.findByIdAndUpdate(id, payload, { new: true });
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
