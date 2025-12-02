@@ -3,7 +3,6 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 
-
 const updateTrailer = catchAsync(async (req, res) => {
      const { id } = req.params;
      const result = await TrailerServices.updateTrailer(id, req.body);
