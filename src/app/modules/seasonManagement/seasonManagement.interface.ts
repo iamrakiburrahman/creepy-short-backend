@@ -3,6 +3,6 @@ import { Types } from "mongoose";
 export interface ISeason {
      title: string;
      seasonNumber: number; 
-     seriesId: Types.ObjectId;
+     movieId: Types.ObjectId;
      description?: string;
 }

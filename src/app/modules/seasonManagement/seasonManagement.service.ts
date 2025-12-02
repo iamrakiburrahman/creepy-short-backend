@@ -2,10 +2,10 @@ import { StatusCodes } from 'http-status-codes';
 import AppError from '../../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
-import { ISeason } from './sessionManagement.interface';
-import { SeasonModel } from './sessionManagement.model';
-
+import { ISeason } from './seasonManagement.interface';
+import { SeasonModel } from './seasonManagement.model';
 const seasonCache = createCacheHelper('seasonCache');
+
 const createSeasonToDB = async (payload: ISeason) => {
      const result = await SeasonModel.create(payload);
      if (!result) {
@@ -21,7 +21,7 @@ const getAllSeasonsFromDB = async (query: Record<string, unknown>) => {
           async () => {
                const queryBuilder = new QueryBuilder(SeasonModel.find(), query);
                const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
-               const meta = queryBuilder.countTotal();
+               const meta = await queryBuilder.countTotal();
                return {
                     meta,
                     result,

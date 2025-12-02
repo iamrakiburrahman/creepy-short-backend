@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { SeasonController } from './sessionManagement.controller';
+import { SeasonController } from './seasonManagement.controller';
 import auth from '../../middleware/auth';
 import { USER_ROLES } from '../../../enums/user';
 
@@ -11,4 +11,4 @@ router.get('/get-season/:id', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), Se
 router.put('/update-season/:id', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), SeasonController.updateSeasonFromDB);
 router.delete('/delete-season/:id', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), SeasonController.deleteSeasonFromDB);
 
-export const SeasonRouter = router;
+export const SeasonManagementRouter = router;

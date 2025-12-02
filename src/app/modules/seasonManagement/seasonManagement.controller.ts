@@ -1,8 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
-import { SeasonService } from './sessionManagement.service';
-import { MovieService } from '../movieManagement/movieManagement.service';
+import { SeasonService } from './seasonManagement.service';
 
 const createSeason = catchAsync(async (req, res) => {
      const result = await SeasonService.createSeasonToDB(req.body);
@@ -23,6 +22,7 @@ const getAllSeasonsFromDB = catchAsync(async (req, res) => {
           success: true,
           message: 'Seasons retrieved successfully',
           data: result,
+          meta: result.meta,
      });
 });
 
