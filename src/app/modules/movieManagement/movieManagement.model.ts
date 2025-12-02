@@ -11,7 +11,7 @@ const movieSchema = new Schema<IMovie>(
           description: { type: String },
           bannerUrl: { type: String },
           accentColor: { type: String, default: '#3B82F6' },
-          thumbnailUrl: { type: String },
+          thumbnail: { type: String },
           status: { type: String, enum: ['Ongoing', 'Completed'], default: 'Ongoing' },
           totalViews: { type: Number, default: 0 },
           rating: { type: Number, default: 0 },

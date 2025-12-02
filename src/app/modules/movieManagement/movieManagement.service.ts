@@ -50,8 +50,8 @@ const updateMovieFromDB = async (id: string, payload: IMovie) => {
      if (!existingMovie) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
      }
-     if (payload.thumbnailUrl && existingMovie.thumbnailUrl) {
-          unlinkFile(existingMovie.thumbnailUrl);
+     if (payload.thumbnail && existingMovie.thumbnail) {
+          unlinkFile(existingMovie.thumbnail);
      }
      const result = await MovieModel.findByIdAndUpdate(id, payload, { new: true });
      if (!result) {

@@ -9,7 +9,7 @@ export interface IMovie {
      description: string;
      bannerUrl: string; // "Top Banner"
      accentColor: string; // "Accent Color" (Hex code)
-     thumbnailUrl: string;
+     thumbnail: string;
      // Derived/Default fields visible in Image 2 & 4
      status: 'Ongoing' | 'Completed';
      totalViews: number;

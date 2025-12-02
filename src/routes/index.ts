@@ -6,6 +6,7 @@ import { AdminRoutes } from '../app/modules/admin/admin.route';
 import { UserManagementsRouter } from '../app/modules/userManagements/userManagements.router';
 import { CategoryRoutes } from '../app/modules/category/category.route';
 import { TrailerRoutes } from '../app/modules/trailer/trailer.route'
+import { MovieManagementRouter } from '../app/modules/movieManagement/movieManagement.route';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -33,6 +34,15 @@ const routes: { path: string; route: Router }[] = [
           path: '/category',
           route: CategoryRoutes,
      },
+     {
+          path: '/trailer',
+          route: TrailerRoutes,
+     },
+     {
+          path: '/movie-management',
+          route: MovieManagementRouter,
+     },
+
 ];
 
 routes.forEach((element) => {
