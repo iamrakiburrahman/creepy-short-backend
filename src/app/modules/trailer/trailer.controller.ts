@@ -6,9 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 
 const updateTrailer = catchAsync(async (req, res) => {
      const { id } = req.params;
-     const trailerData = req.body;
-
-     const result = await TrailerServices.updateTrailer(id, trailerData);
+     const result = await TrailerServices.updateTrailer(id, req.body);
 
      sendResponse(res, {
           statusCode: StatusCodes.OK,
@@ -31,9 +29,7 @@ const getSingleTrailer = catchAsync(async (req, res) => {
 });
 
 const getAllTrailers = catchAsync(async (req, res) => {
-     const { id } = req.user as { id: string };
-     const result = await TrailerServices.getAllTrailers(id);
-
+     const result = await TrailerServices.getAllTrailers(req.query);
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,
@@ -45,7 +41,6 @@ const getAllTrailers = catchAsync(async (req, res) => {
 const deleteTrailer = catchAsync(async (req, res) => {
      const { id } = req.params;
      const result = await TrailerServices.deleteTrailer(id);
-
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,

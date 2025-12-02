@@ -3,10 +3,12 @@ import { Types } from 'mongoose';
 import AppError from '../../../errors/AppError';
 import axios from 'axios';
 import config from '../../../config';
+import { IVideo } from './videoManagement.interface';
+import { Video } from './videoManagement.model';
 
 const getAllVideo = async (userId: string) => {};
 
-const getSingleVideo = async (id: string): Promise<ITrailer> => {
+const getSingleVideo = async (id: string): Promise<IVideo> => {
      if (!Types.ObjectId.isValid(id)) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Video ID');
      }
@@ -19,7 +21,7 @@ const getSingleVideo = async (id: string): Promise<ITrailer> => {
      return result;
 };
 
-const updateVideo = async (id: string, payload: Partial<ITrailer>): Promise<ITrailer | null> => {
+const updateVideo = async (id: string, payload: Partial<IVideo>): Promise<IVideo | null> => {
      if (!Types.ObjectId.isValid(id)) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Video ID');
      }
@@ -40,7 +42,7 @@ const updateVideo = async (id: string, payload: Partial<ITrailer>): Promise<ITra
      return result;
 };
 
-const deleteVideo = async (id: string): Promise<ITrailer> => {
+const deleteVideo = async (id: string): Promise<IVideo> => {
      if (!Types.ObjectId.isValid(id)) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Video ID');
      }
@@ -87,7 +89,7 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
      return thumbnailUrl;
 };
 
-const createVideo = async (id: string, payload: ITrailer) => {
+const createVideo = async (id: string, payload: IVideo) => {
      const { videoId, title, description, thumbnailUrl, duration } = payload;
 
      if (!videoId) {
@@ -153,7 +155,7 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
 };
 export const VideoManagementServices = {
      createVideo,
-     getAllVideos,
+     getAllVideo,
      getSingleVideo,
      updateVideo,
      deleteVideo,

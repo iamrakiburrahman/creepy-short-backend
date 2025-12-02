@@ -41,8 +41,7 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/movie-management',
           route: MovieManagementRouter,
-     },
-
+     }
 ];
 
 routes.forEach((element) => {

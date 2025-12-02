@@ -5,20 +5,34 @@ import { Types } from 'mongoose';
 import AppError from '../../../errors/AppError';
 import axios from 'axios';
 import config from '../../../config';
-
-const getAllTrailers = async (userId: string) => {};
+import { createCacheHelper } from '../../builder/RedisCacheHelper';
+import QueryBuilder from '../../builder/QueryBuilder';
+const trailerCacheKey = createCacheHelper('trailer');
+const getAllTrailers = async (query: Record<string, unknown>) => {
+     return await trailerCacheKey.wrapList(query, async () => {
+          const queryBuilder = new QueryBuilder(Trailer.find(), query);
+          const result = await queryBuilder.filter().sort().fields().paginate().modelQuery;
+          const meta = await queryBuilder.countTotal();
+          return {
+               meta,
+               result,
+          };
+     });
+};
 
 const getSingleTrailer = async (id: string): Promise<ITrailer> => {
-     if (!Types.ObjectId.isValid(id)) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
-     }
+     return await trailerCacheKey.wrapSingle(id, async () => {
+          if (!Types.ObjectId.isValid(id)) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
+          }
 
-     const result = await Trailer.findById(id);
-     if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
-     }
+          const result = await Trailer.findById(id);
+          if (!result) {
+               throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
+          }
 
-     return result;
+          return result;
+     });
 };
 
 const updateTrailer = async (id: string, payload: Partial<ITrailer>): Promise<ITrailer | null> => {
@@ -38,7 +52,7 @@ const updateTrailer = async (id: string, payload: Partial<ITrailer>): Promise<IT
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
      }
-
+     await trailerCacheKey.clearAfterUpdate(id);
      return result;
 };
 
@@ -51,7 +65,7 @@ const deleteTrailer = async (id: string): Promise<ITrailer> => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Something went wrong while deleting trailer, please try again with valid id.');
      }
-
+     await trailerCacheKey.clearAfterUpdate(id);
      return result;
 };
 const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
@@ -71,7 +85,7 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
      });
 
      // Update database
-     await Trailer.findOneAndUpdate(
+     const updatedTrailer = await Trailer.findOneAndUpdate(
           { videoId },
           {
                $set: {
@@ -81,16 +95,19 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
           },
           { upsert: true },
      );
-
+     if (!updatedTrailer) {
+          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to update trailer in database');
+     }
      // Generate thumbnail URL
      const thumbnailUrl = `https://iframe.mediadelivery.net/api/thumbnail/${config.bunnyCDN.stream_library_id}/${videoId}?width=240&height=135&time=1`;
 
      console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
+     await trailerCacheKey.clearAfterUpdate(updatedTrailer?._id?.toString());
      return thumbnailUrl;
 };
 
 const createTrailer = async (id: string, payload: ITrailer) => {
-     const { videoId, title, description, thumbnailUrl, duration } = payload;
+     const { videoId, title, color, contentName, description, thumbnailUrl, duration } = payload;
 
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
@@ -104,6 +121,8 @@ const createTrailer = async (id: string, payload: ITrailer) => {
           videoId,
           libraryId,
           title: title || 'Untitled Video',
+          color: color || 'primary',
+          contentName: contentName || 'Trailer',
           description: description || '',
           videoUrl: `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`,
           thumbnailUrl: thumbnailUrl,
@@ -114,6 +133,7 @@ const createTrailer = async (id: string, payload: ITrailer) => {
      });
 
      console.log('✅ Video metadata saved successfully');
+     await trailerCacheKey.clearLists();
      return video;
 };
 
