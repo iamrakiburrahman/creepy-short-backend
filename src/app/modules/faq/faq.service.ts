@@ -3,27 +3,34 @@ import { IFaq } from './faq.interface';
 import { Faq } from './faq.model';
 import mongoose from 'mongoose';
 import AppError from '../../../errors/AppError';
-
+import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
+const faqCache = createCacheHelper('faqCache');
 const createFaqToDB = async (payload: IFaq): Promise<IFaq> => {
      const faq = await Faq.create(payload);
      if (!faq) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to created Faq');
      }
 
+     await faqCache.clearLists();
      return faq;
 };
 
 const faqsFromDB = async (): Promise<IFaq[]> => {
-     const faqs = await Faq.find({});
-     return faqs;
+     return await faqCache.wrapList(
+          {},
+          async () => {
+               return await Faq.find({});
+          },
+          CACHE_TTL.VERY_LONG,
+     );
 };
 
 const deleteFaqToDB = async (id: string): Promise<IFaq | undefined> => {
      if (!mongoose.Types.ObjectId.isValid(id)) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid ID');
      }
-
      await Faq.findByIdAndDelete(id);
+     await faqCache.clearAfterUpdate(id);
      return;
 };
 
@@ -39,6 +46,7 @@ const updateFaqToDB = async (id: string, payload: IFaq): Promise<IFaq> => {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to updated Faq');
      }
 
+     await faqCache.clearAfterUpdate(id);
      return updatedFaq;
 };
 
