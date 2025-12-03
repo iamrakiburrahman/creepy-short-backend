@@ -5,20 +5,37 @@ import axios from 'axios';
 import config from '../../../config';
 import { IVideo } from './videoManagement.interface';
 import { Video } from './videoManagement.model';
-
-const getAllVideo = async (userId: string) => {};
+import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
+import QueryBuilder from '../../builder/QueryBuilder';
+const videoCache = createCacheHelper('videoCache');
+const getAllVideos = async (query: Record<string, unknown>) => {
+     return await videoCache.wrapList(
+          query,
+          async () => {
+               const queryBuilder = new QueryBuilder(Video.find(), query).paginate().filter().sort().fields().search(['title', 'description']);
+               const result = await queryBuilder.modelQuery.exec();
+               const meta = await queryBuilder.countTotal();
+               return {
+                    meta,
+                    result,
+               };
+          },
+          CACHE_TTL.MEDIUM,
+     );
+};
 
 const getSingleVideo = async (id: string): Promise<IVideo> => {
-     if (!Types.ObjectId.isValid(id)) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Video ID');
-     }
-
-     const result = await Video.findById(id);
-     if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
-     }
-
-     return result;
+     return await videoCache.wrapSingle(
+          id,
+          async () => {
+               const result = await Video.findById(id);
+               if (!result) {
+                    throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
+               }
+               return result;
+          },
+          CACHE_TTL.MEDIUM,
+     );
 };
 
 const updateVideo = async (id: string, payload: Partial<IVideo>): Promise<IVideo | null> => {
@@ -38,7 +55,7 @@ const updateVideo = async (id: string, payload: Partial<IVideo>): Promise<IVideo
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
      }
-
+     await videoCache.clearAfterUpdate(id);
      return result;
 };
 
@@ -51,7 +68,7 @@ const deleteVideo = async (id: string): Promise<IVideo> => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Something went wrong while deleting trailer, please try again with valid id.');
      }
-
+     await videoCache.clearAfterUpdate(id);
      return result;
 };
 const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
@@ -71,7 +88,7 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
      });
 
      // Update database
-     await Video.findOneAndUpdate(
+    const updatedVideo = await Video.findOneAndUpdate(
           { videoId },
           {
                $set: {
@@ -79,12 +96,15 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
                     libraryId: config.bunnyCDN.stream_library_id,
                },
           },
-          { upsert: true },
+          { upsert: true, new: true },
      );
+     if (!updatedVideo) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
+     }
 
      // Generate thumbnail URL
      const thumbnailUrl = `https://iframe.mediadelivery.net/api/thumbnail/${config.bunnyCDN.stream_library_id}/${videoId}?width=240&height=135&time=1`;
-
+     await videoCache.clearAfterUpdate(updatedVideo?._id.toString());
      console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
      return thumbnailUrl;
 };
@@ -155,7 +175,7 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
 };
 export const VideoManagementServices = {
      createVideo,
-     getAllVideo,
+     getAllVideos,
      getSingleVideo,
      updateVideo,
      deleteVideo,
