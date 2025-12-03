@@ -10,6 +10,7 @@ import { MovieManagementRouter } from '../app/modules/movieManagement/movieManag
 import { SeasonManagementRouter } from '../app/modules/seasonManagement/seasonManagement.route';
 import { VideoManagementRoutes } from '../app/modules/videoManagement/videoManagement.route';
 import { BookmarkRoutes } from '../app/modules/bookmark/bookmark.routes';
+import { FaqRoutes } from '../app/modules/faq/faq.route';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -56,7 +57,11 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/bookmark',
           route: BookmarkRoutes,
-     }
+     },
+     {
+          path: '/faq',
+          route: FaqRoutes,
+     },
 ];
 
 routes.forEach((element) => {
