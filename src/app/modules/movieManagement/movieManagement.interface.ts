@@ -7,7 +7,6 @@ export interface IMovie {
      type: TMovieType;
      tags: string[]; // From "Tags" input
      description: string;
-     bannerUrl: string; // "Top Banner"
      accentColor: string; // "Accent Color" (Hex code)
      thumbnail: string;
      // Derived/Default fields visible in Image 2 & 4
