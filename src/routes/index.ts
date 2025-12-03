@@ -11,6 +11,7 @@ import { SeasonManagementRouter } from '../app/modules/seasonManagement/seasonMa
 import { VideoManagementRoutes } from '../app/modules/videoManagement/videoManagement.route';
 import { BookmarkRoutes } from '../app/modules/bookmark/bookmark.routes';
 import { FaqRoutes } from '../app/modules/faq/faq.route';
+import { FeedbackRoutes } from '../app/modules/feedback/feedback.route';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -61,6 +62,10 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/faq',
           route: FaqRoutes,
+     },
+     {
+          path: '/feedback',
+          route: FeedbackRoutes,
      },
 ];
 
