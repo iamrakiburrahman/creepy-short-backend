@@ -16,7 +16,6 @@ const videoSchema = new Schema<IVideo>(
           // Optional fields (Only used if parent is a Series)
           seasonId: { type: Schema.Types.ObjectId, ref: 'Season' },
           episodeNumber: { type: Number },
-
           views: { type: Number, default: 0 },
           isDeleted: { type: Boolean, default: false },
      },

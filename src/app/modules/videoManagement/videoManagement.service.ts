@@ -88,7 +88,7 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
      });
 
      // Update database
-    const updatedVideo = await Video.findOneAndUpdate(
+     const updatedVideo = await Video.findOneAndUpdate(
           { videoId },
           {
                $set: {
@@ -110,30 +110,27 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
 };
 
 const createVideo = async (id: string, payload: IVideo) => {
-     const { videoId, title, description, thumbnailUrl, duration } = payload;
+     const { videoId, title, description, thumbnailUrl, duration, movieId, seasonId, episodeNumber } = payload;
 
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
      }
 
-     console.log('💾 Saving video metadata for:', videoId);
-
      const libraryId = config.bunnyCDN.stream_library_id as string;
 
      const video = await Video.create({
-          videoId,
-          libraryId,
           title: title || 'Untitled Video',
           description: description || '',
-          videoUrl: `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`,
-          thumbnailUrl: thumbnailUrl,
-          status: 'processing',
           duration: duration || 0,
-          uploadedBy: new Types.ObjectId(id),
-          uploadedAt: new Date(),
+          videoUrl: `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`,
+          videoId: videoId,
+          libraryId: libraryId,
+          thumbnailUrl: thumbnailUrl,
+          movieId: movieId,
+          seasonId: seasonId,
+          episodeNumber: episodeNumber || 0,
      });
 
-     console.log('✅ Video metadata saved successfully');
      return video;
 };
 

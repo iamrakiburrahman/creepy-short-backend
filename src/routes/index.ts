@@ -8,6 +8,7 @@ import { CategoryRoutes } from '../app/modules/category/category.route';
 import { TrailerRoutes } from '../app/modules/trailer/trailer.route';
 import { MovieManagementRouter } from '../app/modules/movieManagement/movieManagement.route';
 import { SeasonManagementRouter } from '../app/modules/seasonManagement/seasonManagement.route';
+import { VideoManagementRoutes } from '../app/modules/videoManagement/videoManagement.route';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -46,6 +47,10 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/season-management',
           route: SeasonManagementRouter,
+     },
+     {
+          path: '/video-management',
+          route: VideoManagementRoutes,
      },
 ];
 
