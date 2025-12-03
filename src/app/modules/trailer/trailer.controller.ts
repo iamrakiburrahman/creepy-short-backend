@@ -2,6 +2,7 @@ import { TrailerServices } from './trailer.service';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
+import AppError from '../../../errors/AppError';
 
 const updateTrailer = catchAsync(async (req, res) => {
      const { id } = req.params;
@@ -58,10 +59,12 @@ const generateUploadUrl = catchAsync(async (req, res) => {
 });
 
 const uploadThumbnail = catchAsync(async (req, res) => {
+     const file = req.file;
+     if (!file) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'No file uploaded');
+     }
      const { videoId } = req.params;
-     const { thumbnailUrl } = req.body;
-
-     const result = await TrailerServices.uploadThumbnail(videoId, thumbnailUrl);
+     const result = await TrailerServices.uploadThumbnail(videoId, file);
 
      sendResponse(res, {
           success: true,

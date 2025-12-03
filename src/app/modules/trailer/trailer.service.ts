@@ -93,7 +93,7 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
                     libraryId: config.bunnyCDN.stream_library_id,
                },
           },
-          { upsert: true },
+          { upsert: true, new: true },
      );
      if (!updatedTrailer) {
           throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to update trailer in database');
@@ -108,12 +108,10 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
 
 const createTrailer = async (id: string, payload: ITrailer) => {
      const { videoId, title, color, contentName, description, thumbnailUrl, duration } = payload;
-
+     console.log('payload', payload);
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
      }
-
-     console.log('💾 Saving video metadata for:', videoId);
 
      const libraryId = config.bunnyCDN.stream_library_id as string;
 
