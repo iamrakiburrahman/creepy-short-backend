@@ -10,8 +10,7 @@ const bookmarkSchema = new Schema<IBookmark>(
           },
           referenceType: {
                type: String,
-               enum: ['video', 'article', 'image', 'post'], // extend as needed
-               required: true,
+               default: 'video',
           },
           isBookmarked: {
                type: Boolean,
@@ -22,7 +21,6 @@ const bookmarkSchema = new Schema<IBookmark>(
 );
 
 export const Bookmark = model<IBookmark>('Bookmark', bookmarkSchema);
-
 
 // {
 //   "referenceId": "60d5f1d0d4b7b13992b0f92a",

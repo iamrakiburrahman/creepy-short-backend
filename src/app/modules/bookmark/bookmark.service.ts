@@ -1,14 +1,12 @@
+import AppError from '../../../errors/AppError';
 import { Bookmark } from './bookmark.model'; // Import the Bookmark model
 
 // Toggle bookmark (add or remove)
 const toggleBookmark = async (payload: { userId: string; referenceId: string; referenceType: string }) => {
      const { userId, referenceId, referenceType } = payload;
-
-     // Find if the bookmark already exists
-     const existingBookmark = await Bookmark.findOne({ userId, referenceId, referenceType });
+     const existingBookmark = await Bookmark.findOne({ userId, referenceId });
 
      if (existingBookmark) {
-          // If it exists, delete it (i.e., unbookmark)
           await Bookmark.deleteOne({ _id: existingBookmark._id });
           return { message: 'Bookmark removed successfully' };
      } else {
@@ -23,16 +21,15 @@ const toggleBookmark = async (payload: { userId: string; referenceId: string; re
 const getBookmark = async (userId: string, referenceType?: string) => {
      const query: any = { userId };
      if (referenceType) query.referenceType = referenceType;
-
      return await Bookmark.find(query);
 };
 
 // Delete a specific bookmark
-const deleteBookmark = async (userId: string, referenceId: string, referenceType: string) => {
-     const result = await Bookmark.deleteOne({ userId, referenceId, referenceType });
+const deleteBookmark = async (userId: string, referenceId: string) => {
+     const result = await Bookmark.deleteOne({ userId, referenceId });
 
      if (result.deletedCount === 0) {
-          throw new Error('Bookmark not found');
+          throw new AppError(404, 'Bookmark not found');
      }
 
      return { message: 'Bookmark deleted successfully' };

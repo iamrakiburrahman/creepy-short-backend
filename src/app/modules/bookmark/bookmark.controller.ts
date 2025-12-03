@@ -3,7 +3,7 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { BookmarkService } from './bookmark.service';
 
-const toggleBookmark = catchAsync(async (req: Request, res: Response) => {
+const toggleBookmark = catchAsync(async (req, res) => {
      const { id }: any = req.user; // user id from the authenticated user
      const { referenceId, referenceType }: any = req.body; // Bookmark details from request body
      const payload = { userId: id, referenceId, referenceType };
@@ -17,7 +17,7 @@ const toggleBookmark = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
-const getBookmark = catchAsync(async (req: Request, res: Response) => {
+const getBookmark = catchAsync(async (req, res) => {
      const user: any = req.user; // authenticated user
      const { referenceType }: any = req.query; // Optionally filter by referenceType (e.g., 'video', 'article')
      const result = await BookmarkService.getBookmark(user.id, referenceType);
@@ -31,11 +31,11 @@ const getBookmark = catchAsync(async (req: Request, res: Response) => {
 });
 
 // Additional function to delete a bookmark
-const deleteBookmark = catchAsync(async (req: Request, res: Response) => {
+const deleteBookmark = catchAsync(async (req, res) => {
      const { id }: any = req.user; // user id from the authenticated user
-     const { referenceId, referenceType }: any = req.params; // reference details from request params
+     const { referenceId }: any = req.params; // reference details from request params
 
-     const result = await BookmarkService.deleteBookmark(id, referenceId, referenceType);
+     const result = await BookmarkService.deleteBookmark(id, referenceId);
 
      sendResponse(res, {
           statusCode: 200,
