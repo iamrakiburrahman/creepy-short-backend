@@ -1,4 +1,4 @@
-import { Schema, Types, model } from 'mongoose';
+import { Schema, model } from 'mongoose';
 import { IMovie } from './movieManagement.interface';
 
 // --- Movie Schema ---
