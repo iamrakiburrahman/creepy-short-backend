@@ -67,6 +67,7 @@ export default {
           bunny_token: process.env.BUNNY_TOKEN_AUTHENTICATION,
           stream_api_key: process.env.BUNNY_STREAM_API_KEY,
           stream_library_id: process.env.BUNNY_STREAM_LIBRARY_ID,
+          pull_zone_host: process.env.BUNNY_STREAM_PULL_ZONE_HOST,
           stream_cdn_hostname: process.env.BUNNY_STREAM_CDN_HOSTNAME,
           token_auth_key: process.env.BUNNY_TOKEN_AUTH_KEY,
      },
