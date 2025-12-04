@@ -1,11 +1,12 @@
-import { Schema, model } from 'mongoose';
+import { Schema, Types, model } from 'mongoose';
 import { IMovie } from './movieManagement.interface';
 
 // --- Movie Schema ---
 const movieSchema = new Schema<IMovie>(
      {
           title: { type: String, required: true },
-          type: { type: String, enum: ['Movie', 'Series'], required: true },
+          category: { type: String, required: true },
+          categoryId: { type: Schema.Types.ObjectId, required: true },
           genre: { type: String, required: true },
           tags: [{ type: String }],
           description: { type: String },
