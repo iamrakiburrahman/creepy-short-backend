@@ -1,6 +1,0 @@
-Thu Apr 17 2025 15:35:50 [SERVER-NAME] error: 10.0.60.126 - GET /api/v1/user/profile 404 - 1.348 ms
-Thu Apr 17 2025 15:36:6 [SERVER-NAME] error: 10.0.60.126 - GET /api/v1/user/profile 404 - 0.849 ms
-Thu Apr 17 2025 15:36:13 [SERVER-NAME] error: 10.0.60.126 - GET /api/v1/users/profile 401 - 4.032 ms
-Thu Apr 17 2025 15:36:30 [SERVER-NAME] error: 10.0.60.126 - POST /api/v1/user/ 404 - 0.581 ms
-Thu Apr 17 2025 15:36:40 [SERVER-NAME] error: 10.0.60.126 - POST /api/v1/user/ 404 - 0.495 ms
-Thu Apr 17 2025 15:36:43 [SERVER-NAME] error: 10.0.60.126 - POST /api/v1/users/ 409 - 4.944 ms
