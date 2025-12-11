@@ -94,6 +94,18 @@ const getMovieFromDBWithSeasons = catchAsync(async (req, res) => {
           data: result,
      });
 });
+
+const mostPopulerMovies = catchAsync(async (req, res) => {
+     const result = await MovieService.mostPopuler(req.query);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Movies retrieved successfully',
+          data: result.result,
+          meta: result.meta,
+     });
+});
 export const MovieController = {
      createMovie,
      getAllMoviesFromDB,
@@ -102,5 +114,6 @@ export const MovieController = {
      deleteMovieFromDB,
      getAllMoviesForUser,
      getNewReleaseMovies,
-     getMovieFromDBWithSeasons
+     getMovieFromDBWithSeasons,
+     mostPopulerMovies
 };

@@ -131,7 +131,15 @@ const getNewReleaseMovies = async (query: Record<string, unknown>) => {
           CACHE_TTL.VERY_LONG,
      );
 };
-
+const mostPopuler = async (query: Record<string, unknown>) => {
+     const queryBuilder = new QueryBuilder(MovieModel.find({ isReleased: true }).sort({ totalViews: -1 }), query);
+     const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
+     const meta = await queryBuilder.countTotal();
+     return {
+          meta,
+          result,
+     };
+}
 export const MovieService = {
      createMovieToDB,
      getAllMoviesFromDB,
@@ -141,4 +149,5 @@ export const MovieService = {
      getAllMoviesForUser,
      getNewReleaseMovies,
      getSingleMovieFromDBWithUser,
+     mostPopuler,
 };
