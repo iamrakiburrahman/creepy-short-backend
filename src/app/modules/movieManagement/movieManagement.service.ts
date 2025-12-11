@@ -78,10 +78,27 @@ const deleteMovieFromDB = async (id: string) => {
      return result;
 };
 
+const getAllMoviesForUser = async (query: Record<string, unknown>) => {
+     return await movieCache.wrapList(
+          query,
+          async () => {
+               const queryBuilder = new QueryBuilder(MovieModel.find(), query);
+               const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
+               const meta = await queryBuilder.countTotal();
+               return {
+                    meta,
+                    result,
+               };
+          },
+          CACHE_TTL.VERY_LONG,
+     );
+};
+
 export const MovieService = {
      createMovieToDB,
      getAllMoviesFromDB,
      getMovieFromDB,
      updateMovieFromDB,
      deleteMovieFromDB,
+     getAllMoviesForUser,
 };

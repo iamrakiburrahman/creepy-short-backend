@@ -11,7 +11,7 @@ const trailerCacheKey = createCacheHelper('trailer');
 const getAllTrailers = async (query: Record<string, unknown>) => {
      return await trailerCacheKey.wrapList(query, async () => {
           const queryBuilder = new QueryBuilder(Trailer.find(), query);
-          const result = await queryBuilder.filter().sort().fields().paginate().modelQuery;
+          const result = await queryBuilder.filter().sort().fields().paginate().modelQuery.exec();
           const meta = await queryBuilder.countTotal();
           return {
                meta,
@@ -69,49 +69,49 @@ const deleteTrailer = async (id: string): Promise<ITrailer> => {
      return result;
 };
 const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
-    if (!thumbnailFile) {
-        throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
-    }
+     if (!thumbnailFile) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
+     }
 
-    console.log('🖼️ Uploading thumbnail for video:', videoId);
+     console.log('🖼️ Uploading thumbnail for video:', videoId);
 
-    // 1. Upload to BunnyCDN
-    // BunnyCDN requires the file to be uploaded properly. Ensure correct Content-Type.
-    await axios.post(`https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`, thumbnailFile.buffer, {
-        headers: {
-            'AccessKey': config.bunnyCDN.stream_api_key,
-            'Content-Type': thumbnailFile.mimetype || 'image/jpeg', 
-        },
-        maxBodyLength: Infinity,
-    });
+     // 1. Upload to BunnyCDN
+     // BunnyCDN requires the file to be uploaded properly. Ensure correct Content-Type.
+     await axios.post(`https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`, thumbnailFile.buffer, {
+          headers: {
+               'AccessKey': config.bunnyCDN.stream_api_key,
+               'Content-Type': thumbnailFile.mimetype || 'image/jpeg',
+          },
+          maxBodyLength: Infinity,
+     });
 
-    // 2. Generate Correct Thumbnail URL
-    // NOTE: 'pull_zone_host' should be something like 'vz-12345.b-cdn.net' defined in your config
-    const thumbnailUrl = `https://${config.bunnyCDN.pull_zone_host}/${videoId}/thumbnail.jpg`;
+     // 2. Generate Correct Thumbnail URL
+     // NOTE: 'pull_zone_host' should be something like 'vz-12345.b-cdn.net' defined in your config
+     const thumbnailUrl = `https://${config.bunnyCDN.pull_zone_host}/${videoId}/thumbnail.jpg`;
 
-    // 3. Update database
-    const updatedTrailer = await Trailer.findOneAndUpdate(
-        { videoId },
-        {
-            $set: {
-                videoId,
-                libraryId: config.bunnyCDN.stream_library_id,
-                thumbnailUrl: thumbnailUrl // Save the correct URL to DB
-            },
-        },
-        { upsert: true, new: true },
-    );
+     // 3. Update database
+     const updatedTrailer = await Trailer.findOneAndUpdate(
+          { videoId },
+          {
+               $set: {
+                    videoId,
+                    libraryId: config.bunnyCDN.stream_library_id,
+                    thumbnailUrl: thumbnailUrl // Save the correct URL to DB
+               },
+          },
+          { upsert: true, new: true },
+     );
 
-    if (!updatedTrailer) {
-        throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to update trailer in database');
-    }
+     if (!updatedTrailer) {
+          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to update trailer in database');
+     }
 
-    console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
-    
-    // Cache clear logic
-    await trailerCacheKey.clearAfterUpdate(updatedTrailer?._id?.toString());
-    
-    return thumbnailUrl;
+     console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
+
+     // Cache clear logic
+     await trailerCacheKey.clearAfterUpdate(updatedTrailer?._id?.toString());
+
+     return thumbnailUrl;
 };
 
 const createTrailer = async (id: string, payload: ITrailer) => {

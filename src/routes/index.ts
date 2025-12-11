@@ -48,6 +48,10 @@ const routes: { path: string; route: Router }[] = [
           route: MovieManagementRouter,
      },
      {
+          path: '/movies',
+          route: MovieManagementRouter,
+     },
+     {
           path: '/season-management',
           route: SeasonManagementRouter,
      },

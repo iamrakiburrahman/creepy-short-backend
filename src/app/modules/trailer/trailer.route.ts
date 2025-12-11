@@ -7,7 +7,7 @@ import { uploadThumbnail } from '../../middleware/multer';
 const router = express.Router();
 
 router.get('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.getAllTrailers);
-
+router.get('/all-trailers', auth(USER_ROLES.USER), TrailerController.getAllTrailers);
 router.get('/single/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.getSingleTrailer);
 // Save video metadata
 router.post('/create', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.createTrailer);

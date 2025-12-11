@@ -59,10 +59,23 @@ const deleteMovieFromDB = catchAsync(async (req, res) => {
      });
 });
 
+const getAllMoviesForUser = catchAsync(async (req, res) => {
+     const result = await MovieService.getAllMoviesForUser(req.query);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Movies retrieved successfully',
+          data: result.result,
+          meta: result.meta,
+     });
+});
+
 export const MovieController = {
      createMovie,
      getAllMoviesFromDB,
      getMovieFromDB,
      updateMovieFromDB,
      deleteMovieFromDB,
+     getAllMoviesForUser,
 };
