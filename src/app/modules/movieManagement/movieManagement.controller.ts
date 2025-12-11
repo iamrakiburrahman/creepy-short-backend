@@ -106,6 +106,18 @@ const mostPopulerMovies = catchAsync(async (req, res) => {
           meta: result.meta,
      });
 });
+
+const getAllMoviesForUserWithDateFilter = catchAsync(async (req, res) => {
+     const result = await MovieService.getAllMoviesForUserWithDateFilter(req.query);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Movies retrieved successfully',
+          data: result.result,
+          meta: result.meta,
+     });
+});
 export const MovieController = {
      createMovie,
      getAllMoviesFromDB,
@@ -115,5 +127,6 @@ export const MovieController = {
      getAllMoviesForUser,
      getNewReleaseMovies,
      getMovieFromDBWithSeasons,
-     mostPopulerMovies
+     mostPopulerMovies,
+     getAllMoviesForUserWithDateFilter
 };

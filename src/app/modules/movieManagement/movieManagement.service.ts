@@ -8,6 +8,7 @@ import unlinkFile from '../../../shared/unlinkFile';
 import { Category } from '../category/category.model';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
+import { getDateRange } from '../../../utils/getDateRange';
 const movieCache = createCacheHelper('movieCache');
 
 const createMovieToDB = async (payload: IMovie) => {
@@ -105,7 +106,7 @@ const getAllMoviesForUser = async (query: Record<string, unknown>) => {
           query,
           async () => {
                const queryBuilder = new QueryBuilder(MovieModel.find(), query);
-               const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
+               const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).dateFilter('releaseDate').modelQuery.exec();
                const meta = await queryBuilder.countTotal();
                return {
                     meta,
@@ -140,6 +141,33 @@ const mostPopuler = async (query: Record<string, unknown>) => {
           result,
      };
 }
+
+
+const getAllMoviesForUserWithDateFilter = async (query: Record<string, unknown>) => {
+     const filter = query?.filter as 'today' | 'week' | 'month';
+
+     // Base query
+     const baseQuery: any = {};
+     if (filter && ['today', 'week', 'month'].includes(filter)) {
+          baseQuery.releaseDate = getDateRange(filter || 'today');
+     }
+
+     const queryBuilder = new QueryBuilder(
+          MovieModel.find(baseQuery),
+          query
+     );
+
+     const result = await queryBuilder
+          .fields()
+          .paginate()
+          .sort()
+          .filter()
+          .search(['title'])
+          .modelQuery.exec();
+
+     const meta = await queryBuilder.countTotal();
+     return { meta, result };
+};
 export const MovieService = {
      createMovieToDB,
      getAllMoviesFromDB,
@@ -150,4 +178,5 @@ export const MovieService = {
      getNewReleaseMovies,
      getSingleMovieFromDBWithUser,
      mostPopuler,
+     getAllMoviesForUserWithDateFilter
 };
