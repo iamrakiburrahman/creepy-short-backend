@@ -21,7 +21,8 @@ const getAllMoviesFromDB = catchAsync(async (req, res) => {
           statusCode: StatusCodes.OK,
           success: true,
           message: 'Movies retrieved successfully',
-          data: result,
+          data: result.result,
+          meta: result.meta,
      });
 });
 

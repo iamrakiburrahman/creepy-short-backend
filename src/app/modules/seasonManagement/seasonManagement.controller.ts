@@ -21,7 +21,7 @@ const getAllSeasonsFromDB = catchAsync(async (req, res) => {
           statusCode: StatusCodes.OK,
           success: true,
           message: 'Seasons retrieved successfully',
-          data: result,
+          data: result.result,
           meta: result.meta,
      });
 });

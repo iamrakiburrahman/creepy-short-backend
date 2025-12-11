@@ -34,7 +34,8 @@ const getAllVideos = catchAsync(async (req, res) => {
           statusCode: StatusCodes.OK,
           success: true,
           message: 'Videos retrieved successfully',
-          data: result,
+          data: result.result,
+          meta: result.meta,
      });
 });
 
