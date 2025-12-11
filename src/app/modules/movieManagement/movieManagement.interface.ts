@@ -6,7 +6,6 @@ export type TMovieType = 'Movie' | 'Series';
 export interface IMovie {
      title: string;
      genre: string;
-     type: TMovieType;
      category: string;
      categoryId: Types.ObjectId;
      tags: string[]; // From "Tags" input

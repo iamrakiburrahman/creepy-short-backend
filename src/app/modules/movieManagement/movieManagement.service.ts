@@ -7,7 +7,9 @@ import { MovieModel } from './movieManagement.model';
 import unlinkFile from '../../../shared/unlinkFile';
 import { Category } from '../category/category.model';
 const movieCache = createCacheHelper('movieCache');
+
 const createMovieToDB = async (payload: IMovie) => {
+
      const category = await Category.findById(payload.categoryId);
      if (!category) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Category not found');
