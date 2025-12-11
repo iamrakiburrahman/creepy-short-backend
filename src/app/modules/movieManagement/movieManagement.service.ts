@@ -94,6 +94,22 @@ const getAllMoviesForUser = async (query: Record<string, unknown>) => {
      );
 };
 
+const getNewReleaseMovies = async (query: Record<string, unknown>) => {
+     return await movieCache.wrapList(
+          query,
+          async () => {
+               const queryBuilder = new QueryBuilder(MovieModel.find({ isReleased: true }).sort({ releaseDate: -1 }), query);
+               const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
+               const meta = await queryBuilder.countTotal();
+               return {
+                    meta,
+                    result,
+               };
+          },
+          CACHE_TTL.VERY_LONG,
+     );
+};
+
 export const MovieService = {
      createMovieToDB,
      getAllMoviesFromDB,
@@ -101,4 +117,5 @@ export const MovieService = {
      updateMovieFromDB,
      deleteMovieFromDB,
      getAllMoviesForUser,
+     getNewReleaseMovies,
 };
