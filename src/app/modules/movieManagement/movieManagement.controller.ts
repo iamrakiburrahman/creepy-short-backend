@@ -83,6 +83,17 @@ const getNewReleaseMovies = catchAsync(async (req, res) => {
      });
 });
 
+const getMovieFromDBWithSeasons = catchAsync(async (req, res) => {
+     const { id } = req.user as { id: string };
+     const result = await MovieService.getSingleMovieFromDBWithUser(id, req.params.id);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Movie retrieved successfully',
+          data: result,
+     });
+});
 export const MovieController = {
      createMovie,
      getAllMoviesFromDB,
@@ -91,4 +102,5 @@ export const MovieController = {
      deleteMovieFromDB,
      getAllMoviesForUser,
      getNewReleaseMovies,
+     getMovieFromDBWithSeasons
 };

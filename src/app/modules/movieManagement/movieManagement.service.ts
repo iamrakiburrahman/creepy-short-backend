@@ -6,6 +6,8 @@ import { IMovie } from './movieManagement.interface';
 import { MovieModel } from './movieManagement.model';
 import unlinkFile from '../../../shared/unlinkFile';
 import { Category } from '../category/category.model';
+import { User } from '../user/user.model';
+import { USER_ROLES } from '../../../enums/user';
 const movieCache = createCacheHelper('movieCache');
 
 const createMovieToDB = async (payload: IMovie) => {
@@ -51,6 +53,26 @@ const getMovieFromDB = async (id: string) => {
           },
           CACHE_TTL.VERY_LONG,
      );
+};
+const getSingleMovieFromDBWithUser = async (userId: string, id: string) => {
+     const isUser = await User.findById(userId);
+     if (!isUser) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+     }
+
+     const result = await MovieModel.findById(id);
+     if (!result) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
+     }
+     if (isUser.role === USER_ROLES.USER) {
+          await MovieModel.findByIdAndUpdate(
+               id,
+               { $inc: { totalViews: 1 } },
+               { timestamps: false }
+          )
+          await movieCache.clearAfterUpdate(id);
+     }
+     return result;
 };
 
 const updateMovieFromDB = async (id: string, payload: IMovie) => {
@@ -118,4 +140,5 @@ export const MovieService = {
      deleteMovieFromDB,
      getAllMoviesForUser,
      getNewReleaseMovies,
+     getSingleMovieFromDBWithUser,
 };
