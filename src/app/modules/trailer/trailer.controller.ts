@@ -27,6 +27,18 @@ const getSingleTrailer = catchAsync(async (req, res) => {
           data: result,
      });
 });
+const getSingleTrailerForUser = catchAsync(async (req, res) => {
+     const { id } = req.params;
+     const { id: userId } = req.user as { id: string };
+     const result = await TrailerServices.getSingleTrailerForUser(id, userId);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Trailer retrieved successfully',
+          data: result,
+     });
+});
 
 const getAllTrailers = catchAsync(async (req, res) => {
      const result = await TrailerServices.getAllTrailers(req.query);
@@ -95,4 +107,5 @@ export const TrailerController = {
      generateUploadUrl,
      uploadThumbnail,
      createTrailer,
+     getSingleTrailerForUser
 };

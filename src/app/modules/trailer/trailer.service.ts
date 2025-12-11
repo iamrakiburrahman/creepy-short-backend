@@ -7,6 +7,8 @@ import axios from 'axios';
 import config from '../../../config';
 import { createCacheHelper } from '../../builder/RedisCacheHelper';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { User } from '../user/user.model';
+import { USER_ROLES } from '../../../enums/user';
 const trailerCacheKey = createCacheHelper('trailer');
 const getAllTrailers = async (query: Record<string, unknown>) => {
      return await trailerCacheKey.wrapList(query, async () => {
@@ -33,6 +35,24 @@ const getSingleTrailer = async (id: string): Promise<ITrailer> => {
 
           return result;
      });
+};
+const getSingleTrailerForUser = async (id: string, userId: string) => {
+     if (!Types.ObjectId.isValid(id)) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
+     }
+     const isUser = await User.findById(userId);
+     if (!isUser) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+     }
+     const result = await Trailer.findById(id);
+     if (!result) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
+     }
+     if (isUser.role === USER_ROLES.USER) {
+          await Trailer.findByIdAndUpdate(id, { $inc: { views: 1 } });
+          await trailerCacheKey.clearAfterUpdate(id);
+     }
+     return result;
 };
 
 const updateTrailer = async (id: string, payload: Partial<ITrailer>): Promise<ITrailer | null> => {
@@ -187,4 +207,5 @@ export const TrailerServices = {
      deleteTrailer,
      generateUploadUrl,
      uploadThumbnail,
+     getSingleTrailerForUser
 };
