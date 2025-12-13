@@ -7,7 +7,7 @@ const createPackage = catchAsync(async (req, res) => {
      const result = await PackageService.createPackageToDB(req.body);
 
      sendResponse(res, {
-          statusCode: StatusCodes.OK,
+          statusCode: StatusCodes.CREATED,
           success: true,
           message: 'Package created Successfully',
           data: result,

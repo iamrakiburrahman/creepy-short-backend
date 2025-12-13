@@ -6,11 +6,13 @@ const bookmarkSchema = new Schema<IBookmark>(
           userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
           referenceId: {
                type: Schema.Types.ObjectId,
+               refPath: 'referenceType',
                required: true,
           },
           referenceType: {
                type: String,
-               default: 'video',
+               enum: ['Movie', 'Trailer'],
+               required: true,
           },
           isBookmarked: {
                type: Boolean,

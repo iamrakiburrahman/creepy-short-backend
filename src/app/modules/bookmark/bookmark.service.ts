@@ -21,7 +21,7 @@ const toggleBookmark = async (payload: { userId: string; referenceId: string; re
 const getBookmark = async (userId: string, referenceType?: string) => {
      const query: any = { userId };
      if (referenceType) query.referenceType = referenceType;
-     return await Bookmark.find(query);
+     return await Bookmark.find(query).populate('referenceId');
 };
 
 // Delete a specific bookmark
