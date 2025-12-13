@@ -12,6 +12,7 @@ import { VideoManagementRoutes } from '../app/modules/videoManagement/videoManag
 import { BookmarkRoutes } from '../app/modules/bookmark/bookmark.routes';
 import { FaqRoutes } from '../app/modules/faq/faq.route';
 import { FeedbackRoutes } from '../app/modules/feedback/feedback.route';
+import { PackageRoutes } from '../app/modules/package/package.routes';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -70,6 +71,10 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/feedback',
           route: FeedbackRoutes,
+     },
+     {
+          path: '/package',
+          route: PackageRoutes,
      },
 ];
 

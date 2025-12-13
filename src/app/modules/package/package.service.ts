@@ -6,6 +6,11 @@ import { IPackage } from './package.interface';
 import { Package } from './package.model';
 
 const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> => {
+     if (payload.isGoogle) {
+          payload.provider = 'google';
+     } else {
+          payload.provider = 'apple';
+     }
      const result = await Package.create(payload);
      if (!result) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Package');

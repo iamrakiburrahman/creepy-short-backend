@@ -8,7 +8,8 @@ export interface IPackage {
      paymentType: 'Monthly' | 'Yearly';
      googleProductId?: string; // ID from Google Play Console
      appleProductId?: string; // ID from App Store Connect
-
+     isGoogle?: boolean;
+     provider?: 'google' | 'apple';
      status: 'active' | 'inactive';
      isDeleted: boolean;
      deletedAt?: Date;
