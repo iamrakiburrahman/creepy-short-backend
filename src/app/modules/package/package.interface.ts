@@ -1,16 +1,17 @@
 import { Model } from 'mongoose';
 
-export type IPackage = {
-     title: string;
+export interface IPackage {
+     name: string;
      description: string;
      price: number;
-     priceId: string;
      duration: '1 month' | '3 months' | '6 months' | '1 year';
      paymentType: 'Monthly' | 'Yearly';
-     productId?: string;
-     subscriptionType: 'app' | 'web';
+     googleProductId?: string; // ID from Google Play Console
+     appleProductId?: string; // ID from App Store Connect
+
      status: 'active' | 'inactive';
      isDeleted: boolean;
-};
+     deletedAt?: Date;
+}
 
-export type PackageModel = Model<IPackage, Record<string, unknown>>;
+export type PackageModel = Model<IPackage>;

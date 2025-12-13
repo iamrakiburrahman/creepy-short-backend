@@ -27,7 +27,7 @@ export function setupSecurity() {
                },
                level: 6, // Compression level (0-9)
                threshold: 1024, // Only compress responses > 1KB
-          })
+          }),
      );
 
      // 2. Helmet - Security Headers
@@ -59,7 +59,7 @@ export function setupSecurity() {
                referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
                crossOriginEmbedderPolicy: false, // Socket.IO compatibility
                crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow cross-origin resources
-          })
+          }),
      );
 
      // 3. Input Sanitization - Remove Null Bytes & Dangerous Characters
@@ -70,13 +70,13 @@ export function setupSecurity() {
                          if (typeof obj[key] === 'string') {
                               // Remove null bytes
                               obj[key] = obj[key].replace(/\0/g, '');
-                              
+
                               // Remove potential XSS vectors
                               obj[key] = obj[key]
                                    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
                                    .replace(/javascript:/gi, '')
                                    .replace(/on\w+\s*=/gi, '');
-                              
+
                               // Limit string length to prevent DoS
                               if (obj[key].length > 10000) {
                                    obj[key] = obj[key].substring(0, 10000);
@@ -99,14 +99,14 @@ export function setupSecurity() {
                onSanitize: ({ req, key }) => {
                     logger.warn(`⚠️ Sanitized MongoDB operator injection at key: ${key} from IP: ${req.ip}`);
                },
-          })
+          }),
      );
 
      // 5. HTTP Parameter Pollution Prevention
      app.use(
           hpp({
                whitelist: excludeFields(),
-          })
+          }),
      );
 
      // 6. Additional Security Headers
@@ -119,17 +119,17 @@ export function setupSecurity() {
           res.setHeader('X-Download-Options', 'noopen');
           res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
           res.removeHeader('X-Powered-By');
-          
+
           // Prevent clickjacking
           res.setHeader('Content-Security-Policy', "frame-ancestors 'none'");
-          
+
           next();
      });
 
      // 7. Request Timeout (Prevent Slowloris Attack)
      app.use((req, res, next) => {
           const timeout = config.node_env === 'production' ? 30000 : 60000;
-          
+
           const timeoutHandler = () => {
                if (!res.headersSent) {
                     logger.warn(`⏱️ Request timeout from IP: ${req.ip} - Path: ${req.path}`);
@@ -139,13 +139,13 @@ export function setupSecurity() {
                     });
                }
           };
-          
+
           req.setTimeout(timeout, timeoutHandler);
-          
+
           res.setTimeout(timeout, () => {
                logger.warn(`⏱️ Response timeout to IP: ${req.ip} - Path: ${req.path}`);
           });
-          
+
           next();
      });
 
@@ -153,7 +153,7 @@ export function setupSecurity() {
      const payloadSizeLimiter: express.RequestHandler = (req, res, next) => {
           const contentLength = parseInt(req.headers['content-length'] || '0', 10);
           const maxSize = 10 * 1024 * 1024; // 10MB
-          
+
           if (contentLength > maxSize) {
                logger.warn(`⚠️ Payload too large from IP: ${req.ip} - Size: ${contentLength} bytes`);
                res.status(413).json({
@@ -162,7 +162,7 @@ export function setupSecurity() {
                });
                return;
           }
-          
+
           next();
      };
      app.use(payloadSizeLimiter);
@@ -277,7 +277,7 @@ export const corsOptions: cors.CorsOptions = {
                // Allow requests with no origin (mobile apps, Postman, server-to-server)
                return callback(null, true);
           }
-
+          
           if (allowedOrigins === '*' || allowedOrigins.includes(origin)) {
                callback(null, true);
           } else {
@@ -287,14 +287,7 @@ export const corsOptions: cors.CorsOptions = {
      },
      credentials: true, // Allow cookies
      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-     allowedHeaders: [
-          'Content-Type',
-          'Authorization',
-          'X-Requested-With',
-          'Accept',
-          'Origin',
-          'X-CSRF-Token',
-     ],
+     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-CSRF-Token', 'resettoken'],
      exposedHeaders: ['Content-Range', 'X-Content-Range', 'Set-Cookie'],
      maxAge: 86400, // 24 hours
      preflightContinue: false,

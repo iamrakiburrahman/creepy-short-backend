@@ -1,55 +1,24 @@
 import { StatusCodes } from 'http-status-codes';
-import { IPackage } from './package.interface';
-import { Package } from './package.model';
 import mongoose from 'mongoose';
-import { createSubscriptionProduct } from '../../../helpers/stripe/createSubscriptionProductHelper';
-import stripe from '../../../config/stripe';
 import AppError from '../../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
-import { updateSubscriptionInfo } from '../../../helpers/stripe/updateSubscriptionProductInfo';
+import { IPackage } from './package.interface';
+import { Package } from './package.model';
 
 const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> => {
-     const productPayload = {
-          title: payload.title,
-          description: payload.description,
-          duration: payload.duration,
-          price: Number(payload.price),
-     };
-
-     const product = await createSubscriptionProduct(productPayload);
-
-     if (!product) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create subscription product');
-     }
-
-     if (product) {
-          payload.priceId = product.priceId;
-          payload.productId = product.productId;
-     }
-
      const result = await Package.create(payload);
      if (!result) {
-          await stripe.products.del(product.productId);
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to created Package');
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Package');
      }
-
      return result;
 };
 
-const updatePackageToDB = async (id: string, payload: IPackage): Promise<IPackage | null> => {
-     const isExistPackage: any = await Package.findById(id);
+const updatePackageToDB = async (id: string, payload: Partial<IPackage>): Promise<IPackage | null> => {
+     const isExistPackage = await Package.findById(id);
+
      if (!isExistPackage) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Package not found');
      }
-
-     const updatedProduct = await updateSubscriptionInfo(isExistPackage.productId, payload);
-
-     if (!updatedProduct) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to update subscription product in Stripe');
-     }
-
-     payload.priceId = updatedProduct.priceId;
-     payload.productId = updatedProduct.productId;
 
      const updatedPackage = await Package.findByIdAndUpdate(id, payload, {
           new: true,
@@ -63,28 +32,20 @@ const updatePackageToDB = async (id: string, payload: IPackage): Promise<IPackag
      return updatedPackage;
 };
 
-const getPackageFromDB = async (queryParms: Record<string, unknown>) => {
-     const query: any = {
-          isDeleted: false,
-     };
-
-     const queryBuilder = new QueryBuilder(Package.find(query), queryParms);
-     const packages = await queryBuilder.filter().sort().paginate().fields().sort().modelQuery.exec();
-     console.log(packages);
+const getPackageFromDB = async (query: Record<string, unknown>) => {
+     const queryBuilder = new QueryBuilder(Package.find({ isDeleted: false }), query);
+     const packages = await queryBuilder.filter().sort().paginate().fields().modelQuery.exec();
      const meta = await queryBuilder.countTotal();
+
      return {
           packages,
           meta,
      };
 };
-const getPackageByUserFromDB = async (queryParms: Record<string, unknown>) => {
-     const query: any = {
-          status: 'active',
-          isDeleted: false,
-     };
 
-     const queryBuilder = new QueryBuilder(Package.find(query), queryParms);
-     const packages = await queryBuilder.filter().sort().paginate().fields().sort().modelQuery.exec();
+const getPackageByUserFromDB = async (query: Record<string, unknown>) => {
+     const queryBuilder = new QueryBuilder(Package.find({ status: 'active', isDeleted: false }), query);
+     const packages = await queryBuilder.filter().sort().paginate().fields().modelQuery.exec();
      const meta = await queryBuilder.countTotal();
      return {
           packages,
@@ -97,77 +58,36 @@ const getPackageDetailsFromDB = async (id: string): Promise<IPackage | null> => 
           throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid ID');
      }
      const result = await Package.findById(id);
+
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Package not found');
      }
+
      return result;
 };
 
 const deletePackageToDB = async (id: string): Promise<IPackage | null> => {
-     const isExistPackage: any = await Package.findById(id);
+     const isExistPackage = await Package.findById(id);
+
      if (!isExistPackage) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Package not found');
      }
 
-     try {
-          // Get all prices for the Stripe product
-          const prices = await stripe.prices.list({ product: isExistPackage.productId });
+     const result = await Package.findByIdAndUpdate(
+          id,
+          {
+               status: 'inactive',
+               isDeleted: true,
+               deletedAt: new Date(),
+          },
+          { new: true },
+     );
 
-          // Deactivate all prices associated with the product
-          for (const price of prices.data) {
-               if (price.active) {
-                    await stripe.prices.update(price.id, { active: false });
-               }
-          }
-
-          // Archive the product instead of deleting it
-          // This is the recommended approach when you have associated prices
-          await stripe.products.update(isExistPackage.productId, {
-               active: false,
-               metadata: {
-                    deleted_at: new Date().toISOString(),
-                    deleted_by: 'system', // or pass user info if available
-               },
-          });
-
-          // Update the package status in your DB
-          const result = await Package.findByIdAndUpdate(
-               { _id: id },
-               {
-                    status: 'inactive',
-                    isDeleted: true,
-                    deletedAt: new Date(), // Add timestamp for when it was deleted
-               },
-               { new: true },
-          );
-
-          if (!result) {
-               throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to delete Package');
-          }
-
-          return result;
-     } catch (stripeError: any) {
-          // Handle Stripe-specific errors
-          if (stripeError.type === 'StripeInvalidRequestError') {
-               // If the product doesn't exist in Stripe, just update the DB
-               console.warn(`Stripe product ${isExistPackage.productId} not found, updating DB only`);
-
-               const result = await Package.findByIdAndUpdate(
-                    { _id: id },
-                    {
-                         status: 'inactive',
-                         isDeleted: true,
-                         deletedAt: new Date(),
-                    },
-                    { new: true },
-               );
-
-               return result;
-          }
-
-          // Re-throw other errors
-          throw new AppError(StatusCodes.BAD_REQUEST, `Failed to delete package: ${stripeError.message}`);
+     if (!result) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to delete Package');
      }
+
+     return result;
 };
 
 export const PackageService = {
