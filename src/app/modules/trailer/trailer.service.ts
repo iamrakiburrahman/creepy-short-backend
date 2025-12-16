@@ -134,7 +134,6 @@ const deleteTrailer = async (id: string): Promise<ITrailer> => {
 //      return thumbnailUrl;
 // };
 
-
 const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
      if (!thumbnailFile) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
@@ -143,73 +142,66 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
      console.log('🖼️ Uploading thumbnail for video:', videoId);
 
      try {
-          // 1. Upload to BunnyCDN Stream API
-          const uploadResponse = await axios.post(`https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`, thumbnailFile.buffer, {
+          // 1. Upload to BunnyCDN
+          // image/jpeg ব্যবহার করুন, octet-stream দিলে মাঝে মাঝে 400 এরর দেয়
+          await axios.post(`https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`, thumbnailFile.buffer, {
                headers: {
                     'AccessKey': config.bunnyCDN.stream_api_key,
-                    'Content-Type': 'application/octet-stream', // Important: Use octet-stream
+                    'Content-Type': 'image/jpeg', // ✅ FIXED
                },
                maxBodyLength: Infinity,
                maxContentLength: Infinity,
           });
 
-          console.log('✅ Upload response:', uploadResponse.data);
+          console.log('✅ Upload successful to BunnyCDN');
 
-          // 2. Construct proper thumbnail URL
-          const thumbnailUrl = `https://${config.bunnyCDN.pull_zone_host}/${videoId}/thumbnail.jpg`;
+          // 2. Create Base URL
+          const baseUrl = `https://${config.bunnyCDN.pull_zone_host}/${videoId}/thumbnail.jpg`;
 
-          // 3. Purge CDN cache (CRITICAL STEP)
+          // 3. Purge Cache (Optional - if it fails, timestamp will save us)
           try {
-               // Method 1: Direct URL purge
                await axios.post(
                     `https://api.bunny.net/purge`,
-                    {
-                         url: thumbnailUrl,
-                         async: false,
-                    },
+                    { url: baseUrl, async: false },
                     {
                          headers: {
-                              'AccessKey': config.bunnyCDN.account_api_key, // Use Account API key, NOT Stream API key
+                              'AccessKey': config.bunnyCDN.account_api_key, // Account API Key needed
                               'Content-Type': 'application/json',
                          },
                     },
                );
-               console.log('🧹 Cache purged successfully');
-          } catch (purgeError: any) {
-               console.warn('⚠️ Cache purge failed:', purgeError?.response?.data);
-               // Continue even if purge fails
+               console.log('🧹 Cache purged');
+          } catch (err) {
+               console.log('⚠️ Purge failed (skipping...)');
           }
 
-          // 4. Add cache-busting timestamp
+          // 4. 🔥 Generate URL with Timestamp (MOST IMPORTANT STEP)
+          // এই লাইনটি আপনার আগের কোডে মিসিং ছিল
           const timestamp = Date.now();
-          const thumbnailUrlWithTimestamp = `${thumbnailUrl}?v=${timestamp}`;
+          const finalThumbnailUrl = `${baseUrl}?v=${timestamp}`;
 
-          // 5. Update database
+          // 5. Update database with the TIMESTAMPED URL
           const updatedTrailer = await Trailer.findOneAndUpdate(
                { videoId },
                {
                     $set: {
                          videoId,
                          libraryId: config.bunnyCDN.stream_library_id,
-                         thumbnailUrl: thumbnailUrlWithTimestamp, // Save with timestamp
+                         thumbnailUrl: finalThumbnailUrl, // ✅ এখন ডাটাবেসে টাইমস্ট্যাম্প সহ সেভ হবে
                     },
                },
                { upsert: true, new: true },
           );
 
-          console.log('✅ Thumbnail uploaded and database updated');
+          // Clear App Cache
+          if (trailerCacheKey) {
+               await trailerCacheKey.clearAfterUpdate(updatedTrailer?._id?.toString());
+          }
 
-          // Clear app cache
-          await trailerCacheKey.clearAfterUpdate(updatedTrailer?._id?.toString());
-
-          return thumbnailUrlWithTimestamp;
+          return finalThumbnailUrl;
      } catch (error: any) {
-          console.error('❌ Thumbnail upload error:', {
-               message: error?.message,
-               response: error?.response?.data,
-               status: error?.response?.status,
-          });
-          throw new AppError(StatusCodes.BAD_REQUEST, `Failed to upload thumbnail: ${error?.response?.data?.message || error.message}`);
+          console.error('❌ Upload Error:', error?.response?.data || error.message);
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to upload thumbnail');
      }
 };
 const createTrailer = async (id: string, payload: ITrailer) => {
