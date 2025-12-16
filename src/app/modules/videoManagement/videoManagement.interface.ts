@@ -16,5 +16,7 @@ export interface IVideo {
      seasonId?: Types.ObjectId;
      episodeNumber?: number;
      views: number;
+     likes: number;
+     likedBy: Types.ObjectId[];
      isDeleted: boolean;
 }

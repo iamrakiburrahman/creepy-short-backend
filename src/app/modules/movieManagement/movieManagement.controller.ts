@@ -118,6 +118,18 @@ const getAllMoviesForUserWithDateFilter = catchAsync(async (req, res) => {
           meta: result.meta,
      });
 });
+
+const getSingleMovieFromDBWithSession = catchAsync(async (req, res) => {
+     const { id } = req.user as { id: string };
+     const result = await MovieService.getSingleMovieFromDBWithSession(id, req.params.id);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Movies retrieved successfully',
+          data: result,
+     });
+});
 export const MovieController = {
      createMovie,
      getAllMoviesFromDB,
@@ -128,5 +140,6 @@ export const MovieController = {
      getNewReleaseMovies,
      getMovieFromDBWithSeasons,
      mostPopulerMovies,
-     getAllMoviesForUserWithDateFilter
+     getAllMoviesForUserWithDateFilter,
+     getSingleMovieFromDBWithSession
 };

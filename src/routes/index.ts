@@ -61,6 +61,10 @@ const routes: { path: string; route: Router }[] = [
           route: VideoManagementRoutes,
      },
      {
+          path: '/video',
+          route: VideoManagementRoutes,
+     },
+     {
           path: '/bookmark',
           route: BookmarkRoutes,
      },

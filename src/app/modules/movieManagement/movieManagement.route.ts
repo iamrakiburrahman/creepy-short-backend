@@ -18,5 +18,6 @@ router.put('/update-movie/:id', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), 
 router.delete('/delete-movie/:id', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), MovieController.deleteMovieFromDB);
 router.get('/get-single-movie-for-user/:id', auth(USER_ROLES.USER), MovieController.getMovieFromDBWithSeasons);
 router.get('/most-populer', auth(USER_ROLES.USER), MovieController.mostPopulerMovies);
+router.get('/get-movies-with-seasons/:id', auth(USER_ROLES.USER), MovieController.getSingleMovieFromDBWithSession);
 
 export const MovieManagementRouter = router;

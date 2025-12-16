@@ -116,10 +116,19 @@ const createVideo = async (id: string, payload: IVideo) => {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
      }
 
+     if (!seasonId) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Season ID is required');
+     }
+
      const libraryId = config.bunnyCDN.stream_library_id as string;
 
+     // ঐ season এর last video এর episodeNumber খুঁজে বের করা
+     const lastVideo = await Video.findOne({ seasonId }).sort({ episodeNumber: -1 }).select('episodeNumber');
+    
+     const newEpisodeNumber = lastVideo && typeof lastVideo.episodeNumber === 'number' ? lastVideo.episodeNumber + 1 : 1;
+
      const video = await Video.create({
-          title: title || 'Untitled Video',
+          title: title || `Episode ${newEpisodeNumber}`,
           description: description || '',
           duration: duration || 0,
           videoUrl: `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`,
@@ -128,12 +137,11 @@ const createVideo = async (id: string, payload: IVideo) => {
           thumbnailUrl: thumbnailUrl,
           movieId: movieId,
           seasonId: seasonId,
-          episodeNumber: episodeNumber || 0,
+          episodeNumber: episodeNumber || newEpisodeNumber,
      });
 
      return video;
 };
-
 const generateUploadUrl = async (payload: { title?: string; fileName: string }) => {
      const { title, fileName } = payload;
 

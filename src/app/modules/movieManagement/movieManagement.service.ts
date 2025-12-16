@@ -9,10 +9,11 @@ import { Category } from '../category/category.model';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
 import { getDateRange } from '../../../utils/getDateRange';
+import { SeasonModel } from '../seasonManagement/seasonManagement.model';
+import { Video } from '../videoManagement/videoManagement.model';
 const movieCache = createCacheHelper('movieCache');
 
 const createMovieToDB = async (payload: IMovie) => {
-
      const category = await Category.findById(payload.categoryId);
      if (!category) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Category not found');
@@ -66,11 +67,7 @@ const getSingleMovieFromDBWithUser = async (userId: string, id: string) => {
           throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
      }
      if (isUser.role === USER_ROLES.USER) {
-          await MovieModel.findByIdAndUpdate(
-               id,
-               { $inc: { totalViews: 1 } },
-               { timestamps: false }
-          )
+          await MovieModel.findByIdAndUpdate(id, { $inc: { totalViews: 1 } }, { timestamps: false });
           await movieCache.clearAfterUpdate(id);
      }
      return result;
@@ -140,8 +137,7 @@ const mostPopuler = async (query: Record<string, unknown>) => {
           meta,
           result,
      };
-}
-
+};
 
 const getAllMoviesForUserWithDateFilter = async (query: Record<string, unknown>) => {
      const filter = query?.filter as 'today' | 'week' | 'month';
@@ -152,21 +148,60 @@ const getAllMoviesForUserWithDateFilter = async (query: Record<string, unknown>)
           baseQuery.releaseDate = getDateRange(filter || 'today');
      }
 
-     const queryBuilder = new QueryBuilder(
-          MovieModel.find(baseQuery),
-          query
-     );
+     const queryBuilder = new QueryBuilder(MovieModel.find(baseQuery), query);
 
-     const result = await queryBuilder
-          .fields()
-          .paginate()
-          .sort()
-          .filter()
-          .search(['title'])
-          .modelQuery.exec();
+     const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
 
      const meta = await queryBuilder.countTotal();
      return { meta, result };
+};
+const getSingleMovieFromDBWithSession = async (userId: string, id: string) => {
+     const isUser = await User.findById(userId);
+     if (!isUser) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+     }
+
+     const movie = await MovieModel.findById(id);
+     if (!movie) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
+     }
+
+     // User role হলে view count বাড়াবে
+     if (isUser.role === USER_ROLES.USER) {
+          await MovieModel.findByIdAndUpdate(id, { $inc: { totalViews: 1 } }, { timestamps: false });
+          await movieCache.clearAfterUpdate(id);
+     }
+
+     // Movie এর সব seasons fetch করা
+     const seasons = await SeasonModel.find({ movieId: id }).sort({ seasonNumber: 1 });
+
+     // প্রতিটি season এর video count সহ data তৈরি করা
+     const seasonsWithVideos = await Promise.all(
+          seasons.map(async (season) => {
+               const videos = await Video.find({ seasonId: season._id }).sort({ videoNumber: 1 });
+
+               return {
+                    seasonId: season._id,
+                    seasonNumber: season.seasonNumber,
+                    seasonTitle: season.title,
+                    totalVideos: videos.length,
+                    videoRange: videos.length > 0 ? `${videos[0].episodeNumber}-${videos[videos.length - 1].episodeNumber}` : '0-0',
+                    videos: videos.map((v) => ({
+                         videoId: v._id,
+                         episodeNumber: v.episodeNumber,
+                         title: v.title,
+                         duration: v.duration,
+                         videoUrl: v.videoUrl,
+                    })),
+               };
+          }),
+     );
+
+     return {
+          movie: movie,
+          seasons: seasonsWithVideos,
+          totalSeasons: seasons.length,
+     };
 };
 export const MovieService = {
      createMovieToDB,
@@ -178,5 +213,6 @@ export const MovieService = {
      getNewReleaseMovies,
      getSingleMovieFromDBWithUser,
      mostPopuler,
-     getAllMoviesForUserWithDateFilter
+     getAllMoviesForUserWithDateFilter,
+     getSingleMovieFromDBWithSession
 };

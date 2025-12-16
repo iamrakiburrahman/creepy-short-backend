@@ -1,7 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { IVideo } from './videoManagement.interface';
 
-
 const videoSchema = new Schema<IVideo>(
      {
           title: { type: String, required: true },
@@ -17,10 +16,11 @@ const videoSchema = new Schema<IVideo>(
           seasonId: { type: Schema.Types.ObjectId, ref: 'Season' },
           episodeNumber: { type: Number },
           views: { type: Number, default: 0 },
+          likes: { type: Number, default: 0 },
+          likedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
           isDeleted: { type: Boolean, default: false },
      },
      { timestamps: true },
 );
 
 export const Video = model<IVideo>('Video', videoSchema);
-

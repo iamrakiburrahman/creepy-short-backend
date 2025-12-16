@@ -16,5 +16,5 @@ router.delete('/delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), Vid
 router.post('/generate-upload-url', VideoManagementController.generateUploadUrl);
 // Upload thumbnail for a video
 router.post('/:videoId/thumbnail', uploadThumbnail, VideoManagementController.uploadThumbnail);
-
+router.get('/single-video-for-user/:id', auth(USER_ROLES.USER), VideoManagementController.getSingleVideo);
 export const VideoManagementRoutes = router;
