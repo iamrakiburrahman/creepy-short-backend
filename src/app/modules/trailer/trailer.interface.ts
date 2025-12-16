@@ -14,6 +14,8 @@ export interface ITrailer {
      thumbnailUrl: string;
      status: string;
      views: number;
+     updatedAt: Date;
+     createdAt: Date;
 }
 
 export type TrailerModel = Model<ITrailer, {}, {}>;

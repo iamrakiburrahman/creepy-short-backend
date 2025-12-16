@@ -18,7 +18,15 @@ const trailerSchema = new Schema<ITrailer, TrailerModel>(
      },
      {
           timestamps: true,
+          toJSON: { virtuals: true },
+          toObject: { virtuals: true },
      },
 );
-
+trailerSchema.virtual('thumbnailUrlWithCache').get(function () {
+     if (this.thumbnailUrl && this.updatedAt) {
+          const timestamp = new Date(this.updatedAt).getTime();
+          return `${this.thumbnailUrl}?v=${timestamp}`;
+     }
+     return this.thumbnailUrl;
+});
 export const Trailer = model<ITrailer, TrailerModel>('Trailer', trailerSchema);
