@@ -59,6 +59,7 @@ export default {
           stripe_product_id: process.env.STRIPE_PRODUCT_ID,
      },
      bunnyCDN: {
+          account_api_key: process.env.BUNNY_CDN_ACCOUNT_API_KEY,
           apiKey: process.env.BUNNY_CDN_API_KEY,
           storageZone: process.env.BUNNY_CDN_STORAGE_ZONE,
           hostname: process.env.BUNNY_CDN_STORAGE_HOST_NAME,

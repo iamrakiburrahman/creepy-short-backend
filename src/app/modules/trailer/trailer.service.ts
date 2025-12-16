@@ -88,6 +88,53 @@ const deleteTrailer = async (id: string): Promise<ITrailer> => {
      await trailerCacheKey.clearAfterUpdate(id);
      return result;
 };
+// const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
+//      if (!thumbnailFile) {
+//           throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
+//      }
+
+//      console.log('🖼️ Uploading thumbnail for video:', videoId);
+
+//      // 1. Upload to BunnyCDN
+//      // BunnyCDN requires the file to be uploaded properly. Ensure correct Content-Type.
+//      await axios.post(`https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`, thumbnailFile.buffer, {
+//           headers: {
+//                'AccessKey': config.bunnyCDN.stream_api_key,
+//                'Content-Type': thumbnailFile.mimetype || 'image/jpeg',
+//           },
+//           maxBodyLength: Infinity,
+//      });
+
+//      // 2. Generate Correct Thumbnail URL
+//      // NOTE: 'pull_zone_host' should be something like 'vz-12345.b-cdn.net' defined in your config
+//      const thumbnailUrl = `https://${config.bunnyCDN.pull_zone_host}/${videoId}/thumbnail.jpg`;
+
+//      // 3. Update database
+//      const updatedTrailer = await Trailer.findOneAndUpdate(
+//           { videoId },
+//           {
+//                $set: {
+//                     videoId,
+//                     libraryId: config.bunnyCDN.stream_library_id,
+//                     thumbnailUrl: thumbnailUrl, // Save the correct URL to DB
+//                },
+//           },
+//           { upsert: true, new: true },
+//      );
+
+//      if (!updatedTrailer) {
+//           throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to update trailer in database');
+//      }
+
+//      console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
+
+//      // Cache clear logic
+//      await trailerCacheKey.clearAfterUpdate(updatedTrailer?._id?.toString());
+
+//      return thumbnailUrl;
+// };
+
+
 const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
      if (!thumbnailFile) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
@@ -95,45 +142,76 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
 
      console.log('🖼️ Uploading thumbnail for video:', videoId);
 
-     // 1. Upload to BunnyCDN
-     // BunnyCDN requires the file to be uploaded properly. Ensure correct Content-Type.
-     await axios.post(`https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`, thumbnailFile.buffer, {
-          headers: {
-               'AccessKey': config.bunnyCDN.stream_api_key,
-               'Content-Type': thumbnailFile.mimetype || 'image/jpeg',
-          },
-          maxBodyLength: Infinity,
-     });
-
-     // 2. Generate Correct Thumbnail URL
-     // NOTE: 'pull_zone_host' should be something like 'vz-12345.b-cdn.net' defined in your config
-     const thumbnailUrl = `https://${config.bunnyCDN.pull_zone_host}/${videoId}/thumbnail.jpg`;
-
-     // 3. Update database
-     const updatedTrailer = await Trailer.findOneAndUpdate(
-          { videoId },
-          {
-               $set: {
-                    videoId,
-                    libraryId: config.bunnyCDN.stream_library_id,
-                    thumbnailUrl: thumbnailUrl // Save the correct URL to DB
+     try {
+          // 1. Upload to BunnyCDN Stream API
+          const uploadResponse = await axios.post(`https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`, thumbnailFile.buffer, {
+               headers: {
+                    'AccessKey': config.bunnyCDN.stream_api_key,
+                    'Content-Type': 'application/octet-stream', // Important: Use octet-stream
                },
-          },
-          { upsert: true, new: true },
-     );
+               maxBodyLength: Infinity,
+               maxContentLength: Infinity,
+          });
 
-     if (!updatedTrailer) {
-          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to update trailer in database');
+          console.log('✅ Upload response:', uploadResponse.data);
+
+          // 2. Construct proper thumbnail URL
+          const thumbnailUrl = `https://${config.bunnyCDN.pull_zone_host}/${videoId}/thumbnail.jpg`;
+
+          // 3. Purge CDN cache (CRITICAL STEP)
+          try {
+               // Method 1: Direct URL purge
+               await axios.post(
+                    `https://api.bunny.net/purge`,
+                    {
+                         url: thumbnailUrl,
+                         async: false,
+                    },
+                    {
+                         headers: {
+                              'AccessKey': config.bunnyCDN.account_api_key, // Use Account API key, NOT Stream API key
+                              'Content-Type': 'application/json',
+                         },
+                    },
+               );
+               console.log('🧹 Cache purged successfully');
+          } catch (purgeError: any) {
+               console.warn('⚠️ Cache purge failed:', purgeError?.response?.data);
+               // Continue even if purge fails
+          }
+
+          // 4. Add cache-busting timestamp
+          const timestamp = Date.now();
+          const thumbnailUrlWithTimestamp = `${thumbnailUrl}?v=${timestamp}`;
+
+          // 5. Update database
+          const updatedTrailer = await Trailer.findOneAndUpdate(
+               { videoId },
+               {
+                    $set: {
+                         videoId,
+                         libraryId: config.bunnyCDN.stream_library_id,
+                         thumbnailUrl: thumbnailUrlWithTimestamp, // Save with timestamp
+                    },
+               },
+               { upsert: true, new: true },
+          );
+
+          console.log('✅ Thumbnail uploaded and database updated');
+
+          // Clear app cache
+          await trailerCacheKey.clearAfterUpdate(updatedTrailer?._id?.toString());
+
+          return thumbnailUrlWithTimestamp;
+     } catch (error: any) {
+          console.error('❌ Thumbnail upload error:', {
+               message: error?.message,
+               response: error?.response?.data,
+               status: error?.response?.status,
+          });
+          throw new AppError(StatusCodes.BAD_REQUEST, `Failed to upload thumbnail: ${error?.response?.data?.message || error.message}`);
      }
-
-     console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
-
-     // Cache clear logic
-     await trailerCacheKey.clearAfterUpdate(updatedTrailer?._id?.toString());
-
-     return thumbnailUrl;
 };
-
 const createTrailer = async (id: string, payload: ITrailer) => {
      const { videoId, title, color, contentName, description, thumbnailUrl, duration } = payload;
      console.log('payload', payload);
@@ -207,5 +285,5 @@ export const TrailerServices = {
      deleteTrailer,
      generateUploadUrl,
      uploadThumbnail,
-     getSingleTrailerForUser
+     getSingleTrailerForUser,
 };
