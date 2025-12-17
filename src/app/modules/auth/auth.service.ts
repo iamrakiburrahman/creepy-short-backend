@@ -74,7 +74,7 @@ const forgetPasswordToDB = async (email: string) => {
      }
 
      //send mail
-     const otp = generateOTP(4);
+     const otp = generateOTP(6);
      // const value = { otp, email: isExistUser.email };
      // const forgetPassword = emailTemplate.resetPassword(value);
      // emailHelper.sendEmail(forgetPassword);
@@ -93,7 +93,7 @@ const resendOtpFromDb = async (email: string) => {
      }
 
      // send email
-     const otp = generateOTP(4);
+     const otp = generateOTP(6);
      // const values = { name: isExistUser.name, otp: otp, email: isExistUser.email! };
      // const createAccountTemplate = emailTemplate.createAccount(values);
      // emailHelper.sendEmail(createAccountTemplate);

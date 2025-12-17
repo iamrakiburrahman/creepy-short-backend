@@ -36,6 +36,7 @@
           "axios": "^1.13.2",
           "bcrypt": "^5.1.1",
           "bullmq": "^5.63.1",
+          "bunnycdn-storage": "^1.1.0",
           "colors": "^1.4.0",
           "compression": "^1.8.0",
           "concurrently": "^9.2.1",

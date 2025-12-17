@@ -7,6 +7,7 @@ import { IVideo } from './videoManagement.interface';
 import { Video } from './videoManagement.model';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
 const videoCache = createCacheHelper('videoCache');
 const getAllVideos = async (query: Record<string, unknown>) => {
      return await videoCache.wrapList(
@@ -76,16 +77,7 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
           throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
      }
 
-     console.log('🖼️ Uploading thumbnail for video:', videoId);
-
-     // Upload to BunnyCDN
-     await axios.post(`https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`, thumbnailFile.buffer, {
-          headers: {
-               'AccessKey': config.bunnyCDN.stream_api_key,
-               'Content-Type': thumbnailFile.mimetype || 'image/jpeg',
-          },
-          maxBodyLength: Infinity,
-     });
+     const thumbnailUrl = await BunnyStorageHandeler.uploadToBunny(thumbnailFile, 'thumbnails');
 
      // Update database
      const updatedVideo = await Video.findOneAndUpdate(
@@ -103,7 +95,6 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
      }
 
      // Generate thumbnail URL
-     const thumbnailUrl = `https://iframe.mediadelivery.net/api/thumbnail/${config.bunnyCDN.stream_library_id}/${videoId}?width=240&height=135&time=1`;
      await videoCache.clearAfterUpdate(updatedVideo?._id.toString());
      console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
      return thumbnailUrl;
@@ -124,7 +115,7 @@ const createVideo = async (id: string, payload: IVideo) => {
 
      // ঐ season এর last video এর episodeNumber খুঁজে বের করা
      const lastVideo = await Video.findOne({ seasonId }).sort({ episodeNumber: -1 }).select('episodeNumber');
-    
+
      const newEpisodeNumber = lastVideo && typeof lastVideo.episodeNumber === 'number' ? lastVideo.episodeNumber + 1 : 1;
 
      const video = await Video.create({
