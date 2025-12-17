@@ -9,6 +9,7 @@ import { createCacheHelper } from '../../builder/RedisCacheHelper';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
+import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
 const trailerCacheKey = createCacheHelper('trailer');
 const getAllTrailers = async (query: Record<string, unknown>) => {
      return await trailerCacheKey.wrapList(query, async () => {
@@ -139,46 +140,8 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
           throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
      }
 
-     console.log('🖼️ Uploading thumbnail for video:', videoId);
-
-     try {
-          // 1. Upload to BunnyCDN
-          // image/jpeg ব্যবহার করুন, octet-stream দিলে মাঝে মাঝে 400 এরর দেয়
-          await axios.post(`https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos/${videoId}/thumbnail`, thumbnailFile.buffer, {
-               headers: {
-                    'AccessKey': config.bunnyCDN.stream_api_key,
-                    'Content-Type': 'image/jpeg', // ✅ FIXED
-               },
-               maxBodyLength: Infinity,
-               maxContentLength: Infinity,
-          });
-
-          console.log('✅ Upload successful to BunnyCDN');
-
-          // 2. Create Base URL
-          const baseUrl = `https://${config.bunnyCDN.pull_zone_host}/${videoId}/thumbnail.jpg`;
-
-          // 3. Purge Cache (Optional - if it fails, timestamp will save us)
-          try {
-               await axios.post(
-                    `https://api.bunny.net/purge`,
-                    { url: baseUrl, async: false },
-                    {
-                         headers: {
-                              'AccessKey': config.bunnyCDN.account_api_key, // Account API Key needed
-                              'Content-Type': 'application/json',
-                         },
-                    },
-               );
-               console.log('🧹 Cache purged');
-          } catch (err) {
-               console.log('⚠️ Purge failed (skipping...)');
-          }
-
-          // 4. 🔥 Generate URL with Timestamp (MOST IMPORTANT STEP)
-          // এই লাইনটি আপনার আগের কোডে মিসিং ছিল
-          const timestamp = Date.now();
-          const finalThumbnailUrl = `${baseUrl}?v=${timestamp}`;
+     // 1. Upload to BunnyCDN
+     const thumbnailUrl = await BunnyStorageHandeler.uploadToBunny(thumbnailFile, 'thumbnails');
 
           // 5. Update database with the TIMESTAMPED URL
           const updatedTrailer = await Trailer.findOneAndUpdate(
@@ -187,7 +150,7 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
                     $set: {
                          videoId,
                          libraryId: config.bunnyCDN.stream_library_id,
-                         thumbnailUrl: finalThumbnailUrl, // ✅ এখন ডাটাবেসে টাইমস্ট্যাম্প সহ সেভ হবে
+                         thumbnailUrl: thumbnailUrl,
                     },
                },
                { upsert: true, new: true },
@@ -197,12 +160,7 @@ const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.Fi
           if (trailerCacheKey) {
                await trailerCacheKey.clearAfterUpdate(updatedTrailer?._id?.toString());
           }
-
-          return finalThumbnailUrl;
-     } catch (error: any) {
-          console.error('❌ Upload Error:', error?.response?.data || error.message);
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to upload thumbnail');
-     }
+          return thumbnailUrl; 
 };
 const createTrailer = async (id: string, payload: ITrailer) => {
      const { videoId, title, color, contentName, description, thumbnailUrl, duration } = payload;
