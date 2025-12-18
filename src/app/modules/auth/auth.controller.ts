@@ -48,7 +48,7 @@ const resetPasswordByUrl = catchAsync(async (req, res) => {
      sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: 'Your password has been successfully reset.', data: result });
 });
 const resetPassword = catchAsync(async (req, res) => {
-     const token: any = req.headers.resettoken;
+     const token: any = req.headers.token;
      const { ...resetData } = req.body;
      const result = await AuthService.resetPasswordToDB(token!, resetData);
 
