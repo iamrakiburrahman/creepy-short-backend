@@ -106,5 +106,5 @@ export const TrailerController = {
      generateUploadUrl,
      uploadThumbnail,
      createTrailer,
-     getSingleTrailerForUser
+     getSingleTrailerForUser,
 };
