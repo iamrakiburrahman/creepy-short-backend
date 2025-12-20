@@ -135,31 +135,13 @@ const deleteTrailer = async (id: string): Promise<ITrailer> => {
 //      return thumbnailUrl;
 // };
 
-const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
+const uploadThumbnail = async (thumbnailFile: Express.Multer.File) => {
      if (!thumbnailFile) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
      }
-
      // 1. Upload to BunnyCDN
      const thumbnailUrl = await BunnyStorageHandeler.uploadToBunny(thumbnailFile, 'thumbnails');
 
-          // 5. Update database with the TIMESTAMPED URL
-          const updatedTrailer = await Trailer.findOneAndUpdate(
-               { videoId },
-               {
-                    $set: {
-                         videoId,
-                         libraryId: config.bunnyCDN.stream_library_id,
-                         thumbnailUrl: thumbnailUrl,
-                    },
-               },
-               { upsert: true, new: true },
-          );
-
-          // Clear App Cache
-          if (trailerCacheKey) {
-               await trailerCacheKey.clearAfterUpdate(updatedTrailer?._id?.toString());
-          }
           return thumbnailUrl; 
 };
 const createTrailer = async (id: string, payload: ITrailer) => {

@@ -75,8 +75,7 @@ const uploadThumbnail = catchAsync(async (req, res) => {
      if (!file) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'No file uploaded');
      }
-     const { videoId } = req.params;
-     const result = await TrailerServices.uploadThumbnail(videoId, file);
+     const result = await TrailerServices.uploadThumbnail(file);
 
      sendResponse(res, {
           success: true,
