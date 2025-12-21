@@ -155,17 +155,24 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
 
      const videoId = createResponse.data.guid;
      const libraryId = config.bunnyCDN.stream_library_id as string;
+     const pullZone = config.bunnyCDN.pull_zone_host as string;
 
      console.log('✅ Video object created with ID:', videoId);
 
      const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
      const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
-
+     const downloadUrls = {
+          original: `https://${pullZone}/${videoId}/original`,
+          hd: `https://${pullZone}/${videoId}/play_1080p.mp4`,
+          sd: `https://${pullZone}/${videoId}/play_720p.mp4`,
+          mobile: `https://${pullZone}/${videoId}/play_480p.mp4`,
+     };
      return {
           videoId,
           uploadUrl,
           apiKey: config.bunnyCDN.stream_api_key,
           embedUrl,
+          downloadUrls,
           libraryId,
      };
 };
