@@ -88,7 +88,17 @@ const createVideo = catchAsync(async (req, res) => {
           data: result,
      });
 });
-
+const getSeasonVideos = catchAsync(async (req, res) => {
+     const { seasonId } = req.params;
+     const { id } = req.user as { id: string };
+     const result = await VideoManagementServices.getSeasonVideos(seasonId, id);
+     sendResponse(res, {
+          success: true,
+          statusCode: StatusCodes.OK,
+          message: 'Videos retrieved successfully',
+          data: result,
+     });
+});
 export const VideoManagementController = {
      updateVideo,
      getSingleVideo,
@@ -97,4 +107,5 @@ export const VideoManagementController = {
      generateUploadUrl,
      uploadThumbnail,
      createVideo,
+     getSeasonVideos,
 };

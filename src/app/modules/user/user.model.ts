@@ -70,6 +70,10 @@ const userSchema = new Schema<IUser, UserModel>(
                type: String,
                enum: ['google', 'facebook'],
           },
+          isSubscribed: {
+               type: Boolean,
+               default: true,
+          },
           pageAccess: {
                type: [
                     {

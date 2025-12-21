@@ -8,6 +8,7 @@ import { Video } from './videoManagement.model';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
+import { User } from '../user/user.model';
 const videoCache = createCacheHelper('videoCache');
 const getAllVideos = async (query: Record<string, unknown>) => {
      return await videoCache.wrapList(
@@ -176,6 +177,29 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
           libraryId,
      };
 };
+
+const getSeasonVideos = async (seasonId: string, userId: string) => {
+     const videos = await Video.find({ seasonId }).sort({ episodeNumber: 1 });
+     const user = await User.findById(userId).select('isSubscribed');
+
+     if (!user) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+     }
+
+     const result = videos.map((video, index) => {
+          // If user is subscribed, all videos are accessible
+          // If not subscribed, only first 3 videos are accessible
+          const isAccess = user.isSubscribed ? true : index < 3;
+
+          return {
+               ...video.toObject(),
+               isSubscribed: user.isSubscribed,
+               isAccess: isAccess,
+          };
+     });
+
+     return result;
+};
 export const VideoManagementServices = {
      createVideo,
      getAllVideos,
@@ -184,4 +208,5 @@ export const VideoManagementServices = {
      deleteVideo,
      generateUploadUrl,
      uploadThumbnail,
+     getSeasonVideos,
 };

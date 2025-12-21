@@ -14,6 +14,7 @@ export type IUser = {
      googleId?: string;
      facebookId?: string;
      oauthProvider?: 'google' | 'facebook';
+     isSubscribed: boolean;
      pageAccess?: {
           name: string;
           access: boolean;
