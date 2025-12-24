@@ -13,6 +13,7 @@ import { BookmarkRoutes } from '../app/modules/bookmark/bookmark.routes';
 import { FaqRoutes } from '../app/modules/faq/faq.route';
 import { FeedbackRoutes } from '../app/modules/feedback/feedback.route';
 import { PackageRoutes } from '../app/modules/package/package.routes';
+import { ReminderRoute } from '../app/modules/reminder/reminder.route';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -79,6 +80,10 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/package',
           route: PackageRoutes,
+     },
+     {
+          path: '/reminder',
+          route: ReminderRoute,
      },
 ];
 

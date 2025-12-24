@@ -6,7 +6,7 @@ const ReminderSchema = new mongoose.Schema<IReminder>({
           type: mongoose.Schema.Types.ObjectId,
           required: true,
      },
-     image: {
+     thumbnail: {
           type: String,
           required: true,
      },
