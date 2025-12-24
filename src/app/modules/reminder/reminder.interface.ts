@@ -6,4 +6,5 @@ export interface IReminder {
      name: string;
      description?: string;
      reminderTime: Date;
+     status?: 'active' | 'inactive';
 }

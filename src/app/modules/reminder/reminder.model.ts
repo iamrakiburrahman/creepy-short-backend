@@ -21,6 +21,11 @@ const ReminderSchema = new mongoose.Schema<IReminder>({
           type: Date,
           required: true,
      },
+     status: {
+          type: String,
+          enum: ['active', 'inactive'],
+          default: 'active',
+     },
 });
 
 export const ReminderModel = mongoose.model<IReminder>('Reminder', ReminderSchema);
