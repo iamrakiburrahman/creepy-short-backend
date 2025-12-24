@@ -59,10 +59,22 @@ const deleteSeasonFromDB = catchAsync(async (req, res) => {
      });
 });
 
+const getAllSeasonsForMovie = catchAsync(async (req, res) => {
+     const result = await SeasonService.getAllSeasonsForMovie(req.params.id);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Seasons retrieved successfully',
+          data: result,
+     });
+});
+
 export const SeasonController = {
      createSeason,
      getAllSeasonsFromDB,
      getSeasonFromDB,
      updateSeasonFromDB,
      deleteSeasonFromDB,
+     getAllSeasonsForMovie,
 };

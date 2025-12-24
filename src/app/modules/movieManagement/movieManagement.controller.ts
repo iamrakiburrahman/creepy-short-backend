@@ -95,8 +95,8 @@ const getMovieFromDBWithSeasons = catchAsync(async (req, res) => {
      });
 });
 
-const mostPopulerMovies = catchAsync(async (req, res) => {
-     const result = await MovieService.mostPopuler(req.query);
+const mostPopularMovies = catchAsync(async (req, res) => {
+     const result = await MovieService.mostPopular(req.query);
 
      sendResponse(res, {
           statusCode: StatusCodes.OK,
@@ -139,7 +139,7 @@ export const MovieController = {
      getAllMoviesForUser,
      getNewReleaseMovies,
      getMovieFromDBWithSeasons,
-     mostPopulerMovies,
+     mostPopularMovies,
      getAllMoviesForUserWithDateFilter,
      getSingleMovieFromDBWithSession
 };

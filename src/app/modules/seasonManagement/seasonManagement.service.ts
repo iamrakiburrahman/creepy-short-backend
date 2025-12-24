@@ -63,10 +63,19 @@ const deleteSeasonFromDB = async (id: string) => {
      return result;
 };
 
+const getAllSeasonsForMovie = async (movieId: string) => {
+     const result = await SeasonModel.find({ movieId }).sort({ seasonNumber: 1 });
+     if (!result) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Seasons not found');
+     }
+     return result;
+};
+
 export const SeasonService = {
      createSeasonToDB,
      getAllSeasonsFromDB,
      getSeasonFromDB,
      updateSeasonFromDB,
      deleteSeasonFromDB,
+     getAllSeasonsForMovie,
 };

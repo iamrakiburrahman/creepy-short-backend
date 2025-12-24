@@ -129,7 +129,7 @@ const getNewReleaseMovies = async (query: Record<string, unknown>) => {
           CACHE_TTL.VERY_LONG,
      );
 };
-const mostPopuler = async (query: Record<string, unknown>) => {
+const mostPopular = async (query: Record<string, unknown>) => {
      const queryBuilder = new QueryBuilder(MovieModel.find({ isReleased: true }).sort({ totalViews: -1 }), query);
      const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
      const meta = await queryBuilder.countTotal();
@@ -174,25 +174,13 @@ const getSingleMovieFromDBWithSession = async (userId: string, id: string) => {
 
      // Movie এর সব seasons fetch করা
      const seasons = await SeasonModel.find({ movieId: id }).sort({ seasonNumber: 1 });
-
-     // প্রতিটি season এর video count সহ data তৈরি করা
      const seasonsWithVideos = await Promise.all(
           seasons.map(async (season) => {
-               const videos = await Video.find({ seasonId: season._id }).sort({ videoNumber: 1 });
-
+          
                return {
                     seasonId: season._id,
                     seasonNumber: season.seasonNumber,
                     seasonTitle: season.title,
-                    totalVideos: videos.length,
-                    videoRange: videos.length > 0 ? `${videos[0].episodeNumber}-${videos[videos.length - 1].episodeNumber}` : '0-0',
-                    videos: videos.map((v) => ({
-                         videoId: v._id,
-                         episodeNumber: v.episodeNumber,
-                         title: v.title,
-                         duration: v.duration,
-                         videoUrl: v.videoUrl,
-                    })),
                };
           }),
      );
@@ -212,7 +200,7 @@ export const MovieService = {
      getAllMoviesForUser,
      getNewReleaseMovies,
      getSingleMovieFromDBWithUser,
-     mostPopuler,
+     mostPopular,
      getAllMoviesForUserWithDateFilter,
      getSingleMovieFromDBWithSession
 };
