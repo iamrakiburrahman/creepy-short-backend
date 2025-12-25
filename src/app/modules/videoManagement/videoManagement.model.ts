@@ -17,6 +17,15 @@ const videoSchema = new Schema<IVideo>(
           episodeNumber: { type: Number },
           views: { type: Number, default: 0 },
           likes: { type: Number, default: 0 },
+          downloadUrls: {
+               type: {
+                    original: String,
+                    hd: String,
+                    sd: String,
+                    mobile: String,
+               },
+               required: true,
+          },
           likedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
           isDeleted: { type: Boolean, default: false },
      },

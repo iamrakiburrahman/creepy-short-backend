@@ -17,6 +17,12 @@ export interface IVideo {
      episodeNumber?: number;
      views: number;
      likes: number;
+     downloadUrls: {
+          original: string;
+          hd: string;
+          sd: string;
+          mobile: string;
+     };
      likedBy: Types.ObjectId[];
      isDeleted: boolean;
 }

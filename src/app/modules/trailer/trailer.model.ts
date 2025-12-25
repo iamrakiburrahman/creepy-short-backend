@@ -14,6 +14,15 @@ const trailerSchema = new Schema<ITrailer, TrailerModel>(
           thumbnailUrl: { type: String, required: true },
           status: { type: String, required: true },
           views: { type: Number, default: 0 },
+          downloadUrls: {
+               type: {
+                    original: String,
+                    hd: String,
+                    sd: String,
+                    mobile: String,
+               },
+               required: true,
+          },
           uploadedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
      },
      {

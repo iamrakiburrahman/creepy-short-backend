@@ -16,6 +16,12 @@ export interface ITrailer {
      views: number;
      updatedAt: Date;
      createdAt: Date;
+     downloadUrls: {
+          original: string;
+          hd: string;
+          sd: string;
+          mobile: string;
+     };
 }
 
 export type TrailerModel = Model<ITrailer, {}, {}>;
