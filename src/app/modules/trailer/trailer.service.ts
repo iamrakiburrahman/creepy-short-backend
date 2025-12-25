@@ -145,7 +145,7 @@ const uploadThumbnail = async (thumbnailFile: Express.Multer.File) => {
      return thumbnailUrl;
 };
 const createTrailer = async (id: string, payload: ITrailer) => {
-     const { videoId, title, color, contentName, description, thumbnailUrl, duration } = payload;
+     const { videoId, title, color, contentName, description, thumbnailUrl, duration ,downloadUrls} = payload;
      console.log('payload', payload);
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
@@ -164,6 +164,7 @@ const createTrailer = async (id: string, payload: ITrailer) => {
           thumbnailUrl: thumbnailUrl,
           status: 'processing',
           duration: duration || 0,
+          downloadUrls,
           uploadedBy: new Types.ObjectId(id),
           uploadedAt: new Date(),
      });

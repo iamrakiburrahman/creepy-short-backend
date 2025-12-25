@@ -24,7 +24,7 @@ const videoSchema = new Schema<IVideo>(
                     sd: String,
                     mobile: String,
                },
-               required: true,
+               required: false,
           },
           likedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }],
           isDeleted: { type: Boolean, default: false },

@@ -82,7 +82,7 @@ const uploadThumbnail = async (thumbnailFile: Express.Multer.File) => {
 };
 
 const createVideo = async (id: string, payload: IVideo) => {
-     const { videoId, title, description, thumbnailUrl, duration, movieId, seasonId, episodeNumber } = payload;
+     const { videoId, title, description, thumbnailUrl, duration, movieId, seasonId, episodeNumber, downloadUrls } = payload;
 
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
@@ -110,6 +110,7 @@ const createVideo = async (id: string, payload: IVideo) => {
           movieId: movieId,
           seasonId: seasonId,
           episodeNumber: episodeNumber || newEpisodeNumber,
+          downloadUrls,
      });
 
      return video;

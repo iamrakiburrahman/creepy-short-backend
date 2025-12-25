@@ -21,7 +21,7 @@ const trailerSchema = new Schema<ITrailer, TrailerModel>(
                     sd: String,
                     mobile: String,
                },
-               required: true,
+               required: false,
           },
           uploadedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
      },
