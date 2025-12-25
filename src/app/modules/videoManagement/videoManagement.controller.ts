@@ -64,10 +64,7 @@ const uploadThumbnail = catchAsync(async (req, res) => {
      if (!file) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'No file uploaded');
      }
-     const { videoId } = req.params;
-
-     const result = await VideoManagementServices.uploadThumbnail(videoId, file);
-
+     const result = await VideoManagementServices.uploadThumbnail(file);
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.OK,

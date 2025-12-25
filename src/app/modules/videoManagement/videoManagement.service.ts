@@ -73,31 +73,11 @@ const deleteVideo = async (id: string): Promise<IVideo> => {
      await videoCache.clearAfterUpdate(id);
      return result;
 };
-const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
+const uploadThumbnail = async (thumbnailFile: Express.Multer.File) => {
      if (!thumbnailFile) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
      }
-
      const thumbnailUrl = await BunnyStorageHandeler.uploadToBunny(thumbnailFile, 'thumbnails');
-
-     // Update database
-     const updatedVideo = await Video.findOneAndUpdate(
-          { videoId },
-          {
-               $set: {
-                    videoId,
-                    libraryId: config.bunnyCDN.stream_library_id,
-               },
-          },
-          { upsert: true, new: true },
-     );
-     if (!updatedVideo) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
-     }
-
-     // Generate thumbnail URL
-     await videoCache.clearAfterUpdate(updatedVideo?._id.toString());
-     console.log('✅ Thumbnail uploaded successfully', thumbnailUrl);
      return thumbnailUrl;
 };
 
