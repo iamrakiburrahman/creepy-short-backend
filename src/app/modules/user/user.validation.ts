@@ -27,8 +27,7 @@ const updateUserZodSchema = z.object({
           contact: z.string().optional(),
           address: z.string().optional(),
           email: z.string().email('Invalid email address').optional(),
-          password: z.string().optional(),
-          image: z.string().optional(),
+          password: z.string().optional()
      }),
 });
 

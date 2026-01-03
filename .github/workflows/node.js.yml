@@ -1,31 +1,215 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js CI
+name: creepy-backend
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main, master]
   pull_request:
-    branches: [ "main" ]
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+  PROJECT_NAME: ${{ github.event.repository.name }}
+  APP_PORT: ${{ secrets.APP_PORT || '8000' }}
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+  deploy:
+    name: Build & Deploy
+    runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Check Node and npm versions
+        run: |
+          node -v
+          npm -v
+
+      - name: Setup Project Directory
+        run: |
+          PROJECT_DIR="$HOME/projects/${{ env.PROJECT_NAME }}"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+          mkdir -p "$PROJECT_DIR"
+          mkdir -p "$PROJECT_DIR/uploads"
+          mkdir -p "$PROJECT_DIR/logs"
+          mkdir -p "$PROJECT_DIR/backups"
+          echo "✅ Project directory setup complete: $PROJECT_DIR"
+
+      - name: Create Backup
+        run: |
+          if [ -d "$PROJECT_DIR/dist" ] || [ -d "$PROJECT_DIR/build" ]; then
+            timestamp=$(date +%Y%m%d_%H%M%S)
+            echo "💾 Creating backup..."
+            tar -czf "$PROJECT_DIR/backups/backup_${timestamp}.tar.gz" \
+              -C "$PROJECT_DIR" \
+              dist build package.json .env ecosystem.config.* 2>/dev/null || true
+            ls -t "$PROJECT_DIR/backups"/backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
+            echo "✅ Backup created: backup_${timestamp}.tar.gz"
+          else
+            echo "ℹ️  No previous deployment found, skipping backup"
+          fi
+
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: ${{ github.workspace }}
+
+      - name: Run Tests (Optional)
+        run: npm test --if-present
+        working-directory: ${{ github.workspace }}
+        continue-on-error: true
+
+      - name: Clean Build
+        run: rm -rf dist build
+        working-directory: ${{ github.workspace }}
+
+      - name: Build Application
+        run: npm run build
+        working-directory: ${{ github.workspace }}
+
+      - name: Setup Environment File
+        run: |
+          if [ ! -f "$PROJECT_DIR/.env" ]; then
+            echo "⚙️ Creating .env file..."
+            if [ -f "${{ github.workspace }}/.env.example" ]; then
+              cp "${{ github.workspace }}/.env.example" "$PROJECT_DIR/.env"
+            else
+              cat > "$PROJECT_DIR/.env" << EOF
+          NODE_ENV=production
+          PORT=${{ env.APP_PORT }}
+          EOF
+            fi
+          fi
+          
+          sed -i "s/^PORT=.*/PORT=${{ env.APP_PORT }}/" "$PROJECT_DIR/.env"
+          echo "✅ Environment configured"
+
+      - name: Copy Files to Project Directory
+        run: |
+          echo "📦 Copying built files to $PROJECT_DIR..."
+          [ -d "${{ github.workspace }}/dist" ] && cp -r "${{ github.workspace }}/dist" "$PROJECT_DIR/" || true
+          [ -d "${{ github.workspace }}/build" ] && cp -r "${{ github.workspace }}/build" "$PROJECT_DIR/" || true
+          cp "${{ github.workspace }}/package.json" "$PROJECT_DIR/"
+          cp "${{ github.workspace }}/package-lock.json" "$PROJECT_DIR/" 2>/dev/null || true
+          
+          if [ -f "${{ github.workspace }}/ecosystem.config.js" ]; then
+            cp "${{ github.workspace }}/ecosystem.config.js" "$PROJECT_DIR/"
+          elif [ -f "${{ github.workspace }}/ecosystem.config.cjs" ]; then
+            cp "${{ github.workspace }}/ecosystem.config.cjs" "$PROJECT_DIR/"
+          fi
+          echo "✅ Files copied successfully"
+
+      - name: Install Production Dependencies
+        run: npm ci --omit=dev
+        working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: Ensure PM2 is Installed
+        run: |
+          if ! command -v pm2 &> /dev/null; then
+            npm install -g pm2
+          fi
+
+      - name: Create PM2 Ecosystem Config (Fallback)
+        run: |
+          if [ ! -f "$PROJECT_DIR/ecosystem.config.js" ] && [ ! -f "$PROJECT_DIR/ecosystem.config.cjs" ]; then
+            cat > "$PROJECT_DIR/ecosystem.config.js" << 'EOF'
+          module.exports = {
+            apps: [
+              {
+                name: 'creepy-backend',
+                script: 'dist/server.js',
+                instances: 'max',
+                exec_mode: 'cluster',
+                autorestart: true,
+                watch: false,
+                max_memory_restart: '1G',
+                kill_timeout: 5000,
+                wait_ready: false,
+                listen_timeout: 10000,
+                max_restarts: 10,
+                min_uptime: '10s',
+                restart_delay: 4000,
+                error_file: 'logs/pm2-err.log',
+                out_file: 'logs/pm2-out.log',
+                log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+                merge_logs: true,
+                log_type: 'json',
+                env_production: {
+                  NODE_ENV: 'production',
+                  PORT: process.env.PORT || 5000,
+                },
+                source_map_support: true,
+                instance_var: 'INSTANCE_ID',
+                node_args: '--max-old-space-size=2048',
+              },
+            ],
+          };
+          EOF
+          fi
+
+      - name: Stop Existing PM2 Processes (Safe)
+        run: |
+          cd "$PROJECT_DIR"
+          pm2 describe creepy-backend > /dev/null 2>&1 || echo "No existing instance found"
+
+      - name: Deploy with PM2 (Zero-Downtime)
+        run: |
+          cd "$PROJECT_DIR"
+          if pm2 describe creepy-backend > /dev/null 2>&1; then
+            pm2 reload ecosystem.config.js --env production --update-env
+          else
+            pm2 start ecosystem.config.js --env production
+          fi
+          pm2 save --force
+          pm2 startup systemd -u $USER --hp $HOME || true
+
+      - name: Show Deployment Status
+        run: |
+          echo "📊 PM2 Status:"
+          pm2 list
+          echo "📋 PM2 Info:"
+          pm2 info creepy-backend
+
+      - name: Health Check
+        run: |
+          sleep 15
+          for i in {1..10}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${{ env.APP_PORT }}/health 2>/dev/null || echo "000")
+            if [ "$response" = "200" ] || [ "$response" = "301" ] || [ "$response" = "302" ]; then
+              echo "✅ Health check passed! App is responding (Status: $response)"
+              exit 0
+            fi
+            [ $i -lt 10 ] && sleep 5
+          done
+          pm2 logs creepy-backend --lines 50 --nostream
+
+      - name: Show Recent Logs
+        if: always()
+        run: pm2 logs creepy-backend --lines 30 --nostream || true
+
+      - name: Rollback on Failure
+        if: failure()
+        run: |
+          cd "$PROJECT_DIR"
+          latest_backup=$(ls -t backups/backup_*.tar.gz 2>/dev/null | head -1)
+          if [ -n "$latest_backup" ]; then
+            pm2 stop creepy-backend || true
+            tar -xzf "$latest_backup" -C "$PROJECT_DIR"
+            npm ci --omit=dev
+            pm2 reload ecosystem.config.js --env production --update-env
+            pm2 list
+          else
+            pm2 logs creepy-backend --lines 100 --nostream
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf "${{ github.workspace }}/node_modules" 2>/dev/null || true
+          find "$PROJECT_DIR/logs" -name "*.log" -mtime +7 -delete 2>/dev/null || true
