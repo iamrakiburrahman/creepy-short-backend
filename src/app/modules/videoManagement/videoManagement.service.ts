@@ -78,6 +78,7 @@ const uploadThumbnail = async (thumbnailFile: Express.Multer.File) => {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
      }
      const thumbnailUrl = await BunnyStorageHandeler.uploadToBunny(thumbnailFile, 'thumbnails');
+
      return thumbnailUrl;
 };
 
@@ -112,7 +113,7 @@ const createVideo = async (id: string, payload: IVideo) => {
           episodeNumber: episodeNumber || newEpisodeNumber,
           downloadUrls,
      });
-
+     await videoCache.clearLists();
      return video;
 };
 const generateUploadUrl = async (payload: { title?: string; fileName: string }) => {

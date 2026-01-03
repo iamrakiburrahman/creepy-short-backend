@@ -1,0 +1,19 @@
+import { Model, Types } from 'mongoose';
+
+export interface IAdManagement {
+     _id: Types.ObjectId;
+     uploadedBy: Types.ObjectId;
+     name: string;
+     videoUrl: string;
+     videoId: string;
+     libraryId: string;
+     views: number;
+     downloadUrls: {
+          original: string;
+          hd: string;
+          sd: string;
+          mobile: string;
+     };
+}
+
+export type AdManagementModel = Model<IAdManagement, {}, {}>;
