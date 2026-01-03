@@ -35,7 +35,9 @@
 
         // Environment Variables
  env_production: {
+  SERVER_NAME: 'creepy-backend',
   NODE_ENV: 'production',
+  IP_ADDRESS: '72.62.164.122',
   PORT: 5000,
   DATABASE_URL: 'mongodb://localhost:27017/creepy',
   JWT_SECRET: '12c1c1ed10454ca3b64ae21b783cd96418583ffc83b1015199b18986b57a689b',
