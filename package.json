@@ -4,7 +4,6 @@
      "main": "index.js",
      "scripts": {
           "dev": "concurrently \"ts-node-dev --respawn --transpile-only src/server.ts\" \"npm run docker:up\"",
-          "test": "jest",
           "docker:up": "docker-compose up -d",
           "docker:down": "docker-compose down",
           "docker:logs": "docker-compose logs -f redis",
