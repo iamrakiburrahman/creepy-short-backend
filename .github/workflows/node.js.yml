@@ -11,6 +11,7 @@ env:
   NODE_VERSION: '20.x'
   PROJECT_NAME: ${{ github.event.repository.name }}
   APP_PORT: ${{ secrets.APP_PORT || '8000' }}
+  REDIS_PORT: ${{ secrets.REDIS_PORT || '6379' }}
 
 jobs:
   deploy:
