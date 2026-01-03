@@ -104,10 +104,8 @@
           "eslint-config-prettier": "^10.1.5",
           "eslint-plugin-prettier": "^5.4.0",
           "globals": "^15.12.0",
-          "jest": "^30.0.5",
           "prettier": "^3.5.3",
           "supertest": "^7.1.4",
-          "ts-jest": "^29.4.0",
           "typescript": "^5.7.2",
           "typescript-eslint": "^8.15.0"
      }
