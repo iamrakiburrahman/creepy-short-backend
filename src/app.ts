@@ -11,7 +11,6 @@ import path from 'path';
 import passport from './config/passport';
 import setupTimeManagement from './utils/cronJobs';
 import getUploadDirectory from './utils/getUploadDirectory';
-import handleStripeWebhook from './helpers/stripe/handleStripeWebhook';
 import { corsOptions, generalLimiter, getSessionConfig } from './DB/security';
 
 const app: Application = express();
@@ -22,10 +21,6 @@ if (isProd) {
      app.set('trust proxy', 'loopback');
 }
 
-// ==========================================
-// WEBHOOK (Before body parser)
-// ==========================================
-app.post('/api/v1/stripe/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // ==========================================
 // VIEW ENGINE
