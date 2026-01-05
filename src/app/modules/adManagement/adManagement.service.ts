@@ -1,6 +1,4 @@
 import { StatusCodes } from 'http-status-codes';
-import { ITrailer } from './adManagement.interface';
-import { Trailer } from './adManagement.model';
 import { Types } from 'mongoose';
 import AppError from '../../../errors/AppError';
 import axios from 'axios';
@@ -10,10 +8,13 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
 import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
-const trailerCacheKey = createCacheHelper('trailer');
-const getAllTrailers = async (query: Record<string, unknown>) => {
-     return await trailerCacheKey.wrapList(query, async () => {
-          const queryBuilder = new QueryBuilder(Trailer.find(), query);
+import { AdManagement } from './adManagement.model';
+import { IAdManagement } from './adManagement.interface';
+const addCacheKey = createCacheHelper('adManagement');
+
+const getAllAdds = async (query: Record<string, unknown>) => {
+     return await addCacheKey.wrapList(query, async () => {
+          const queryBuilder = new QueryBuilder(AdManagement.find(), query);
           const result = await queryBuilder.filter().sort().fields().paginate().modelQuery.exec();
           const meta = await queryBuilder.countTotal();
           return {
@@ -23,45 +24,43 @@ const getAllTrailers = async (query: Record<string, unknown>) => {
      });
 };
 
-const getSingleTrailer = async (id: string): Promise<ITrailer> => {
-     return await trailerCacheKey.wrapSingle(id, async () => {
+const getSingleAdd = async (id: string): Promise<IAdManagement> => {
+     return await addCacheKey.wrapSingle(id, async () => {
           if (!Types.ObjectId.isValid(id)) {
-               throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Add ID');
           }
-
-          const result = await Trailer.findById(id);
+          const result = await AdManagement.findById(id);
           if (!result) {
-               throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
+               throw new AppError(StatusCodes.NOT_FOUND, 'Requested add not found, please try again with valid id');
           }
-
           return result;
      });
 };
-const getSingleTrailerForUser = async (id: string, userId: string) => {
+const getSingleAddForUser = async (id: string, userId: string) => {
      if (!Types.ObjectId.isValid(id)) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Add ID');
      }
      const isUser = await User.findById(userId);
      if (!isUser) {
           throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
      }
-     const result = await Trailer.findById(id);
+     const result = await AdManagement.findById(id);
      if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
+          throw new AppError(StatusCodes.NOT_FOUND, 'Requested add not found, please try again with valid id');
      }
      if (isUser.role === USER_ROLES.USER) {
-          await Trailer.findByIdAndUpdate(id, { $inc: { views: 1 } });
-          await trailerCacheKey.clearAfterUpdate(id);
+          await AdManagement.findByIdAndUpdate(id, { $inc: { views: 1 } });
+          await addCacheKey.clearAfterUpdate(id);
      }
      return result;
 };
 
-const updateTrailer = async (id: string, payload: Partial<ITrailer>): Promise<ITrailer | null> => {
+const updateAdd = async (id: string, payload: Partial<IAdManagement>) => {
      if (!Types.ObjectId.isValid(id)) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Add ID');
      }
 
-     const result = await Trailer.findByIdAndUpdate(
+     const result = await AdManagement.findByIdAndUpdate(
           new Types.ObjectId(id),
           { $set: payload },
           {
@@ -71,22 +70,22 @@ const updateTrailer = async (id: string, payload: Partial<ITrailer>): Promise<IT
      );
 
      if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
+          throw new AppError(StatusCodes.NOT_FOUND, 'Requested add not found, please try again with valid id');
      }
-     await trailerCacheKey.clearAfterUpdate(id);
+     await addCacheKey.clearAfterUpdate(id);
      return result;
 };
 
-const deleteTrailer = async (id: string): Promise<ITrailer> => {
+const deleteAdd = async (id: string): Promise<IAdManagement> => {
      if (!Types.ObjectId.isValid(id)) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Add ID');
      }
 
-     const result = await Trailer.findByIdAndDelete(id);
+     const result = await AdManagement.findByIdAndDelete(id);
      if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Something went wrong while deleting trailer, please try again with valid id.');
+          throw new AppError(StatusCodes.NOT_FOUND, 'Something went wrong while deleting add, please try again with valid id.');
      }
-     await trailerCacheKey.clearAfterUpdate(id);
+     await addCacheKey.clearAfterUpdate(id);
      return result;
 };
 // const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
@@ -135,42 +134,26 @@ const deleteTrailer = async (id: string): Promise<ITrailer> => {
 //      return thumbnailUrl;
 // };
 
-const uploadThumbnail = async (thumbnailFile: Express.Multer.File) => {
-     if (!thumbnailFile) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Thumbnail file is required');
-     }
-     // 1. Upload to BunnyCDN
-     const thumbnailUrl = await BunnyStorageHandeler.uploadToBunny(thumbnailFile, 'thumbnails');
 
-     return thumbnailUrl;
-};
-const createTrailer = async (id: string, payload: ITrailer) => {
-     const { videoId, title, color, contentName, description, thumbnailUrl, duration ,downloadUrls} = payload;
-     console.log('payload', payload);
+const createAdd = async (id: string, payload: IAdManagement) => {
+     const { videoId, name, downloadUrls } = payload;
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
      }
 
      const libraryId = config.bunnyCDN.stream_library_id as string;
 
-     const video = await Trailer.create({
+     const video = await AdManagement.create({
           videoId,
           libraryId,
-          title: title || 'Untitled Video',
-          color: color || 'primary',
-          contentName: contentName || 'Trailer',
-          description: description || '',
+          title: name || 'Untitled Video',
           videoUrl: `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`,
-          thumbnailUrl: thumbnailUrl,
-          status: 'processing',
-          duration: duration || 0,
           downloadUrls,
           uploadedBy: new Types.ObjectId(id),
           uploadedAt: new Date(),
      });
 
-     console.log('✅ Video metadata saved successfully');
-     await trailerCacheKey.clearLists();
+     await addCacheKey.clearLists();
      return video;
 };
 
@@ -217,13 +200,12 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
           downloadUrls,
      };
 };
-export const TrailerServices = {
-     createTrailer,
-     getAllTrailers,
-     getSingleTrailer,
-     updateTrailer,
-     deleteTrailer,
+export const AdManagementServices = {
+     createAdd,
+     getAllAdds,
+     getSingleAdd,
+     getSingleAddForUser,
+     updateAdd,
+     deleteAdd,
      generateUploadUrl,
-     uploadThumbnail,
-     getSingleTrailerForUser,
 };

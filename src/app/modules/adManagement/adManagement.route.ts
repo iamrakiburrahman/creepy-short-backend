@@ -1,25 +1,22 @@
 import express from 'express';
-import { TrailerController } from './adManagement.controller';
+import { AdManagementController } from './adManagement.controller';
 import auth from '../../middleware/auth';
 import { USER_ROLES } from '../../../enums/user';
-import { uploadThumbnail } from '../../middleware/multer';
 
 const router = express.Router();
 
-router.get('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.getAllTrailers);
-router.get('/all-trailers', auth(USER_ROLES.USER), TrailerController.getAllTrailers);
-router.get('/trailer-for-user/:id', auth(USER_ROLES.USER), TrailerController.getSingleTrailerForUser);
-router.get('/single/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.getSingleTrailer);
+router.get('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.getAllAdds);
+router.get('/all-trailers', auth(USER_ROLES.USER), AdManagementController.getAllAdds);
+router.get('/trailer-for-user/:id', auth(USER_ROLES.USER), AdManagementController.getSingleAddForUser);
+router.get('/single/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.getSingleAdd);
 // Save video metadata
-router.post('/create', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.createTrailer);
+router.post('/create', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.createAdd);
 
-router.patch('/update/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.updateTrailer);
+router.patch('/update/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.updateAdd);
 
-router.delete('/delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.deleteTrailer);
+router.delete('/delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.deleteAdd);
 
 // Generate upload URL for video
-router.post('/generate-upload-url', TrailerController.generateUploadUrl);
-// Upload thumbnail for a video
-router.post('/:videoId/thumbnail', uploadThumbnail, TrailerController.uploadThumbnail);
+router.post('/generate-upload-url', AdManagementController.generateUploadUrl);
 
 export const TrailerRoutes = router;
