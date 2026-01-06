@@ -6,8 +6,8 @@ import { USER_ROLES } from '../../../enums/user';
 const router = express.Router();
 
 router.get('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.getAllAdds);
-router.get('/all-trailers', auth(USER_ROLES.USER), AdManagementController.getAllAdds);
-router.get('/trailer-for-user/:id', auth(USER_ROLES.USER), AdManagementController.getSingleAddForUser);
+router.get('/all-adds', auth(USER_ROLES.USER), AdManagementController.getAllAdds);
+router.get('/add-for-user/:id', auth(USER_ROLES.USER), AdManagementController.getSingleAddForUser);
 router.get('/single/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.getSingleAdd);
 // Save video metadata
 router.post('/create', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.createAdd);
@@ -19,4 +19,4 @@ router.delete('/delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdM
 // Generate upload URL for video
 router.post('/generate-upload-url', AdManagementController.generateUploadUrl);
 
-export const TrailerRoutes = router;
+export const AdManagementRoutes = router;
