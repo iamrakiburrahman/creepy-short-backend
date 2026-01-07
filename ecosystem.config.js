@@ -50,7 +50,7 @@
   EMAIL_PASS: 'mmys xoef mwuu osxk',
   EMAIL_HOST: 'smtp.gmail.com',
   EMAIL_PORT: 587,
-ALLOWED_ORIGINS: 'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://10.10.7.62:3008,https://jowel3000.binarybards.online',
+ALLOWED_ORIGINS: 'https://jowel3000.binarybards.online',
 STRIPE_SECRET_KEY: 'sk_test_51OHIrVB5u2A30G2Q9lxqhjtmnbhi8Zvw76mm0ck9xWvEzd8SiVK7oT0XtKM8m0G7Uwvwh51piI9FjW4lNTfDVnNO00spGYZeLP',
 STRIPE_PAYMENT_SUCCESS_URL: 'http://localhost:5173',
 STRIPE_PAYMENT_CANCEL_URL: 'http://localhost:5173',
