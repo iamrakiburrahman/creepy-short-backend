@@ -1,5 +1,4 @@
 import { StatusCodes } from 'http-status-codes';
-import { Types } from 'mongoose';
 import AppError from '../../../errors/AppError';
 import axios from 'axios';
 import config from '../../../config';
@@ -8,21 +7,26 @@ import { Video } from './videoManagement.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
 import { User } from '../user/user.model';
-const getAllVideos = async (query: Record<string, unknown>) => {
-     const queryBuilder = new QueryBuilder(Video.find(), query).paginate().filter().sort().fields().search(['title', 'description']);
+import mongoose, { Types } from 'mongoose';
+import { UserService } from '../user/user.service';
+
+const getAllVideos = async (query: Record<string, unknown>, seasonId: string) => {
+     const queryBuilder = new QueryBuilder(Video.find({ seasonId: new mongoose.Types.ObjectId(seasonId) }), query).paginate().filter().sort().fields().search(['title', 'description']);
      const result = await queryBuilder.modelQuery.exec();
      const meta = await queryBuilder.countTotal();
+
      return {
           meta,
           result,
      };
 };
 
-const getSingleVideo = async (id: string): Promise<IVideo> => {
+const getSingleVideo = async (id: string, userId: string): Promise<IVideo> => {
      const result = await Video.findById(id);
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
      }
+     await UserService.addRecentlyViewedVideosFromDB(userId, id);
      return result;
 };
 

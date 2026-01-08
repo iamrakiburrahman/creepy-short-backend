@@ -6,7 +6,7 @@ import { VideoManagementController } from './videoManagement.controller';
 
 const router = express.Router();
 
-router.get('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), VideoManagementController.getAllVideos);
+router.get('/get-all-videos/:seasonId', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), VideoManagementController.getAllVideos);
 router.get('/single/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), VideoManagementController.getSingleVideo);
 // Save video metadata
 router.post('/create', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), VideoManagementController.createVideo);

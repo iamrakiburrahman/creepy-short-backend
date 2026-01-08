@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { USER_ROLES } from '../../../enums/user';
 export type IUser = {
      name: string;
@@ -15,6 +15,10 @@ export type IUser = {
      facebookId?: string;
      oauthProvider?: 'google' | 'facebook';
      isSubscribed: boolean;
+     recentlyViewed?: {
+          itemId: Types.ObjectId;
+          viewedAt: Date;
+     }[];
      pageAccess?: {
           name: string;
           access: boolean;

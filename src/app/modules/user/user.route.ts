@@ -22,72 +22,35 @@ router
      );
 
 router.route('/register').post(authLimiter, validateRequest(UserValidation.createUserZodSchema), UserController.createUser);
+router.get('/recently-viewed', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), UserController.getRecentlyViewedVideosByUser);
+router.post('/add-recently-viewed/:videoId', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), UserController.addRecentlyViewedVideos);
 
 // Admin routes for user management
-router.route('/admin').post(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     validateRequest(UserValidation.createUserZodSchema),
-     UserController.createAdmin
-);
+router.route('/admin').post(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), validateRequest(UserValidation.createUserZodSchema), UserController.createAdmin);
+
 // User search and management routes
-router.route('/find/id/:id').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.findUserById
-);
+router.route('/find/id/:id').get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.findUserById);
 
-router.route('/find/email/:email').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.findUserByEmail
-);
+router.route('/find/email/:email').get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.findUserByEmail);
 
-router.route('/find/google/:googleId').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.findUserByGoogleId
-);
+router.route('/find/google/:googleId').get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.findUserByGoogleId);
 
-router.route('/find/facebook/:facebookId').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.findUserByFacebookId
-);
+router.route('/find/facebook/:facebookId').get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.findUserByFacebookId);
 
-router.route('/all').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.getAllUsers
-);
+router.route('/all').get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.getAllUsers);
 
-router.route('/role/:role').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.getUsersByRole
-);
+router.route('/role/:role').get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.getUsersByRole);
 
-router.route('/oauth').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.getOAuthUsers
-);
+router.route('/oauth').get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.getOAuthUsers);
 
-router.route('/local').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.getLocalUsers
-);
+router.route('/local').get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.getLocalUsers);
 
-router.route('/search').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.searchUsers
-);
+router.route('/search').get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.searchUsers);
 
-router.route('/stats').get(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.getUserStats
-);
+router.route('/stats').get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.getUserStats);
 
-router.route('/:userId/link-oauth').post(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.linkOAuthAccount
-);
+router.route('/:userId/link-oauth').post(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.linkOAuthAccount);
 
-router.route('/:userId/unlink-oauth').post(
-     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     UserController.unlinkOAuthAccount
-);
+router.route('/:userId/unlink-oauth').post(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), UserController.unlinkOAuthAccount);
 
 export const UserRouter = router;

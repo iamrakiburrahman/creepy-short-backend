@@ -18,7 +18,8 @@ const updateVideo = catchAsync(async (req, res) => {
 
 const getSingleVideo = catchAsync(async (req, res) => {
      const { id } = req.params;
-     const result = await VideoManagementServices.getSingleVideo(id);
+     const { id: userId } = req.user as { id: string };
+     const result = await VideoManagementServices.getSingleVideo(id, userId);
 
      sendResponse(res, {
           statusCode: StatusCodes.OK,
@@ -29,7 +30,8 @@ const getSingleVideo = catchAsync(async (req, res) => {
 });
 
 const getAllVideos = catchAsync(async (req, res) => {
-     const result = await VideoManagementServices.getAllVideos(req.query);
+     const { seasonId } = req.params;
+     const result = await VideoManagementServices.getAllVideos(req.query, seasonId);
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,

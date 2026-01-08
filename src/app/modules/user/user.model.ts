@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { StatusCodes } from 'http-status-codes';
-import { model, Schema } from 'mongoose';
+import mongoose, { model, Schema } from 'mongoose';
 import config from '../../../config';
 import { USER_ROLES } from '../../../enums/user';
 import AppError from '../../../errors/AppError';
@@ -74,6 +74,18 @@ const userSchema = new Schema<IUser, UserModel>(
                type: Boolean,
                default: true,
           },
+          recentlyViewed: [
+               {
+                    videoId: {
+                         type: mongoose.Schema.Types.ObjectId,
+                         ref: 'Videos',
+                    },
+                    viewedAt: {
+                         type: Date,
+                         default: Date.now,
+                    },
+               },
+          ],
           pageAccess: {
                type: [
                     {
