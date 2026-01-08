@@ -26,6 +26,16 @@ const getSingleAdd = catchAsync(async (req, res) => {
           data: result,
      });
 });
+
+const getRandomAd = catchAsync(async (req, res) => {
+     const result = await AdManagementServices.getRandomAd();
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Ad retrieved successfully',
+          data: result,
+     });
+});
 const getSingleAddForUser = catchAsync(async (req, res) => {
      const { id } = req.params;
      const { id: userId } = req.user as { id: string };
@@ -45,7 +55,8 @@ const getAllAdds = catchAsync(async (req, res) => {
           statusCode: StatusCodes.OK,
           success: true,
           message: 'Adds retrieved successfully',
-          data: result,
+          data: result.result,
+          meta: result.meta,
      });
 });
 
@@ -91,4 +102,5 @@ export const AdManagementController = {
      generateUploadUrl,
      createAdd,
      getSingleAddForUser,     
+     getRandomAd,
 };

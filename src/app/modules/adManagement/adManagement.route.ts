@@ -8,6 +8,8 @@ const router = express.Router();
 router.get('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.getAllAdds);
 router.get('/all-adds', auth(USER_ROLES.USER), AdManagementController.getAllAdds);
 router.get('/add-for-user/:id', auth(USER_ROLES.USER), AdManagementController.getSingleAddForUser);
+router.get('/random-ad', AdManagementController.getRandomAd);
+
 router.get('/single/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.getSingleAdd);
 // Save video metadata
 router.post('/create', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), AdManagementController.createAdd);

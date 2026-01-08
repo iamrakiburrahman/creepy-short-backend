@@ -9,6 +9,7 @@ import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
 import { User } from '../user/user.model';
 import mongoose, { Types } from 'mongoose';
 import { UserService } from '../user/user.service';
+import { AdManagement } from '../adManagement/adManagement.model';
 
 const getAllVideos = async (query: Record<string, unknown>, seasonId: string) => {
      const queryBuilder = new QueryBuilder(Video.find({ seasonId: new mongoose.Types.ObjectId(seasonId) }), query).paginate().filter().sort().fields().search(['title', 'description']);
@@ -147,28 +148,59 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
      };
 };
 
+// const getSeasonVideos = async (seasonId: string, userId: string) => {
+//      const videos = await Video.find({ seasonId }).sort({ episodeNumber: 1 });
+//      const user = await User.findById(userId).select('isSubscribed');
+
+//      if (!user) {
+//           throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+//      }
+
+//      const result = videos.map((video, index) => {
+//           // If user is subscribed, all videos are accessible
+//           // If not subscribed, only first 3 videos are accessible
+//           const isAccess = user.isSubscribed ? true : index < 3;
+
+//           return {
+//                ...video.toObject(),
+//                isSubscribed: user.isSubscribed,
+//                isAccess: isAccess,
+//           };
+//      });
+
+//      return result;
+// };
 const getSeasonVideos = async (seasonId: string, userId: string) => {
-     const videos = await Video.find({ seasonId }).sort({ episodeNumber: 1 });
-     const user = await User.findById(userId).select('isSubscribed');
+     const [videos, user, ads] = await Promise.all([Video.find({ seasonId }).sort({ episodeNumber: 1 }), User.findById(userId).select('isSubscribed'), AdManagement.find({ isActive: true })]);
 
      if (!user) {
           throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
      }
 
-     const result = videos.map((video, index) => {
-          // If user is subscribed, all videos are accessible
-          // If not subscribed, only first 3 videos are accessible
-          const isAccess = user.isSubscribed ? true : index < 3;
+     const isSubscribed = user.isSubscribed;
+     const result: any[] = [];
+     let adIndex = 0;
 
-          return {
+     videos.forEach((video, index) => {
+          result.push({
+               type: 'video',
                ...video.toObject(),
-               isSubscribed: user.isSubscribed,
-               isAccess: isAccess,
-          };
+               isSubscribed,
+               isAccess: isSubscribed || index < 3,
+          });
+
+          if (!isSubscribed && (index + 1) % 3 === 0 && ads.length > 0) {
+               result.push({
+                    type: 'ad',
+                    data: ads[adIndex % ads.length],
+               });
+               adIndex++;
+          }
      });
 
      return result;
 };
+
 export const VideoManagementServices = {
      createVideo,
      getAllVideos,

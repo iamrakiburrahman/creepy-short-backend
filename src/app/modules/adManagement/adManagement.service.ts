@@ -3,25 +3,32 @@ import { Types } from 'mongoose';
 import AppError from '../../../errors/AppError';
 import axios from 'axios';
 import config from '../../../config';
-import { createCacheHelper } from '../../builder/RedisCacheHelper';
+import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
-import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
 import { AdManagement } from './adManagement.model';
 import { IAdManagement } from './adManagement.interface';
 const addCacheKey = createCacheHelper('adManagement');
 
 const getAllAdds = async (query: Record<string, unknown>) => {
-     return await addCacheKey.wrapList(query, async () => {
-          const queryBuilder = new QueryBuilder(AdManagement.find(), query);
-          const result = await queryBuilder.filter().sort().fields().paginate().modelQuery.exec();
-          const meta = await queryBuilder.countTotal();
-          return {
-               meta,
-               result,
-          };
-     });
+     return await addCacheKey.wrapList(
+          query,
+          async () => {
+               const queryBuilder = new QueryBuilder(AdManagement.find(), query);
+               const result = await queryBuilder.filter().sort().fields().paginate().modelQuery.exec();
+               const meta = await queryBuilder.countTotal();
+               return {
+                    meta,
+                    result,
+               };
+          },
+          CACHE_TTL.MEDIUM,
+     );
+};
+const getRandomAd = async () => {
+     const [ad] = await AdManagement.aggregate([{ $sample: { size: 1 } }]);
+     return ad || null;
 };
 
 const getSingleAdd = async (id: string): Promise<IAdManagement> => {
@@ -134,7 +141,6 @@ const deleteAdd = async (id: string): Promise<IAdManagement> => {
 //      return thumbnailUrl;
 // };
 
-
 const createAdd = async (id: string, payload: IAdManagement) => {
      const { videoId, name, downloadUrls } = payload;
      if (!videoId) {
@@ -208,4 +214,5 @@ export const AdManagementServices = {
      updateAdd,
      deleteAdd,
      generateUploadUrl,
+     getRandomAd,
 };

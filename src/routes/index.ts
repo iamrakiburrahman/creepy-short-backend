@@ -92,6 +92,10 @@ const routes: { path: string; route: Router }[] = [
           route: AdManagementRoutes,
      },
      {
+          path: '/ad',
+          route: AdManagementRoutes,
+     },
+     {
           path: '/notification',
           route: NotificationRoutes,
      },
