@@ -50,7 +50,7 @@
   EMAIL_PASS: 'mmys xoef mwuu osxk',
   EMAIL_HOST: 'smtp.gmail.com',
   EMAIL_PORT: 587,
-ALLOWED_ORIGINS: 'http://72.62.164.122:4173',
+ALLOWED_ORIGINS: 'http://72.62.164.122:4173, http://10.10.7.62:3000',
 STRIPE_SECRET_KEY: 'sk_test_51OHIrVB5u2A30G2Q9lxqhjtmnbhi8Zvw76mm0ck9xWvEzd8SiVK7oT0XtKM8m0G7Uwvwh51piI9FjW4lNTfDVnNO00spGYZeLP',
 STRIPE_PAYMENT_SUCCESS_URL: 'http://localhost:5173',
 STRIPE_PAYMENT_CANCEL_URL: 'http://localhost:5173',
