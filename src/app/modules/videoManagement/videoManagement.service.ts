@@ -200,6 +200,21 @@ const getSeasonVideos = async (seasonId: string, userId: string) => {
 
      return result;
 };
+const getSortVideos = async (userId: string) => {
+     const [videos, user] = await Promise.all([Video.find().sort({ createdAt: -1 }), User.findById(userId).select('isSubscribed')]);
+
+     if (!user) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+     }
+
+     const isSubscribed = user.isSubscribed;
+
+     return videos.map((video, index) => ({
+          ...video.toObject(),
+          isSubscribed,
+          isAccess: isSubscribed || index < 3,
+     }));
+};
 
 export const VideoManagementServices = {
      createVideo,
@@ -210,4 +225,5 @@ export const VideoManagementServices = {
      generateUploadUrl,
      uploadThumbnail,
      getSeasonVideos,
+     getSortVideos,
 };

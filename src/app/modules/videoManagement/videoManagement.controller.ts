@@ -98,6 +98,16 @@ const getSeasonVideos = catchAsync(async (req, res) => {
           data: result,
      });
 });
+const getSortVideos = catchAsync(async (req, res) => {
+     const { id } = req.user as { id: string };
+     const result = await VideoManagementServices.getSortVideos(id);
+     sendResponse(res, {
+          success: true,
+          statusCode: StatusCodes.OK,
+          message: 'Videos retrieved successfully',
+          data: result,
+     });
+});
 export const VideoManagementController = {
      updateVideo,
      getSingleVideo,
@@ -107,4 +117,5 @@ export const VideoManagementController = {
      uploadThumbnail,
      createVideo,
      getSeasonVideos,
+     getSortVideos,
 };
