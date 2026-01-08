@@ -113,7 +113,7 @@ const createVideo = async (id: string, payload: IVideo) => {
           episodeNumber: episodeNumber || newEpisodeNumber,
           downloadUrls,
      });
-     await videoCache.clearLists();
+     await videoCache.clearAll();
      return video;
 };
 const generateUploadUrl = async (payload: { title?: string; fileName: string }) => {
