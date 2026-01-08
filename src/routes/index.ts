@@ -15,6 +15,7 @@ import { FeedbackRoutes } from '../app/modules/feedback/feedback.route';
 import { PackageRoutes } from '../app/modules/package/package.routes';
 import { ReminderRoute } from '../app/modules/reminder/reminder.route';
 import { AdManagementRoutes } from '../app/modules/adManagement/adManagement.route';
+import { NotificationRoutes } from '../app/modules/notification/notification.routes';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -89,6 +90,10 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/ad-management',
           route: AdManagementRoutes,
+     },
+     {
+          path: '/notification',
+          route: NotificationRoutes,
      },
 ];
 

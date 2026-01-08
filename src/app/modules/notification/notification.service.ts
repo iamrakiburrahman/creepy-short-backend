@@ -9,7 +9,7 @@ import { sendNotifications } from '../../../helpers/notificationsHelper';
 const getNotificationFromDB = async (user: JwtPayload): Promise<INotification> => {
      const result = await Notification.find({ receiver: user.id }).populate({
           path: 'sender',
-          select: 'name profile',
+          select: 'name image',
      });
 
      const unreadCount = await Notification.countDocuments({

@@ -146,7 +146,7 @@ const createAdd = async (id: string, payload: IAdManagement) => {
      const video = await AdManagement.create({
           videoId,
           libraryId,
-          title: name || 'Untitled Video',
+          name: name || 'Untitled Video',
           videoUrl: `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`,
           downloadUrls,
           uploadedBy: new Types.ObjectId(id),
