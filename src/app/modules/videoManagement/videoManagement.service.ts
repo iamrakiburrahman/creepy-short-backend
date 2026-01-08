@@ -5,39 +5,25 @@ import axios from 'axios';
 import config from '../../../config';
 import { IVideo } from './videoManagement.interface';
 import { Video } from './videoManagement.model';
-import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
 import { User } from '../user/user.model';
-const videoCache = createCacheHelper('videoCache');
 const getAllVideos = async (query: Record<string, unknown>) => {
-     return await videoCache.wrapList(
-          query,
-          async () => {
-               const queryBuilder = new QueryBuilder(Video.find(), query).paginate().filter().sort().fields().search(['title', 'description']);
-               const result = await queryBuilder.modelQuery.exec();
-               const meta = await queryBuilder.countTotal();
-               return {
-                    meta,
-                    result,
-               };
-          },
-          CACHE_TTL.MEDIUM,
-     );
+     const queryBuilder = new QueryBuilder(Video.find(), query).paginate().filter().sort().fields().search(['title', 'description']);
+     const result = await queryBuilder.modelQuery.exec();
+     const meta = await queryBuilder.countTotal();
+     return {
+          meta,
+          result,
+     };
 };
 
 const getSingleVideo = async (id: string): Promise<IVideo> => {
-     return await videoCache.wrapSingle(
-          id,
-          async () => {
-               const result = await Video.findById(id);
-               if (!result) {
-                    throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
-               }
-               return result;
-          },
-          CACHE_TTL.MEDIUM,
-     );
+     const result = await Video.findById(id);
+     if (!result) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
+     }
+     return result;
 };
 
 const updateVideo = async (id: string, payload: Partial<IVideo>): Promise<IVideo | null> => {
@@ -57,7 +43,6 @@ const updateVideo = async (id: string, payload: Partial<IVideo>): Promise<IVideo
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
      }
-     await videoCache.clearAfterUpdate(id);
      return result;
 };
 
@@ -70,7 +55,6 @@ const deleteVideo = async (id: string): Promise<IVideo> => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Something went wrong while deleting trailer, please try again with valid id.');
      }
-     await videoCache.clearAfterUpdate(id);
      return result;
 };
 const uploadThumbnail = async (thumbnailFile: Express.Multer.File) => {
@@ -113,7 +97,6 @@ const createVideo = async (id: string, payload: IVideo) => {
           episodeNumber: episodeNumber || newEpisodeNumber,
           downloadUrls,
      });
-     await videoCache.clearAll();
      return video;
 };
 const generateUploadUrl = async (payload: { title?: string; fileName: string }) => {
