@@ -52,9 +52,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // ===========================================
 app.use(session(getSessionConfig()));
 
-// ==========================================
+// ===========================================
 // PASSPORT INITIALIZATION
-// ==========================================
+// ===========================================
 app.use(passport.initialize());
 app.use(passport.session());
 
