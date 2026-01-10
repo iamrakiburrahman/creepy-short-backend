@@ -47,7 +47,7 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' })); // Limit request body size
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ==========================================
+// ===========================================
 // SESSION (OAuth)
 // ==========================================
 app.use(session(getSessionConfig()));
