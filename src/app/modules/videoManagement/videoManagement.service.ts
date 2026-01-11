@@ -201,18 +201,23 @@ const getSeasonVideos = async (seasonId: string, userId: string) => {
      return result;
 };
 const getSortVideos = async (userId: string) => {
-     const [videos, user] = await Promise.all([Video.find().sort({ createdAt: -1 }), User.findById(userId).select('isSubscribed')]);
-
+     const user = await User.findById(userId).select('isSubscribed');
      if (!user) {
           throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
      }
-
      const isSubscribed = user.isSubscribed;
+     const query: any = { isDeleted: false };
 
-     return videos.map((video, index) => ({
+     if (!isSubscribed) {
+          query.$or = [{ episodeNumber: 1 }, { seasonId: { $exists: false } }];
+     }
+
+     const videos = await Video.find(query).populate('seasonId', 'title seasonNumber').populate('movieId', 'title').sort({ seasonId: 1, episodeNumber: 1, createdAt: -1 });
+
+     return videos.map((video) => ({
           ...video.toObject(),
           isSubscribed,
-          isAccess: isSubscribed || index < 3,
+          isAccess: isSubscribed || video.episodeNumber === 1 || !video.seasonId,
      }));
 };
 
