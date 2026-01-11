@@ -145,7 +145,7 @@ const uploadThumbnail = async (thumbnailFile: Express.Multer.File) => {
      return thumbnailUrl;
 };
 const createTrailer = async (id: string, payload: ITrailer) => {
-     const { videoId, title, color, contentName, description, thumbnailUrl, duration ,downloadUrls} = payload;
+     const { videoId, title, color, contentName, description, thumbnailUrl, duration, downloadUrls } = payload;
      console.log('payload', payload);
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
@@ -160,7 +160,7 @@ const createTrailer = async (id: string, payload: ITrailer) => {
           color: color || 'primary',
           contentName: contentName || 'Trailer',
           description: description || '',
-          videoUrl: `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`,
+          videoUrl: downloadUrls.sd,
           thumbnailUrl: thumbnailUrl,
           status: 'processing',
           duration: duration || 0,
@@ -198,8 +198,10 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
      const libraryId = config.bunnyCDN.stream_library_id as string;
      const pullZone = config.bunnyCDN.pull_zone_host as string;
 
-     const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
-     const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
+     // const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
+     // const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
+     const uploadUrl = `https://${pullZone}/${videoId}/play_720p.mp4`;
+     const embedUrl = `https://${pullZone}/${videoId}/play_720p.mp4`;
 
      const downloadUrls = {
           original: `https://${pullZone}/${videoId}/original`,
