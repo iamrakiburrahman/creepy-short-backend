@@ -146,7 +146,6 @@ const uploadThumbnail = async (thumbnailFile: Express.Multer.File) => {
 };
 const createTrailer = async (id: string, payload: ITrailer) => {
      const { videoId, title, color, contentName, description, thumbnailUrl, duration, downloadUrls } = payload;
-     console.log('payload', payload);
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
      }
@@ -160,9 +159,9 @@ const createTrailer = async (id: string, payload: ITrailer) => {
           color: color || 'primary',
           contentName: contentName || 'Trailer',
           description: description || '',
-          videoUrl: downloadUrls.sd,
+          videoUrl: `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`,
           thumbnailUrl: thumbnailUrl,
-          status: 'processing',
+          status: 'active',
           duration: duration || 0,
           downloadUrls,
           uploadedBy: new Types.ObjectId(id),
@@ -198,17 +197,9 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
      const libraryId = config.bunnyCDN.stream_library_id as string;
      const pullZone = config.bunnyCDN.pull_zone_host as string;
 
-     // const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
-     // const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
-     const uploadUrl = `https://${pullZone}/${videoId}/play_720p.mp4`;
-     const embedUrl = `https://${pullZone}/${videoId}/play_720p.mp4`;
-
-     const downloadUrls = {
-          original: `https://${pullZone}/${videoId}/original`,
-          hd: `https://${pullZone}/${videoId}/play_1080p.mp4`,
-          sd: `https://${pullZone}/${videoId}/play_720p.mp4`,
-          mobile: `https://${pullZone}/${videoId}/play_480p.mp4`,
-     };
+     const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
+     const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
+     const downloadUrls = `https://${pullZone}/${videoId}/play_720p.mp4`;
 
      return {
           videoId,

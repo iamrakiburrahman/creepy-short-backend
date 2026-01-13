@@ -93,7 +93,7 @@ const createVideo = async (id: string, payload: IVideo) => {
           title: title || `Episode ${newEpisodeNumber}`,
           description: description || '',
           duration: duration || 0,
-          videoUrl: downloadUrls.sd,
+          videoUrl: `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`,
           videoId: videoId,
           libraryId: libraryId,
           thumbnailUrl: thumbnailUrl,
@@ -130,16 +130,9 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
 
      console.log('✅ Video object created with ID:', videoId);
 
-     // const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
-     // const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
-     const uploadUrl = `https://${pullZone}/${videoId}/play_720p.mp4`;
-     const embedUrl = `https://${pullZone}/${videoId}/play_720p.mp4`;
-     const downloadUrls = {
-          original: `https://${pullZone}/${videoId}/original`,
-          hd: `https://${pullZone}/${videoId}/play_1080p.mp4`,
-          sd: `https://${pullZone}/${videoId}/play_720p.mp4`,
-          mobile: `https://${pullZone}/${videoId}/play_480p.mp4`,
-     };
+     const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
+     const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
+     const downloadUrls = `https://${pullZone}/${videoId}/play_720p.mp4`;
      return {
           videoId,
           uploadUrl,
