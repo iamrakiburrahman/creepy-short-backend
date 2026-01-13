@@ -8,15 +8,7 @@ const adManagementSchema = new Schema<IAdManagement, AdManagementModel>(
           videoId: { type: String, required: true },
           libraryId: { type: String, required: true },
           views: { type: Number, default: 0 },
-          downloadUrls: {
-               type: {
-                    original: String,
-                    hd: String,
-                    sd: String,
-                    mobile: String,
-               },
-               required: false,
-          },
+          downloadUrls: { type: String, required: true },
           uploadedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
      },
      {

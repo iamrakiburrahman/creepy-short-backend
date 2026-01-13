@@ -143,6 +143,7 @@ const deleteAdd = async (id: string): Promise<IAdManagement> => {
 
 const createAdd = async (id: string, payload: IAdManagement) => {
      const { videoId, name, downloadUrls } = payload;
+     console.log(name, downloadUrls, videoId);
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
      }
@@ -190,12 +191,7 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
      const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
      const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
 
-     const downloadUrls = {
-          original: `https://${pullZone}/${videoId}/original`,
-          hd: `https://${pullZone}/${videoId}/play_1080p.mp4`,
-          sd: `https://${pullZone}/${videoId}/play_720p.mp4`,
-          mobile: `https://${pullZone}/${videoId}/play_480p.mp4`,
-     };
+     const downloadUrls = `https://${pullZone}/${videoId}/play_720p.mp4`;
 
      return {
           videoId,

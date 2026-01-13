@@ -8,12 +8,7 @@ export interface IAdManagement {
      videoId: string;
      libraryId: string;
      views: number;
-     downloadUrls: {
-          original: string;
-          hd: string;
-          sd: string;
-          mobile: string;
-     };
+     downloadUrls: string;
 }
 
 export type AdManagementModel = Model<IAdManagement, {}, {}>;
