@@ -3,17 +3,11 @@ import AppError from '../../../errors/AppError';
 import { IUser } from '../user/user.interface';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
-import bcrypt from 'bcrypt';
-import config from '../../../config';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 const adminCache = createCacheHelper('admin');
-const hashPassword = async (password: string) => {
-     const salt = await bcrypt.hash(password, Number(config.bcrypt_salt_rounds));
-     return await bcrypt.hash(password, salt);
-};
+
 const createAdminToDB = async (payload: IUser): Promise<IUser> => {
      payload.role = USER_ROLES.ADMIN;
-     payload.password = await hashPassword(payload.password as string);
      const createAdmin: any = await User.create(payload);
      if (!createAdmin) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Admin');

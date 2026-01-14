@@ -12,7 +12,6 @@ router.post('/refresh-token', AuthController.refreshToken);
 router.post('/forget-password', authLimiter, validateRequest(AuthValidation.createForgetPasswordZodSchema), AuthController.forgetPassword);
 
 router.post('/verify-email', validateRequest(AuthValidation.createVerifyEmailZodSchema), AuthController.verifyEmail);
-
 router.post('/reset-password', validateRequest(AuthValidation.createResetPasswordZodSchema), AuthController.resetPassword);
 router.post('/dashboard/forget-password', validateRequest(AuthValidation.createForgetPasswordZodSchema), AuthController.forgetPasswordByUrl);
 
