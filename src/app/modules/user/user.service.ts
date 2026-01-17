@@ -123,18 +123,6 @@ const verifyUserPassword = async (userId: string, password: string) => {
      return isPasswordValid;
 };
 
-const deleteUser = async (id: string) => {
-     const isExistUser = await User.isExistUserById(id);
-     if (!isExistUser) {
-          throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
-     }
-
-     await User.findByIdAndUpdate(id, {
-          $set: { isDeleted: true },
-     });
-     await userCache.clearAfterUpdate(id);
-     return true;
-};
 
 // Get recently viewed videos
 const addRecentlyViewedVideosFromDB = async (userId: string, videoId: string) => {
@@ -153,6 +141,30 @@ const addRecentlyViewedVideosFromDB = async (userId: string, videoId: string) =>
           },
      });
      return updatedUser;
+};
+const softDeleteUser = async (id: string) => {
+     const user = await User.findById(id);
+     if (!user) {
+          throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist");
+     }
+     if (user.role === USER_ROLES.SUPER_ADMIN) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Super admin cannot be deleted');
+     }
+     if (user.isDeleted) {
+          return true;
+     }
+ 
+     const deletedEmail = `deleted_${user._id}${user.email}`;
+
+     await User.findByIdAndUpdate(id, {
+          $set: {
+               isDeleted: true,
+               email: deletedEmail,
+          },
+     });
+
+     await userCache.clearAfterUpdate(id);
+     return true;
 };
 const getRecentlyViewedVideos = async (userId: string) => {
      const user = await User.findById(userId).populate({
@@ -338,10 +350,10 @@ export const UserService = {
      getUserProfileFromDB,
      updateProfileToDB,
      createAdminToDB,
-     deleteUser,
      verifyUserPassword,
      addRecentlyViewedVideosFromDB,
      getRecentlyViewedVideos,
+     softDeleteUser,
      // New search and management methods
      findUserById,
      findUserByEmail,

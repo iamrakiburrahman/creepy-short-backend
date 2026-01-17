@@ -287,7 +287,7 @@ export const corsOptions: cors.CorsOptions = {
      },
      credentials: true, // Allow cookies
      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-CSRF-Token', 'resettoken'],
+     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-CSRF-Token', 'token'],
      exposedHeaders: ['Content-Range', 'X-Content-Range', 'Set-Cookie'],
      maxAge: 86400, // 24 hours
      preflightContinue: false,

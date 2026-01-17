@@ -24,6 +24,7 @@ router
 router.route('/register').post(authLimiter, validateRequest(UserValidation.createUserZodSchema), UserController.createUser);
 router.get('/recently-viewed', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), UserController.getRecentlyViewedVideosByUser);
 router.post('/add-recently-viewed/:videoId', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), UserController.addRecentlyViewedVideos);
+router.delete('/delete-account', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), UserController.deleteProfile);
 
 // Admin routes for user management
 router.route('/admin').post(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), validateRequest(UserValidation.createUserZodSchema), UserController.createAdmin);

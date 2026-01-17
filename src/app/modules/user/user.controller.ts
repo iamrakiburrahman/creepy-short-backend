@@ -76,7 +76,7 @@ const deleteProfile = catchAsync(async (req, res) => {
           });
      }
 
-     const result = await UserService.deleteUser(id);
+     const result = await UserService.softDeleteUser(id);
 
      sendResponse(res, {
           success: true,
