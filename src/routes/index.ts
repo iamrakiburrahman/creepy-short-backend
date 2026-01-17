@@ -16,6 +16,7 @@ import { PackageRoutes } from '../app/modules/package/package.routes';
 import { ReminderRoute } from '../app/modules/reminder/reminder.route';
 import { AdManagementRoutes } from '../app/modules/adManagement/adManagement.route';
 import { NotificationRoutes } from '../app/modules/notification/notification.routes';
+import { LikeRoutes } from '../app/modules/like/like.routes';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -98,6 +99,10 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/notification',
           route: NotificationRoutes,
+     },
+     {
+          path: '/like',
+          route: LikeRoutes,
      },
 ];
 

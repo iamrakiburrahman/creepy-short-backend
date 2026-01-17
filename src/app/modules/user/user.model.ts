@@ -20,6 +20,7 @@ const userSchema = new Schema<IUser, UserModel>(
           email: {
                type: String,
                required: true,
+               unique: true,
                lowercase: true,
           },
           phone: {
@@ -139,8 +140,6 @@ const userSchema = new Schema<IUser, UserModel>(
 userSchema.statics.isExistUserById = async (id: string) => {
      return await User.findById(id);
 };
-userSchema.index({ email: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
-// db.users.updateOne({email:"tihow91361@linxues.com"},{email:"rakibhassan305@gmail.com"})
 
 userSchema.statics.isExistUserByEmail = async (email: string) => {
      return await User.findOne({ email });

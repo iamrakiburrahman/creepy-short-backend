@@ -10,6 +10,7 @@ import { User } from '../user/user.model';
 import mongoose, { Types } from 'mongoose';
 import { UserService } from '../user/user.service';
 import { AdManagement } from '../adManagement/adManagement.model';
+import { Like } from '../like/like.model';
 
 const getAllVideos = async (query: Record<string, unknown>, seasonId: string) => {
      const queryBuilder = new QueryBuilder(Video.find({ seasonId: new mongoose.Types.ObjectId(seasonId) }), query).paginate().filter().sort().fields().search(['title', 'description']);
@@ -195,6 +196,10 @@ const getSeasonVideos = async (seasonId: string, userId: string) => {
 
      return result;
 };
+const getLikedVideos = async (userId: string, videoId: string) => {
+     const likedVideo = await Like.exists({ userId, videoId });
+     return likedVideo ? true : false;
+};
 const getSortVideos = async (userId: string) => {
      const user = await User.findById(userId).select('isSubscribed');
      if (!user) {
@@ -208,10 +213,10 @@ const getSortVideos = async (userId: string) => {
      }
 
      const videos = await Video.find(query).populate('seasonId', 'title seasonNumber').populate('movieId', 'title').sort({ seasonId: 1, episodeNumber: 1, createdAt: -1 });
-
      return videos.map((video) => ({
           ...video.toObject(),
           isSubscribed,
+          isLiked: getLikedVideos(userId, video._id.toString()),
           isAccess: isSubscribed || video.episodeNumber === 1 || !video.seasonId,
      }));
 };
