@@ -123,7 +123,6 @@ const verifyUserPassword = async (userId: string, password: string) => {
      return isPasswordValid;
 };
 
-
 // Get recently viewed videos
 const addRecentlyViewedVideosFromDB = async (userId: string, videoId: string) => {
      const videoObjectId = new mongoose.Types.ObjectId(videoId);
@@ -153,13 +152,14 @@ const softDeleteUser = async (id: string) => {
      if (user.isDeleted) {
           return true;
      }
- 
+
      const deletedEmail = `deleted_${user._id}${user.email}`;
 
      await User.findByIdAndUpdate(id, {
           $set: {
                isDeleted: true,
                email: deletedEmail,
+               isSubscribed: false,
           },
      });
 
