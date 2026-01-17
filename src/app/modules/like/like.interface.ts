@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 
-export interface IBookmark extends Document {
+export interface ILike extends Document {
      userId: Types.ObjectId;
      videoId: Types.ObjectId;
      isLiked: boolean;

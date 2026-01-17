@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose';
-import { IBookmark } from './like.interface';
+import { ILike } from './like.interface';
 
-const bookmarkSchema = new Schema<IBookmark>(
+const likeSchema = new Schema<ILike>(
      {
           userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
           videoId: {
@@ -17,9 +17,5 @@ const bookmarkSchema = new Schema<IBookmark>(
      { timestamps: true },
 );
 
-export const Like = model<IBookmark>('Like', bookmarkSchema);
+export const Like = model<ILike>('Like', likeSchema);
 
-// {
-//   "referenceId": "60d5f1d0d4b7b13992b0f92a",
-//   "referenceType": "video"
-// }
