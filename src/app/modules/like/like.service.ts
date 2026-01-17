@@ -25,7 +25,7 @@ const deleteLike = async (userId: string, referenceId: string) => {
           throw new AppError(404, 'Like not found');
      }
 
-     return { message: 'Like deleted successfully' };
+     return { message: 'Like deleted successfully', isLiked: false };
 };
 
 export const LikeService = { toggleLike, deleteLike };

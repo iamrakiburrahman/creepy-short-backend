@@ -12,7 +12,7 @@ const toggleLike = catchAsync(async (req, res) => {
           statusCode: 200,
           success: true,
           message: result.message,
-          data: result.isLiked,
+          data: { isLiked: result.isLiked },
      });
 });
 
@@ -27,6 +27,7 @@ const deleteLike = catchAsync(async (req, res) => {
           statusCode: 200,
           success: true,
           message: result.message, // Assuming result has a message property
+          data: { isLiked: result.isLiked },
      });
 });
 

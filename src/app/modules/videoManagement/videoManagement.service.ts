@@ -196,16 +196,14 @@ const getSeasonVideos = async (seasonId: string, userId: string) => {
 
      return result;
 };
-const getLikedVideos = async (userId: string, videoId: string) => {
-     const likedVideo = await Like.exists({ userId, videoId });
-     return likedVideo ? true : false;
-};
 const getSortVideos = async (userId: string) => {
      const user = await User.findById(userId).select('isSubscribed');
      if (!user) {
           throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
      }
+
      const isSubscribed = user.isSubscribed;
+
      const query: any = { isDeleted: false };
 
      if (!isSubscribed) {
@@ -213,12 +211,20 @@ const getSortVideos = async (userId: string) => {
      }
 
      const videos = await Video.find(query).populate('seasonId', 'title seasonNumber').populate('movieId', 'title').sort({ seasonId: 1, episodeNumber: 1, createdAt: -1 });
-     return videos.map((video) => ({
-          ...video.toObject(),
-          isSubscribed,
-          isLiked: getLikedVideos(userId, video._id.toString()),
-          isAccess: isSubscribed || video.episodeNumber === 1 || !video.seasonId,
-     }));
+
+     const likedVideos = await Like.find({ userId }).select('videoId');
+     const likedVideoSet = new Set(likedVideos.map((like) => like.videoId.toString()));
+
+     return videos.map((video) => {
+          const videoId = video._id.toString();
+
+          return {
+               ...video.toObject(),
+               isSubscribed,
+               isLiked: likedVideoSet.has(videoId),
+               isAccess: isSubscribed || video.episodeNumber === 1 || !video.seasonId,
+          };
+     });
 };
 
 export const VideoManagementServices = {
