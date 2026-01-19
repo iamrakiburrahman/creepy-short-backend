@@ -9,5 +9,6 @@ router.get('/admin', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), Notificatio
 router.patch('/', auth(USER_ROLES.USER), NotificationController.readAllNotification);
 router.patch('/:notificationId/read', auth(USER_ROLES.USER), NotificationController.readSingleNotification);
 
+router.post("/fake", auth(USER_ROLES.USER), NotificationController.fakeNotification);
 
 export const NotificationRoutes = router;

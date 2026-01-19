@@ -56,9 +56,22 @@ const readSingleNotification = catchAsync(async (req, res) => {
      });
 });
 
+const fakeNotification = catchAsync(async (req, res) => {
+     const { id } = req.user as { id: string };
+     const result = await NotificationService.fakeNotificationToDB(id);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Notification Created Successfully',
+          data: result,
+     });
+});
+
 export const NotificationController = {
      adminNotificationFromDB,
      getNotificationFromDB,
      readAllNotification,
      readSingleNotification,
+     fakeNotification,
 };

@@ -6,6 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
+import { EmailQueueHelper, NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 
 // get notifications
 const getNotificationFromDB = async (user: JwtPayload, query: Record<string, unknown>) => {
@@ -61,9 +62,19 @@ const readSingleNotificationToDB = async (notificationId: string): Promise<INoti
      return result;
 };
 
+// fake notification for testing
+const fakeNotificationToDB = async (userId: string) => {
+     const result = await NotificationQueueHelper.sendNotification(userId.toString(), 'Test title Notification', `Test Notification`, 'ALERT');
+     if (!result) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Notification not sent');
+     }
+     return result;
+};
+
 export const NotificationService = {
      adminNotificationFromDB,
      getNotificationFromDB,
      readAllNotificationToDB,
      readSingleNotificationToDB,
+     fakeNotificationToDB,
 };
