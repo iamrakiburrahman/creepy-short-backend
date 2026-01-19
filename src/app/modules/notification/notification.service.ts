@@ -62,13 +62,24 @@ const readSingleNotificationToDB = async (notificationId: string): Promise<INoti
      return result;
 };
 
-// fake notification for testing
-const fakeNotificationToDB = async (userId: string) => {
-     const result = await NotificationQueueHelper.sendNotification(userId.toString(), 'Test title Notification', `Test Notification`, 'ALERT');
-     if (!result) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Notification not sent');
+export const fakeNotificationToDB = async (userId: string) => {
+     if (!userId) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'User ID is required');
      }
-     return result;
+     const uniqueSuffix = Date.now();
+
+     const title = `TEST_NOTIFICATION ${uniqueSuffix}`;
+     const message = 'This is a test notification';
+
+     const result = await NotificationQueueHelper.sendNotification(userId, message, title, 'ALERT');
+
+     if (!result) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to send test notification');
+     }
+     return {
+          success: true,
+          notificationId: result || null,
+     };
 };
 
 export const NotificationService = {
