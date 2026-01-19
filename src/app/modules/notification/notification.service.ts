@@ -62,7 +62,7 @@ const readSingleNotificationToDB = async (notificationId: string): Promise<INoti
      return result;
 };
 
-export const fakeNotificationToDB = async (userId: string) => {
+ const fakeNotificationToDB = async (userId: string) => {
      if (!userId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'User ID is required');
      }
