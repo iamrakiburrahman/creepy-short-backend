@@ -21,7 +21,6 @@ if (isProd) {
      app.set('trust proxy', 'loopback');
 }
 
-
 // ==========================================
 // VIEW ENGINE
 // ==========================================
@@ -113,8 +112,9 @@ app.use('/api/v1', generalLimiter, router);
 // ==========================================
 // ROOT ENDPOINT
 // ==========================================
-app.get('/', (req: Request, res: Response) => {
-     res.send(welcome());
+app.get('/', async (req: Request, res: Response) => {
+     const result = await welcome();
+     res.send(result);
 });
 
 // ==========================================

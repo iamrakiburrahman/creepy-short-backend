@@ -1,4 +1,5 @@
 import AppError from '../../../errors/AppError';
+import { Video } from '../videoManagement/videoManagement.model';
 import { Like } from './like.model'; // Import the Bookmark model
 
 // Toggle bookmark (add or remove)
@@ -8,10 +9,14 @@ const toggleLike = async (payload: { userId: string; videoId: string }) => {
 
      if (existingLike) {
           await Like.deleteOne({ _id: existingLike._id });
+          // Update the video's likes count
+          await Video.findByIdAndUpdate(videoId, { $inc: { likes: -1 } });
           return { message: 'Like removed successfully', isLiked: false };
      } else {
           // If it doesn't exist, create a new bookmark
           const newLike = new Like({ userId, videoId, isLiked: true });
+          // Update the video's likes count
+          await Video.findByIdAndUpdate(videoId, { $inc: { likes: 1 } });
           await newLike.save();
           return { message: 'Like added successfully', isLiked: true };
      }
@@ -24,7 +29,8 @@ const deleteLike = async (userId: string, referenceId: string) => {
      if (result.deletedCount === 0) {
           throw new AppError(404, 'Like not found');
      }
-
+     // Update the video's likes count
+     await Video.findByIdAndUpdate(referenceId, { $inc: { likes: -1 } });
      return { message: 'Like deleted successfully', isLiked: false };
 };
 
