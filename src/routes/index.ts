@@ -17,6 +17,7 @@ import { ReminderRoute } from '../app/modules/reminder/reminder.route';
 import { AdManagementRoutes } from '../app/modules/adManagement/adManagement.route';
 import { NotificationRoutes } from '../app/modules/notification/notification.routes';
 import { LikeRoutes } from '../app/modules/like/like.routes';
+import { DynamicContentRoutes } from '../app/modules/websiteLogo/dynamicContent.route';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -103,6 +104,10 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/like',
           route: LikeRoutes,
+     },
+     {
+          path: '/dynamic-content',
+          route: DynamicContentRoutes,
      },
 ];
 
