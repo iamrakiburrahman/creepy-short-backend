@@ -15,7 +15,7 @@ const dynamicContentSchema = new Schema<IDynamicContent>(
                required: true,
                enum: ['image'],
           },
-          url: {
+          image: {
                type: String,
                required: true,
           },
