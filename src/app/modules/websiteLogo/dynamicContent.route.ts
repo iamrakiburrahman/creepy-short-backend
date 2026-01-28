@@ -9,11 +9,17 @@ import { FOLDER_NAMES } from '../../../enums/files';
 
 const router = Router();
 
-router.post('/upload', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), fileUploadHandler(), parseFileData(FOLDER_NAMES.IMAGE), DynamicContentController.createOrUpdate);
+router.post(
+     '/upload',
+     auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+     fileUploadHandler(),
+     parseFileData({ fieldName: FOLDER_NAMES.IMAGES, forceMultiple: true }),
+     DynamicContentController.createOrUpdate,
+);
 router.get('/', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), DynamicContentController.getAll);
 router.delete('/:key', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), DynamicContentController.deleteContent);
 
-// public route 
+// public route
 router.get('/key/:key', DynamicContentController.getByKey);
 router.get('/category/:category', DynamicContentController.getByCategory);
 

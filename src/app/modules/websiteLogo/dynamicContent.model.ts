@@ -1,6 +1,5 @@
- import { Schema, model } from 'mongoose';
+import { Schema, model } from 'mongoose';
 import { IDynamicContent } from './dynamicContent.interface';
-
 
 const dynamicContentSchema = new Schema<IDynamicContent>(
      {
@@ -15,18 +14,15 @@ const dynamicContentSchema = new Schema<IDynamicContent>(
                required: true,
                enum: ['image'],
           },
-          image: {
-               type: String,
+          images: {
+               type: [String],
+               default: [],
                required: true,
           },
-          category: {
-               type: String,
-               trim: true,
-          }
      },
      {
           timestamps: true,
-     }
+     },
 );
 
 export const DynamicContent = model<IDynamicContent>('DynamicContent', dynamicContentSchema);
