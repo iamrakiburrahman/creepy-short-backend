@@ -21,6 +21,8 @@ router.post('/change-password', auth(USER_ROLES.ADMIN, USER_ROLES.USER, USER_ROL
 router.post('/resend-otp', AuthController.resendOtp);
 
 // OAuth Routes
+router.post('/google-login', AuthController.googleLogin);
+
 router.get('/google', AuthController.googleAuth);
 router.get('/google/callback', AuthController.googleAuthCallback);
 router.get('/facebook', AuthController.facebookAuth);

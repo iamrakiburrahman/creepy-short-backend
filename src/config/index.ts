@@ -19,6 +19,11 @@ export default {
           jwt_refresh_secret: process.env.JWT_REFRESH_SECRET,
           jwt_refresh_expire_in: process.env.JWT_REFRESH_EXPIRE_IN,
      },
+     firebase: {
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+     },
      server: {
           name: process.env.SERVER_NAME,
      },

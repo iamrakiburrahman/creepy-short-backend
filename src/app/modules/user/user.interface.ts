@@ -34,6 +34,8 @@ export type IUser = {
           lastSeen?: Date;
           lastHeartbeat?: Date;
      };
+     createdAt: Date;
+     updatedAt: Date;
 };
 
 export type UserModel = {
