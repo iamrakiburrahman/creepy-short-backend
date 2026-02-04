@@ -4,4 +4,6 @@ coverage
 uploads
 winston
 reports
+.env
+ecosystem.config.js
 
