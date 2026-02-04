@@ -298,86 +298,86 @@ const refreshToken = async (token: string) => {
 
      return { accessToken };
 };
-const googleLoginService = async (payload: { token: string; deviceToken?: string }) => {
-     const { token, deviceToken } = payload;
+     const googleLoginService = async (payload: { token: string; deviceToken?: string }) => {
+          const { token, deviceToken } = payload;
 
-     if (!token) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Firebase ID token is required');
-     }
-
-     let decoded;
-     try {
-          decoded = await firebaseAdmin.auth().verifyIdToken(token);
-     } catch (error) {
-          throw new AppError(StatusCodes.UNAUTHORIZED, 'Invalid or expired Firebase token');
-     }
-
-     const { uid: firebaseUid, email, name, picture, email_verified } = decoded;
-
-     // Email must exist for Google login
-     if (!email) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Email not found in Google account');
-     }
-
-     // Optionally enforce email verification
-     if (!email_verified) {
-          throw new AppError(StatusCodes.FORBIDDEN, 'Please verify your email address with Google');
-     }
-
-     // Check if user exists by email (since your model uses email as unique identifier)
-     let user = await User.findOne({ email });
-
-     if (user) {
-          // Check user status
-          if (user.status === 'blocked' || user.isDeleted) {
-               throw new AppError(StatusCodes.FORBIDDEN, 'Your account has been blocked. Please contact support.');
+          if (!token) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Firebase ID token is required');
           }
 
-          if (user.status !== 'active') {
-               throw new AppError(StatusCodes.FORBIDDEN, 'Your account is inactive. Please contact support.');
+          let decoded;
+          try {
+               decoded = await firebaseAdmin.auth().verifyIdToken(token);
+          } catch (error) {
+               throw new AppError(StatusCodes.UNAUTHORIZED, 'Invalid or expired Firebase token');
           }
 
-          // Update user info if changed
-          if (user.image !== picture || user.googleId !== firebaseUid) {
-               user.image = picture || user.image;
-               user.googleId = firebaseUid;
-               user.verified = email_verified;
-               user.oauthProvider = 'google';
-               await user.save();
+          const { uid: firebaseUid, email, name, picture, email_verified } = decoded;
+
+          // Email must exist for Google login
+          if (!email) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Email not found in Google account');
           }
-     } else {
-          // Create new user
-          user = await User.create({
-               name: name || email.split('@')[0],
-               email,
-               image: picture || '',
-               verified: email_verified,
-               status: 'active',
-               googleId: firebaseUid,
-               oauthProvider: 'google',
-               isSubscribed: true,
-          });
-     }
 
-     // Generate tokens
+          // Optionally enforce email verification
+          if (!email_verified) {
+               throw new AppError(StatusCodes.FORBIDDEN, 'Please verify your email address with Google');
+          }
 
-     const jwtData = { id: user._id, role: user.role, email: user.email };
-     //create token
-     const accessToken = jwtHelper.createToken(jwtData, config.jwt.jwt_secret as Secret, config.jwt.jwt_expire_in as string);
-     const refreshToken = jwtHelper.createToken(jwtData, config.jwt.jwt_refresh_secret as string, config.jwt.jwt_refresh_expire_in as string);
-     // Check if user is newly created (within last 5 seconds)
-     const isNewUser = user.createdAt && new Date().getTime() - new Date(user.createdAt).getTime() < 5000;
+          // Check if user exists by email (since your model uses email as unique identifier)
+          let user = await User.findOne({ email });
 
-     const message = isNewUser ? `Welcome ${user.name || ''}!` : `Welcome back ${user.name || ''}!`;
+          if (user) {
+               // Check user status
+               if (user.status === 'blocked' || user.isDeleted) {
+                    throw new AppError(StatusCodes.FORBIDDEN, 'Your account has been blocked. Please contact support.');
+               }
 
-     return {
-          message,
-          role: user.role,
-          status: user.status,
-          accessToken,
-          refreshToken,
+               if (user.status !== 'active') {
+                    throw new AppError(StatusCodes.FORBIDDEN, 'Your account is inactive. Please contact support.');
+               }
+
+               // Update user info if changed
+               if (user.image !== picture || user.googleId !== firebaseUid) {
+                    user.image = picture || user.image;
+                    user.googleId = firebaseUid;
+                    user.verified = email_verified;
+                    user.oauthProvider = 'google';
+                    await user.save();
+               }
+          } else {
+               // Create new user
+               user = await User.create({
+                    name: name || email.split('@')[0],
+                    email,
+                    image: picture || '',
+                    verified: email_verified,
+                    status: 'active',
+                    googleId: firebaseUid,
+                    oauthProvider: 'google',
+                    isSubscribed: true,
+               });
+          }
+
+          // Generate tokens
+
+          const jwtData = { id: user._id, role: user.role, email: user.email };
+          //create token
+          const accessToken = jwtHelper.createToken(jwtData, config.jwt.jwt_secret as Secret, config.jwt.jwt_expire_in as string);
+          const refreshToken = jwtHelper.createToken(jwtData, config.jwt.jwt_refresh_secret as string, config.jwt.jwt_refresh_expire_in as string);
+          // Check if user is newly created (within last 5 seconds)
+          const isNewUser = user.createdAt && new Date().getTime() - new Date(user.createdAt).getTime() < 5000;
+
+          const message = isNewUser ? `Welcome ${user.name || ''}!` : `Welcome back ${user.name || ''}!`;
+
+          return {
+               message,
+               role: user.role,
+               status: user.status,
+               accessToken,
+               refreshToken,
+          };
      };
-};
 export const AuthService = {
      verifyEmailToDB,
      loginUserFromDB,
