@@ -24,6 +24,12 @@ export default {
           privateKey: process.env.FIREBASE_PRIVATE_KEY,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
      },
+     iap: {
+          google_play_email: process.env.GOOGLE_PLAY_EMAIL,
+          google_play_private_key: process.env.GOOGLE_PLAY_PRIVATE_KEY,
+          android_package_name: process.env.ANDROID_PACKAGE_NAME,
+          apple_shared_secret: process.env.APPLE_SHARED_SECRET,
+     },
      server: {
           name: process.env.SERVER_NAME,
      },
