@@ -1,13 +1,9 @@
 import { Package } from '../package/package.model';
 import { ISubscription } from './subscription.interface';
 import { Subscription } from './subscription.model';
-import stripe from '../../../config/stripe';
 import { User } from '../user/user.model';
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../../errors/AppError';
-import config from '../../../config';
-
-import { SubscriptionNotificationService } from './subscription.notification';
 import { errorLogger } from '../../../shared/logger';
 import { validateAppleReceipt, validateGoogleReceipt } from './iap.service';
 
@@ -15,34 +11,11 @@ const subscriptionDetailsFromDB = async (id: string): Promise<{ subscription: IS
      const subscription = await Subscription.findOne({ userId: id, status: 'active' }).populate('package', 'title credit duration').lean();
 
      if (!subscription) {
-          return { subscription: {} }; // Return empty object if no subscription found
+          return { subscription: {} };
      }
-
-     // const subscriptionFromStripe = await stripe.subscriptions.retrieve(subscription.subscriptionId);
-
-     // Check subscription status and update database accordingly
-     // if (subscriptionFromStripe?.status !== 'active' && subscriptionFromStripe?.status !== 'trialing') {
-     //      await Promise.all([User.findByIdAndUpdate(id, { isSubscribed: false }, { new: true }), Subscription.findOneAndUpdate({ user: id }, { status: 'expired' }, { new: true })]);
-     // }
-
      return { subscription };
 };
 
-const companySubscriptionDetailsFromDB = async (id: string): Promise<{ subscription: ISubscription | object }> => {
-     const subscription = await Subscription.findOne({ userId: id }).populate('package', 'title credit').lean();
-     if (!subscription) {
-          return { subscription: {} }; // Return empty object if no subscription found
-     }
-
-     const subscriptionFromStripe = await stripe.subscriptions.retrieve(subscription.subscriptionId);
-
-     // Check subscription status and update database accordingly
-     if (subscriptionFromStripe?.status !== 'active' && subscriptionFromStripe?.status !== 'trialing') {
-          await Promise.all([User.findByIdAndUpdate(id, { isSubscribed: false }, { new: true }), Subscription.findOneAndUpdate({ user: id }, { status: 'expired' }, { new: true })]);
-     }
-
-     return { subscription };
-};
 
 const subscriptionsFromDB = async (query: Record<string, unknown>): Promise<ISubscription[]> => {
      const conditions: any[] = [];
@@ -120,7 +93,7 @@ const subscriptionsFromDB = async (query: Record<string, unknown>): Promise<ISub
                     },
                     {
                          path: 'userId',
-                         select: 'email name linkedIn contact company website',
+                         select: 'email name contact company',
                     },
                ])
                .select('userId package price trxId currentPeriodStart currentPeriodEnd status createdAt updatedAt')
@@ -151,92 +124,6 @@ const subscriptionsFromDB = async (query: Record<string, unknown>): Promise<ISub
 
 
 
-// const createSubscriptionCheckoutSession = async (userId: string, packageId: string) => {
-//      const isExistPackage = await Package.findOne({
-//           _id: packageId,
-//           status: 'active',
-//      });
-//      if (!isExistPackage) {
-//           throw new AppError(StatusCodes.NOT_FOUND, 'Package not found');
-//      }
-//      const user = await User.findById(userId).select('+stripeCustomerId');
-//      if (!user || !user.stripeCustomerId) {
-//           throw new AppError(StatusCodes.NOT_FOUND, 'User or Stripe Customer ID not found');
-//      }
-
-//      // Check if user has already used their free trial (first-time trial only)
-//      const hasUsedTrial = await Subscription.findOne({
-//           userId,
-//           $or: [
-//                { trialStart: { $exists: true, $ne: null } },
-//                { status: 'trialing' }
-//           ]
-//      });
-
-//      // Prepare subscription data based on trial eligibility
-//      const subscriptionData: any = {
-//           metadata: {
-//                userId: String(userId),
-//                packageId: String(isExistPackage._id),
-//                isFirstTimeUser: hasUsedTrial ? 'false' : 'true'
-//           },
-//      };
-
-//      // Only add trial period for first-time users
-//      if (!hasUsedTrial) {
-//           subscriptionData.trial_period_days = 7;
-//      }
-
-//      // Convert Mongoose String types to primitive strings
-//      const session = await stripe.checkout.sessions.create({
-//           mode: 'subscription',
-//           customer: String(user.stripeCustomerId),
-//           line_items: [
-//                {
-//                     price: String(isExistPackage.priceId),
-//                     quantity: 1,
-//                },
-//           ],
-//           subscription_data: subscriptionData,
-//           metadata: {
-//                userId: String(userId),
-//                subscriptionId: String(isExistPackage._id),
-//                hasUsedTrial: hasUsedTrial ? 'true' : 'false'
-//           },
-//           // your backend url for success and cancel
-//           success_url: `${config.backend_url || 'http://10.0.60.126:7000'}/api/v1/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-//           cancel_url: `${config.backend_url || 'http://10.0.60.126:7000'}/subscription/cancel`,
-//      });
-//      return {
-//           url: session.url,
-//           sessionId: session.id,
-//           isFirstTimeUser: !hasUsedTrial
-//      };
-// };
-
-
-const cancelSubscriptionToDB = async (userId: string) => {
-     const activeSubscription = await Subscription.findOne({
-          userId,
-          status: { $in: ['active', 'trialing'] },
-     });
-     if (!activeSubscription || !activeSubscription.subscriptionId) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'No active subscription found to cancel');
-     }
-
-     await stripe.subscriptions.cancel(activeSubscription.subscriptionId);
-
-     await Subscription.findOneAndUpdate({ userId, status: { $in: ['active', 'trialing'] } }, { status: 'cancel' }, { new: true });
-
-     return { success: true, message: 'Subscription canceled successfully' };
-};
-const successMessage = async (id: string) => {
-     const session = await stripe.checkout.sessions.retrieve(id);
-     return session;
-};
-
-
-
 // const checkSubscriptionAccess = async (userId: string) => {
 //      const user = await User.findById(userId);
 //      if (!user) {
@@ -257,52 +144,7 @@ const successMessage = async (id: string) => {
 // };
 
 // Handle subscription expiry
-const handleSubscriptionExpiry = async (userId: string) => {
-     try {
-          // Find expired subscriptions
-          const expiredSubscriptions = await Subscription.find({
-               userId,
-               status: { $in: ['active', 'trialing'] },
-               currentPeriodEnd: { $lt: new Date().toISOString() },
-          });
 
-          if (expiredSubscriptions.length > 0) {
-               // Update subscription status to expired
-               await Subscription.updateMany(
-                    {
-                         userId,
-                         status: { $in: ['active', 'trialing'] },
-                         currentPeriodEnd: { $lt: new Date().toISOString() },
-                    },
-                    { status: 'expired' },
-               );
-
-               // Send expiry notification to user
-               await SubscriptionNotificationService.sendSubscriptionExpiryNotification(userId);
-
-               // Update user access
-               await User.findByIdAndUpdate(userId, {
-                    hasAccess: false,
-                    isSubscribed: false,
-                    isFreeTrial: false,
-               });
-
-               return {
-                    success: true,
-                    message: 'Subscription expired and access revoked',
-                    expiredCount: expiredSubscriptions.length,
-               };
-          }
-
-          return {
-               success: true,
-               message: 'No expired subscriptions found',
-          };
-     } catch (error) {
-          errorLogger.error('Subscription expiry handling error:', error);
-          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to handle subscription expiry');
-     }
-};
 
 
 
@@ -440,10 +282,6 @@ const createIAPSubscription = async (
 export const SubscriptionService = {
      subscriptionDetailsFromDB,
      subscriptionsFromDB,
-     companySubscriptionDetailsFromDB,
-     cancelSubscriptionToDB,
-     successMessage,
-     handleSubscriptionExpiry,
      getTransactionHistory,
      createIAPSubscription,
 };

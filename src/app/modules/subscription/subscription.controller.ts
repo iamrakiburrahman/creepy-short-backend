@@ -24,19 +24,6 @@ const subscriptionDetails = catchAsync(async (req, res) => {
      });
 });
 
-const cancelSubscription = catchAsync(async (req, res) => {
-     const { id }: any = req.user;
-     const result = await SubscriptionService.cancelSubscriptionToDB(id);
-
-     sendResponse(res, {
-          statusCode: StatusCodes.OK,
-          success: true,
-          message: 'Cancel subscription successfully',
-          data: result,
-     });
-});
-// create checkout session
-
 
 const createCheckoutSessionForApp = catchAsync(async (req, res) => {
      const { id }: any = req.user;
@@ -51,16 +38,6 @@ const createCheckoutSessionForApp = catchAsync(async (req, res) => {
      });
 })
 
-const orderSuccess = catchAsync(async (req, res) => {
-     const sessionId = req.query.session_id as string;
-     const session = await SubscriptionService.successMessage(sessionId);
-     res.render('success', { session });
-});
-// Assuming you have OrderServices imported properly
-const orderCancel = catchAsync(async (req, res) => {
-     res.render('cancel');
-});
-
 
 
 const checkAccess = catchAsync(async (req, res) => {
@@ -74,21 +51,6 @@ const checkAccess = catchAsync(async (req, res) => {
      });
 });
 
-
-
-
-// Handle subscription expiry
-const handleExpiry = catchAsync(async (req, res) => {
-     const { id }: any = req.user;
-     const result = await SubscriptionService.handleSubscriptionExpiry(id);
-
-     sendResponse(res, {
-          statusCode: StatusCodes.OK,
-          success: true,
-          message: 'Subscription expiry handled successfully',
-          data: result,
-     });
-});
 
 const getTransactionHistory = catchAsync(async (req, res) => {
      const { id }: any = req.user;
@@ -108,11 +70,7 @@ const getTransactionHistory = catchAsync(async (req, res) => {
 export const SubscriptionController = {
      subscriptions,
      subscriptionDetails,
-     cancelSubscription,
-     orderSuccess,
-     orderCancel,
      checkAccess,
-     handleExpiry,
      getTransactionHistory,
      createCheckoutSessionForApp,
 };
