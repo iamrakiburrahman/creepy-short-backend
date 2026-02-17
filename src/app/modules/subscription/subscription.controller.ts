@@ -24,10 +24,9 @@ const subscriptionDetails = catchAsync(async (req, res) => {
      });
 });
 
-
 const createCheckoutSessionForApp = catchAsync(async (req, res) => {
      const { id }: any = req.user;
-     
+
      const result = await SubscriptionService.createIAPSubscription(id, req.body);
 
      sendResponse(res, {
@@ -36,21 +35,18 @@ const createCheckoutSessionForApp = catchAsync(async (req, res) => {
           message: 'Create IAP subscription successfully',
           data: result,
      });
-})
-
-
+});
 
 const checkAccess = catchAsync(async (req, res) => {
      const { id }: any = req.user;
-     // const result = await SubscriptionService.checkSubscriptionAccess(id);
+     const result = await SubscriptionService.checkSubscriptionAccess(id);
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,
           message: 'Access status retrieved successfully',
-          // data: result,
+          data: result,
      });
 });
-
 
 const getTransactionHistory = catchAsync(async (req, res) => {
      const { id }: any = req.user;
@@ -63,9 +59,6 @@ const getTransactionHistory = catchAsync(async (req, res) => {
           data: result,
      });
 });
-
-// Unified subscription handler - handles new subscription, renewal, and package change
-
 
 export const SubscriptionController = {
      subscriptions,

@@ -16,7 +16,6 @@ const subscriptionDetailsFromDB = async (id: string): Promise<{ subscription: IS
      return { subscription };
 };
 
-
 const subscriptionsFromDB = async (query: Record<string, unknown>): Promise<ISubscription[]> => {
      const conditions: any[] = [];
      const { searchTerm, limit, page, paymentType } = query;
@@ -122,32 +121,18 @@ const subscriptionsFromDB = async (query: Record<string, unknown>): Promise<ISub
      }
 };
 
+const checkSubscriptionAccess = async (userId: string) => {
+     const user = await User.findById(userId);
+     if (!user) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+     }
+     const hasAccess = user.hasAccess;
 
-
-// const checkSubscriptionAccess = async (userId: string) => {
-//      const user = await User.findById(userId);
-//      if (!user) {
-//           throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
-//      }
-
-//      const trialStatus = await checkUserTrialStatus(userId);
-
-//      // Check if user has access (either active subscription or valid trial)
-//      const hasAccess = user.hasAccess && (trialStatus.hasActiveSubscription || trialStatus.isInTrial);
-
-//      return {
-//           hasAccess,
-//           isSubscribed: user.isSubscribed,
-//           trialStatus,
-//           packageName: user.,
-//      };
-// };
-
-// Handle subscription expiry
-
-
-
-
+     return {
+          hasAccess,
+          isSubscribed: user.isSubscribed,
+     };
+};
 
 // Get user transaction history
 const getTransactionHistory = async (userId: string): Promise<any> => {
@@ -267,14 +252,14 @@ const createIAPSubscription = async (
           remaining: remainingDays, // ✅ Calculated dynamically
 
           // Status
-          status: status
+          status: status,
      });
 
      // 8. Update User Access
      await User.findByIdAndUpdate(user._id, {
           hasAccess: true,
           isSubscribed: true,
-          subscription: newSub._id
+          subscription: newSub._id,
      });
 
      return newSub;
@@ -284,4 +269,5 @@ export const SubscriptionService = {
      subscriptionsFromDB,
      getTransactionHistory,
      createIAPSubscription,
+     checkSubscriptionAccess,
 };
