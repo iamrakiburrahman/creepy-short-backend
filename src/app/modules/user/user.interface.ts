@@ -15,6 +15,8 @@ export type IUser = {
      facebookId?: string;
      oauthProvider?: 'google' | 'facebook';
      isSubscribed: boolean;
+     hasAccess: boolean;
+     subscription?: Types.ObjectId;
      recentlyViewed?: {
           itemId: Types.ObjectId;
           viewedAt: Date;
@@ -28,6 +30,7 @@ export type IUser = {
           oneTimeCode: number;
           expireAt: Date;
      };
+
      // ✅ Online Status Interface
      onlineStatus?: {
           isOnline?: boolean;

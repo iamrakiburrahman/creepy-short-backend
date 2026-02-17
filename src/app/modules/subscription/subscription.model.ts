@@ -3,12 +3,7 @@ import { ISubscription, SubscriptionModel } from './subscription.interface';
 
 const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
      {
-          customerId: {
-               type: String,
-               required: function () {
-                    return this.provider === 'stripe';
-               },
-          },
+        
           price: {
                type: Number,
                required: true,
@@ -61,21 +56,14 @@ const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
                default: 'active',
                required: true,
           },
-          trialStart: {
-               type: String,
-               required: false,
-          },
-          trialEnd: {
-               type: String,
-               required: false,
-          },
+          
           cancelAtPeriodEnd: {
                type: Boolean,
                default: false,
           },
           provider: {
                type: String,
-               enum: ['stripe', 'google', 'apple'],
+               enum: ['google', 'apple'],
                required: true,
           },
           iapProductId: {

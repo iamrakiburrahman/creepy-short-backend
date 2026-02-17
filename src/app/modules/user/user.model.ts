@@ -118,6 +118,16 @@ const userSchema = new Schema<IUser, UserModel>(
                },
                select: false,
           },
+          hasAccess: {
+               type: Boolean,
+               default: false,
+          },
+          subscription: {
+               type: mongoose.Schema.Types.ObjectId,
+               ref: 'Subscriptions',
+               default: null,
+          },
+ 
           onlineStatus: {
                isOnline: {
                     type: Boolean,

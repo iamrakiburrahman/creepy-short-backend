@@ -13,10 +13,8 @@ export type ISubscription = {
      status: 'expired' | 'active' | 'cancel' | 'trialing' | 'past_due' | 'unpaid' | 'incomplete';
      currentPeriodStart: string;
      currentPeriodEnd: string;
-     trialStart?: string;
-     trialEnd?: string;
      cancelAtPeriodEnd?: boolean;
-     provider: 'stripe' | 'google' | 'apple';
+     provider: 'google' | 'apple';
      iapProductId: string;
      iapReceipt: string;
 };

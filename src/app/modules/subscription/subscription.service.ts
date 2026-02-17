@@ -425,18 +425,14 @@ const createIAPSubscription = async (
           remaining: remainingDays, // ✅ Calculated dynamically
 
           // Status
-          status: status,
-          trialStart: isTrial ? currentPeriodStart.toISOString() : null,
-          trialEnd: isTrial ? currentPeriodEnd.toISOString() : null,
+          status: status
      });
 
      // 8. Update User Access
      await User.findByIdAndUpdate(user._id, {
-          isFreeTrial: isTrial,
           hasAccess: true,
           isSubscribed: true,
-          subscription: newSub._id,
-          trialExpireAt: isTrial ? currentPeriodEnd : null,
+          subscription: newSub._id
      });
 
      return newSub;
