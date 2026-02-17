@@ -3,7 +3,7 @@ import { Server as SocketServer } from 'socket.io';
 import colors from 'colors';
 import { validateConfig } from './DB/configValidation';
 import { connectToDatabase } from './DB/db';
-import app from './app';
+import app, { allowedOrigins } from './app';
 import config from './config';
 import { logger } from './shared/logger';
 import { socketHelper } from './helpers/socketHelper';
@@ -46,7 +46,7 @@ async function startServer(): Promise<void> {
           // Set up Socket.io server
           socketServer = new SocketServer(httpServer, {
                cors: {
-                    origin: config.allowed_origins || '*',
+                    origin: allowedOrigins || '*',
                     credentials: true,
                },
                pingTimeout: 60000,

@@ -18,6 +18,7 @@ import { AdManagementRoutes } from '../app/modules/adManagement/adManagement.rou
 import { NotificationRoutes } from '../app/modules/notification/notification.routes';
 import { LikeRoutes } from '../app/modules/like/like.routes';
 import { DynamicContentRoutes } from '../app/modules/websiteLogo/dynamicContent.route';
+import { SubscriptionRoutes } from '../app/modules/subscription/subscription.routes';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -108,6 +109,10 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/dynamic-content',
           route: DynamicContentRoutes,
+     },
+     {
+          path: '/subscription',
+          route: SubscriptionRoutes,
      },
 ];
 
