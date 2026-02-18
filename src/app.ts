@@ -12,6 +12,8 @@ import passport from './config/passport';
 import setupTimeManagement from './utils/cronJobs';
 import getUploadDirectory from './utils/getUploadDirectory';
 import { corsOptions, generalLimiter, getSessionConfig } from './DB/security';
+import handleAppleWebhook from './helpers/iasWebHook/appleWebhook';
+import handleGoogleWebhook from './helpers/iasWebHook/googleWebhook';
 
 const app: Application = express();
 const isProd = config.node_env === 'production';
@@ -20,7 +22,14 @@ if (isProd) {
 } else {
      app.set('trust proxy', 'loopback');
 }
-
+/* =====================================================
+   Apple webhook (MUST BE FIRST)
+===================================================== */
+app.post('/api/v1/webhooks/apple', express.json(), handleAppleWebhook);
+/* =====================================================
+   Google webhook (MUST BE FIRST)
+===================================================== */
+app.post('/api/v1/webhooks/google', express.json(), handleGoogleWebhook);
 // ==========================================
 // VIEW ENGINE (EJS)
 // ==========================================
