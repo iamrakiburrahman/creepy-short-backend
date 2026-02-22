@@ -6,7 +6,8 @@ import { StatusCodes } from 'http-status-codes';
 import AppError from '../../../errors/AppError';
 import { errorLogger } from '../../../shared/logger';
 import { validateAppleReceipt, validateGoogleReceipt } from './iap.service';
-
+import { createCacheHelper } from '../../builder/RedisCacheHelper';
+const userCache = createCacheHelper('user');
 const subscriptionDetailsFromDB = async (id: string): Promise<{ subscription: ISubscription | object }> => {
      const subscription = await Subscription.findOne({ userId: id, status: 'active' }).populate('package', 'title credit duration').lean();
 
@@ -183,6 +184,7 @@ const createIAPSubscription = async (
           packageName?: string;
      },
 ) => {
+     console.log('userId', userId);
      // 1. Find User
      const user = await User.findById(userId);
      if (!user) throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
@@ -255,13 +257,18 @@ const createIAPSubscription = async (
           status: status,
      });
 
+     if (!newSub) throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to create subscription');
      // 8. Update User Access
-     await User.findByIdAndUpdate(userId, {
-          hasAccess: true,
-          isSubscribed: true,
-          subscription: newSub._id,
-     });
-
+     await User.findByIdAndUpdate(
+          userId,
+          {
+               hasAccess: true,
+               isSubscribed: true,
+               subscription: newSub._id,
+          },
+          { new: true },
+     );
+     await userCache.clearAfterUpdate(userId);
      return newSub;
 };
 export const SubscriptionService = {
