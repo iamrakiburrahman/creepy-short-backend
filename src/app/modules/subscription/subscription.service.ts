@@ -256,7 +256,7 @@ const createIAPSubscription = async (
      });
 
      // 8. Update User Access
-     await User.findByIdAndUpdate(user._id, {
+     await User.findByIdAndUpdate(userId, {
           hasAccess: true,
           isSubscribed: true,
           subscription: newSub._id,

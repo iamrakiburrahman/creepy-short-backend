@@ -14,7 +14,7 @@ const subscriptions = catchAsync(async (req, res) => {
 });
 
 const subscriptionDetails = catchAsync(async (req, res) => {
-     const { id }: any = req.user;
+     const { id } = req.user as { id: string };
      const result = await SubscriptionService.subscriptionDetailsFromDB(id);
      sendResponse(res, {
           statusCode: StatusCodes.OK,
@@ -25,7 +25,7 @@ const subscriptionDetails = catchAsync(async (req, res) => {
 });
 
 const createCheckoutSessionForApp = catchAsync(async (req, res) => {
-     const { id }: any = req.user;
+     const { id } = req.user as { id: string };
 
      const result = await SubscriptionService.createIAPSubscription(id, req.body);
 
@@ -38,7 +38,7 @@ const createCheckoutSessionForApp = catchAsync(async (req, res) => {
 });
 
 const checkAccess = catchAsync(async (req, res) => {
-     const { id }: any = req.user;
+     const { id } = req.user as { id: string };
      const result = await SubscriptionService.checkSubscriptionAccess(id);
      sendResponse(res, {
           statusCode: StatusCodes.OK,
@@ -49,7 +49,7 @@ const checkAccess = catchAsync(async (req, res) => {
 });
 
 const getTransactionHistory = catchAsync(async (req, res) => {
-     const { id }: any = req.user;
+     const { id } = req.user as { id: string };
      const result = await SubscriptionService.getTransactionHistory(id);
 
      sendResponse(res, {
