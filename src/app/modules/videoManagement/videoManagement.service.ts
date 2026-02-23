@@ -167,32 +167,18 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
 //      return result;
 // };
 const getSeasonVideos = async (seasonId: string, userId: string) => {
-     const [videos, user, ads] = await Promise.all([Video.find({ seasonId }).sort({ episodeNumber: 1 }), User.findById(userId).select('isSubscribed'), AdManagement.find({ isActive: true })]);
-
+     const [videos, user] = await Promise.all([Video.find({ seasonId }).sort({ episodeNumber: 1 }), User.findById(userId).select('isSubscribed')]);
      if (!user) {
           throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
      }
-
      const isSubscribed = user.isSubscribed;
-     const result: any[] = [];
-     let adIndex = 0;
 
-     videos.forEach((video, index) => {
-          result.push({
-               type: 'video',
-               ...video.toObject(),
-               isSubscribed,
-               isAccess: isSubscribed || index < 3,
-          });
-
-          if (!isSubscribed && (index + 1) % 3 === 0 && ads.length > 0) {
-               result.push({
-                    type: 'ad',
-                    data: ads[adIndex % ads.length],
-               });
-               adIndex++;
-          }
-     });
+     const result = videos.map((video, index) => ({
+          type: 'video',
+          ...video.toObject(),
+          isSubscribed,
+          isAccess: isSubscribed || index < 3,
+     }));
 
      return result;
 };
