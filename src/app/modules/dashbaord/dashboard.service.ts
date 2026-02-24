@@ -1,4 +1,3 @@
-
 import { User } from '../user/user.model';
 import { Subscription } from '../subscription/subscription.model';
 import { StatusCodes } from 'http-status-codes';
@@ -14,10 +13,19 @@ const getOverview = async () => {
      return { totalMovies, totalUsers, activeSubscriptions, totalRevenue };
 };
 
-const getUserGrowth = async () => {
+const getUserGrowth = async (year?: number) => {
+     const currentYear = year || new Date().getFullYear();
+
      const pipeline = [
           {
-               $match: { role: 'USER', isDeleted: false },
+               $match: {
+                    role: 'USER',
+                    isDeleted: false,
+                    createdAt: {
+                         $gte: new Date(`${currentYear}-01-01T00:00:00.000Z`),
+                         $lte: new Date(`${currentYear}-12-31T23:59:59.999Z`),
+                    },
+               },
           },
           {
                $group: {
@@ -27,16 +35,30 @@ const getUserGrowth = async () => {
           },
           { $sort: { _id: 1 } },
      ];
+
      const data = await User.aggregate<any>(pipeline as any);
      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
      return monthNames.map((month, index) => {
           const found = data.find((d: any) => d._id === index + 1);
           return { month, count: found ? found.count : 0 };
      });
 };
 
-const getTopWatchedVideos = async () => {
-     const videos = await Video.find({ isDeleted: false }).sort({ views: -1 }).limit(5).select('title views');
+const getTopWatchedVideos = async (year?: number) => {
+     const currentYear = year || new Date().getFullYear();
+
+     const videos = await Video.find({
+          isDeleted: false,
+          createdAt: {
+               $gte: new Date(`${currentYear}-01-01T00:00:00.000Z`),
+               $lte: new Date(`${currentYear}-12-31T23:59:59.999Z`),
+          },
+     })
+          .sort({ views: -1 })
+          .limit(5)
+          .select('title views');
+
      return videos.map((v: any) => ({ title: v.title, views: v.views }));
 };
 

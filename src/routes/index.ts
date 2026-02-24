@@ -19,6 +19,7 @@ import { NotificationRoutes } from '../app/modules/notification/notification.rou
 import { LikeRoutes } from '../app/modules/like/like.routes';
 import { DynamicContentRoutes } from '../app/modules/websiteLogo/dynamicContent.route';
 import { SubscriptionRoutes } from '../app/modules/subscription/subscription.routes';
+import { DashboardRouter } from '../app/modules/dashbaord/dashboard.route';
 
 const router = express.Router();
 const routes: { path: string; route: Router }[] = [
@@ -113,6 +114,10 @@ const routes: { path: string; route: Router }[] = [
      {
           path: '/subscription',
           route: SubscriptionRoutes,
+     },
+     {
+          path: '/dashboard',
+          route: DashboardRouter,
      },
 ];
 
