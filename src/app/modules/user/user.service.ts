@@ -84,7 +84,7 @@ const getUserProfileFromDB = async (user: JwtPayload): Promise<Partial<IUser>> =
           user.id,
           async () => {
                const { id } = user;
-               const isExistUser = await User.isExistUserById(id);
+               const isExistUser = await User.findById(id).populate('subscriptions', 'price name packageName currentPeriodStart currentPeriodEnd remaining status provider');
                if (!isExistUser) {
                     throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
                }
