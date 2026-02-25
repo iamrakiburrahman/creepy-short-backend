@@ -35,9 +35,20 @@ const topWatched = catchAsync(async (req, res) => {
           data,
      });
 });
+const getProductionReport = catchAsync(async (req, res) => {
+     const { year = new Date().getFullYear() } = req.query;
+     const data = await DashboardService.getProductionReportStats(Number(year));
 
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: `Production analytics retrieved for ${year}`,
+          data,
+     });
+});
 export const DashboardController = {
      overview,
      userGrowth,
      topWatched,
+     getProductionReport,
 };

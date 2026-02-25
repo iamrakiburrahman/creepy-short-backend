@@ -9,5 +9,5 @@ const router = express.Router();
 router.get('/overview', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), DashboardController.overview);
 router.get('/user-growth', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), DashboardController.userGrowth);
 router.get('/top-watched', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), DashboardController.topWatched);
-
+router.get('/production-report', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), DashboardController.getProductionReport);
 export const DashboardRouter = router;
