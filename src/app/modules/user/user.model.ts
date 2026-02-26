@@ -125,7 +125,7 @@ const userSchema = new Schema<IUser, UserModel>(
 
           subscription: {
                type: mongoose.Schema.Types.ObjectId,
-               ref: 'Subscriptions',
+               ref: 'Subscription',
                default: null,
           },
 
