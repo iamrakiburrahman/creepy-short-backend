@@ -43,6 +43,10 @@ const packageSchema = new Schema<IPackage, PackageModel>(
                enum: ['active', 'inactive'],
                default: 'active',
           },
+          discount: {
+               type: Number,
+               default: 0,
+          },
           provider: {
                type: String,
                enum: ['google', 'apple'],

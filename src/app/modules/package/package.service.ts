@@ -11,6 +11,10 @@ const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> =>
      } else {
           payload.provider = 'apple';
      }
+
+     const finalPrice = payload.discount ? payload.price - (payload.price * payload.discount) / 100 : payload.price;
+
+     payload.price = finalPrice;
      const result = await Package.create(payload);
      if (!result) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Package');
@@ -25,6 +29,15 @@ const updatePackageToDB = async (id: string, payload: Partial<IPackage>): Promis
           throw new AppError(StatusCodes.NOT_FOUND, 'Package not found');
      }
 
+     if (payload.isGoogle) {
+          payload.provider = 'google';
+     } else {
+          payload.provider = 'apple';
+     }
+
+     const finalPrice = payload.discount && payload.price ? payload.price - (payload.price * payload.discount) / 100 : payload.price;
+
+     payload.price = finalPrice;
      const updatedPackage = await Package.findByIdAndUpdate(id, payload, {
           new: true,
           runValidators: true,

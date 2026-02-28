@@ -4,6 +4,7 @@ export interface IPackage {
      name: string;
      description: string;
      price: number;
+     discount: number;
      duration: '1 month' | '3 months' | '6 months' | '1 year';
      paymentType: 'Monthly' | 'Yearly';
      googleProductId?: string; // ID from Google Play Console
