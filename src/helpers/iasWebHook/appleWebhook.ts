@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { errorLogger, logger } from '../../shared/logger';
 import { Subscription } from '../../app/modules/subscription/subscription.model';
 import { User } from '../../app/modules/user/user.model';
+import { NotificationQueueHelper } from '../bullMQ/bullHelper';
 
 // ==========================================
 // APPLE WEBHOOK - Renew, Cancel, Refund
@@ -106,6 +107,14 @@ const handleAppleRenewal = async (transactionInfo: any) => {
                hasAccess: true,
           });
 
+          // 🔔 Notification
+          await NotificationQueueHelper.sendNotification(
+               subscription.userId.toString(),
+               'Your subscription has been successfully renewed. Enjoy uninterrupted access!',
+               '✅ Subscription Renewed',
+               'SYSTEM',
+          );
+
           logger.info('✅ Apple subscription renewed:', subscription._id);
      } catch (error: any) {
           errorLogger.error('Error handling Apple renewal:', error.message);
@@ -138,12 +147,28 @@ const handleAppleCancel = async (transactionInfo: any, renewalInfo: any) => {
                subscription.status = 'cancel';
                await subscription.save();
 
+               // 🔔 Notification
+               await NotificationQueueHelper.sendNotification(
+                    subscription.userId.toString(),
+                    'Your subscription auto-renewal has been turned off. You will retain access until the current period ends.',
+                    '❌ Auto-Renewal Disabled',
+                    'SYSTEM',
+               );
+
                logger.info('❌ Apple auto-renew disabled:', subscription._id);
           } else {
                // If auto-renew is turned back ON
                subscription.cancelAtPeriodEnd = false;
                subscription.status = 'active';
                await subscription.save();
+
+               // 🔔 Notification
+               await NotificationQueueHelper.sendNotification(
+                    subscription.userId.toString(),
+                    'Your subscription auto-renewal has been re-enabled. Your subscription will continue automatically.',
+                    '✅ Auto-Renewal Enabled',
+                    'SYSTEM',
+               );
 
                logger.info('✅ Apple auto-renew re-enabled:', subscription._id);
           }
@@ -172,8 +197,11 @@ const handleAppleExpired = async (transactionInfo: any) => {
           // Remove user access
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: false,
-               hasAccess: false
+               hasAccess: false,
           });
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendAlert(subscription.userId.toString(), 'Your subscription has expired. Please renew to continue enjoying premium features.');
 
           logger.info('⏰ Apple subscription expired:', subscription._id);
      } catch (error: any) {
@@ -204,11 +232,20 @@ const handleAppleRefund = async (transactionInfo: any) => {
                hasAccess: false,
           });
 
+          // 🔔 Notification
+          await NotificationQueueHelper.sendPaymentNotification(
+               subscription.userId.toString(),
+               'Your refund has been processed and your subscription access has been revoked.',
+               originalTransactionId,
+               '💰 Refund Processed',
+          );
+
           logger.info('💰 Apple refund processed:', subscription._id);
      } catch (error: any) {
           errorLogger.error('Error handling Apple refund:', error.message);
      }
 };
+
 // 🔄 Apple Failed Renewal (Payment failed, retry চলছে)
 const handleAppleFailedRenewal = async (transactionInfo: any) => {
      try {
@@ -226,6 +263,9 @@ const handleAppleFailedRenewal = async (transactionInfo: any) => {
           // Mark as past_due but keep access (billing retry period)
           subscription.status = 'past_due';
           await subscription.save();
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendAlert(subscription.userId.toString(), 'We were unable to renew your subscription. Please update your payment method to avoid losing access.');
 
           logger.info('🔄 Apple billing retry started:', subscription._id);
      } catch (error: any) {
@@ -252,8 +292,11 @@ const handleAppleGracePeriodExpired = async (transactionInfo: any) => {
 
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: false,
-               hasAccess: false
+               hasAccess: false,
           });
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendAlert(subscription.userId.toString(), 'Your grace period has ended and subscription access has been removed. Please renew your subscription.');
 
           logger.info('⏱️ Apple grace period ended, access removed:', subscription._id);
      } catch (error: any) {
@@ -288,8 +331,16 @@ const handleAppleRecovered = async (transactionInfo: any) => {
           // Restore user access
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: true,
-               hasAccess: true
+               hasAccess: true,
           });
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendNotification(
+               subscription.userId.toString(),
+               'Great news! Your subscription payment was successful and your access has been fully restored.',
+               '🎉 Subscription Recovered',
+               'SYSTEM',
+          );
 
           logger.info('🎉 Apple subscription recovered:', subscription._id);
      } catch (error: any) {

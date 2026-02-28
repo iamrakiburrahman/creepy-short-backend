@@ -4,6 +4,8 @@ import { errorLogger, logger } from '../../shared/logger';
 import { Subscription } from '../../app/modules/subscription/subscription.model';
 import { User } from '../../app/modules/user/user.model';
 import config from '../../config';
+import { NotificationQueueHelper } from '../bullMQ/bullHelper';
+
 
 // ==========================================
 // GOOGLE WEBHOOK - Renew, Cancel, Refund
@@ -134,8 +136,16 @@ const handleGoogleRenewal = async (packageName: string, subscriptionId: string, 
           // Update user
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: true,
-               hasAccess: true
+               hasAccess: true,
           });
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendNotification(
+               subscription.userId.toString(),
+               'Your subscription has been successfully renewed. Enjoy uninterrupted access!',
+               '✅ Subscription Renewed',
+               'SYSTEM',
+          );
 
           logger.info('✅ Google subscription renewed:', subscription._id);
      } catch (error: any) {
@@ -158,6 +168,14 @@ const handleGoogleCancel = async (purchaseToken: string) => {
           subscription.cancelAtPeriodEnd = true;
           subscription.status = 'cancel';
           await subscription.save();
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendNotification(
+               subscription.userId.toString(),
+               'Your subscription has been canceled. You will retain access until the end of the current billing period.',
+               '❌ Subscription Canceled',
+               'SYSTEM',
+          );
 
           logger.info('❌ Google subscription canceled:', subscription._id);
      } catch (error: any) {
@@ -183,8 +201,11 @@ const handleGoogleExpired = async (purchaseToken: string) => {
           // Remove user access
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: false,
-               hasAccess: false
+               hasAccess: false,
           });
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendAlert(subscription.userId.toString(), 'Your subscription has expired. Please renew to continue enjoying premium features.');
 
           logger.info('⏰ Google subscription expired:', subscription._id);
      } catch (error: any) {
@@ -210,14 +231,24 @@ const handleGoogleRefund = async (purchaseToken: string) => {
           // Remove user access immediately
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: false,
-               hasAccess: false
+               hasAccess: false,
           });
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendPaymentNotification(
+               subscription.userId.toString(),
+               'Your refund has been processed and your subscription access has been revoked.',
+               purchaseToken,
+               '💰 Refund Processed',
+          );
 
           logger.info('💰 Google refund processed:', subscription._id);
      } catch (error: any) {
           errorLogger.error('Error handling Google refund:', error.message);
      }
 };
+
+// Google Grace Period
 const handleGoogleGracePeriod = async (purchaseToken: string) => {
      try {
           logger.info('⏱️ Google Grace Period:', { token: purchaseToken.substring(0, 20) + '...' });
@@ -233,13 +264,19 @@ const handleGoogleGracePeriod = async (purchaseToken: string) => {
           subscription.status = 'past_due';
           await subscription.save();
 
+          // 🔔 Notification
+          await NotificationQueueHelper.sendAlert(
+               subscription.userId.toString(),
+               'We could not process your payment. You are in a grace period — please update your payment method to avoid losing access.',
+          );
+
           logger.info('⏱️ Google subscription in grace period:', subscription._id);
      } catch (error: any) {
           errorLogger.error('Error handling Google grace period:', error.message);
      }
 };
 
-//Google On Hold (Payment completely failed, billing retry শেষ)
+// Google On Hold (Payment completely failed, billing retry শেষ)
 const handleGoogleOnHold = async (purchaseToken: string) => {
      try {
           logger.info('🔄 Google On Hold:', { token: purchaseToken.substring(0, 20) + '...' });
@@ -259,6 +296,9 @@ const handleGoogleOnHold = async (purchaseToken: string) => {
                isSubscribed: false,
                hasAccess: false,
           });
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendAlert(subscription.userId.toString(), 'Your subscription is on hold due to a payment failure. Please update your payment method to restore access.');
 
           logger.info('🔄 Google subscription on hold, access removed:', subscription._id);
      } catch (error: any) {
@@ -312,8 +352,16 @@ const handleGoogleRecovered = async (packageName: string, subscriptionId: string
           // Restore user access
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: true,
-               hasAccess: true
+               hasAccess: true,
           });
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendNotification(
+               subscription.userId.toString(),
+               'Great news! Your subscription payment was successful and your access has been fully restored.',
+               '🎉 Subscription Recovered',
+               'SYSTEM',
+          );
 
           logger.info('🎉 Google subscription recovered:', subscription._id);
      } catch (error: any) {
@@ -371,6 +419,9 @@ const handleGoogleRestarted = async (packageName: string, subscriptionId: string
                hasAccess: true,
           });
 
+          // 🔔 Notification
+          await NotificationQueueHelper.sendNotification(subscription.userId.toString(), 'Your subscription has been restarted successfully. Welcome back!', '🔄 Subscription Restarted', 'SYSTEM');
+
           logger.info('🔄 Google subscription restarted:', subscription._id);
      } catch (error: any) {
           errorLogger.error('Error handling Google restart:', error.message);
@@ -389,9 +440,16 @@ const handleGooglePaused = async (purchaseToken: string) => {
 
           if (!subscription) return;
 
-          // Mark as paused but keep some access (depends on your business logic)
           subscription.status = 'cancel';
           await subscription.save();
+
+          // 🔔 Notification
+          await NotificationQueueHelper.sendNotification(
+               subscription.userId.toString(),
+               'Your subscription has been paused. You can resume it anytime from your account settings.',
+               '⏸️ Subscription Paused',
+               'SYSTEM',
+          );
 
           logger.info('⏸️ Google subscription paused:', subscription._id);
      } catch (error: any) {
