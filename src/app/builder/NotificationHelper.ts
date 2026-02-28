@@ -1,0 +1,188 @@
+import mongoose from 'mongoose';
+import { User } from '../modules/user/user.model';
+import { Notification } from '../modules/notification/notification.model';
+import { DeviceToken } from '../modules/fcmToken/fcmToken.model';
+import colors from 'colors';
+import { logger } from '../../shared/logger';
+import admin from '../../firebase/firebase';
+
+// 1. Define the Payload Interface
+export interface INotificationPayload {
+     title: string;
+     body: string;
+     type: string;
+     notificationType?: string;
+     data?: Record<string, string>;
+}
+
+export class NotificationHelper {
+     // MAIN METHOD: SEND TO SINGLE USER
+
+     static async sendToUser(userId: string | mongoose.Types.ObjectId, payload: INotificationPayload) {
+          return this.sendToBatch([userId], payload);
+     }
+
+     // MAIN METHOD: SEND TO MULTIPLE USERS (BATCH)
+
+     static async sendToBatch(userIds: (string | mongoose.Types.ObjectId)[], payload: INotificationPayload) {
+          try {
+               if (!userIds.length) return;
+
+               // 1. Filter Users
+               const validUsers = await User.find({
+                    _id: { $in: userIds },
+                    verified: true,
+               })
+                    .select('_id')
+                    .lean();
+
+               const validUserIds = validUsers.map((u) => u._id);
+
+               if (validUserIds.length === 0) return;
+
+               // 2. Fetch FCM Tokens
+               const tokensData = await DeviceToken.find({
+                    userId: { $in: validUserIds },
+                    fcmToken: { $exists: true, $ne: '' },
+               })
+                    .select('fcmToken')
+                    .lean();
+               const fcmTokens = tokensData.map((t) => t.fcmToken);
+
+               // --- PARALLEL EXECUTION ---
+               const tasks = [];
+
+               // A. Send Push (if tokens exist)
+               if (fcmTokens.length > 0) {
+                    tasks.push(this.sendToFCM(fcmTokens, payload));
+               }
+
+               // B. Save to Database (always)
+               if (validUserIds.length > 0) {
+                    tasks.push(this.saveToDatabase(validUserIds, payload));
+               }
+               await Promise.allSettled(tasks);
+               logger.info(colors.green(`✅ Notification flow completed for ${validUserIds.length} users.`));
+          } catch (error) {
+               logger.error(colors.red('❌ NotificationHelper Error:'), error);
+          }
+     }
+
+     static async sendChatMessage(chat: any, message: any) {
+          try {
+               const senderId = message.sender._id.toString();
+               const senderName = message.sender.name || 'User';
+
+               // message format body
+               let bodyText = message.text;
+               if (message.isDeleted) bodyText = 'This message was deleted';
+               if (!bodyText && message.productId) bodyText = 'Sent a product attachment';
+               if (!bodyText) bodyText = 'Sent a new message';
+
+               // sender removed filter others participants
+               const recipients = chat.participants.filter((p: any) => p._id.toString() !== senderId).map((p: any) => p._id);
+
+               if (recipients.length === 0) return;
+
+               await this.sendToBatch(recipients, {
+                    title: senderName,
+                    body: bodyText.substring(0, 100),
+                    type: 'MESSAGE',
+                    data: {
+                         type: 'MESSAGE',
+                         chatId: chat._id.toString(),
+                         messageId: message._id.toString(),
+                         click_action: 'FLUTTER_NOTIFICATION_CLICK',
+                    },
+               });
+          } catch (error) {
+               logger.error(colors.red('❌ Error inside sendChatMessage:'), error);
+          }
+     }
+
+     /**
+      * 🔒 PRIVATE: Handle Firebase Logic
+      */
+     private static async sendToFCM(tokens: string[], payload: INotificationPayload) {
+          try {
+               const message: admin.messaging.MulticastMessage = {
+                    tokens: tokens,
+                    notification: {
+                         title: payload.title,
+                         body: payload.body,
+                    },
+                    data: payload.data || {},
+                    // Android Configuration
+                    android: {
+                         priority: 'high',
+                         notification: {
+                              channelId: 'default_channel', // Must match your Flutter app's channel
+                              priority: 'high',
+                              sound: 'default',
+                              defaultSound: true,
+                              defaultVibrateTimings: true,
+                              defaultLightSettings: true,
+                         },
+                    },
+                    // iOS Configuration
+                    apns: {
+                         payload: {
+                              aps: {
+                                   sound: 'default',
+                                   badge: 1,
+                                   contentAvailable: true,
+                              },
+                         },
+                         headers: {
+                              'apns-priority': '10',
+                         },
+                    },
+               };
+
+               const response = await admin.messaging().sendEachForMulticast(message);
+               // Token Cleanup
+               if (response.failureCount > 0) {
+                    const failedTokens: string[] = [];
+                    response.responses.forEach((resp: admin.messaging.SendResponse, idx: number) => {
+                         if (!resp.success) {
+                              const errCode = resp.error?.code;
+                              if (errCode === 'messaging/registration-token-not-registered' || errCode === 'messaging/invalid-registration-token' || errCode === 'messaging/mismatched-credential') {
+                                   failedTokens.push(tokens[idx]);
+                              }
+                         }
+                    });
+                    if (failedTokens.length > 0) {
+                         await DeviceToken.deleteMany({ fcmToken: { $in: failedTokens } });
+                         logger.info(colors.yellow(`🗑️  Removed ${failedTokens.length} invalid FCM tokens`));
+                    }
+               }
+
+               logger.info(colors.green(`📱 FCM sent: ${response.successCount} success, ${response.failureCount} failed out of ${tokens.length} tokens`));
+          } catch (error) {
+               logger.error(colors.red('FCM Send Error:'), error);
+          }
+     }
+
+     /**
+      * 🔒 PRIVATE: Handle Database Saving
+      */
+     private static async saveToDatabase(userIds: any[], payload: INotificationPayload) {
+          try {
+               const referenceId = payload.data?.bookingId || payload.data?.orderId || payload.data?.chatId || payload.data?.userId || null;
+               const notifications = userIds.map((userId) => ({
+                    receiver: userId,
+                    title: payload.title,
+                    message: payload.body,
+                    type: payload.type,
+                    status: 'RECEIVED',
+                    notificationType: payload.notificationType,
+                    reference: referenceId,
+               }));
+
+               await Notification.insertMany(notifications);
+               logger.info(colors.cyan(`💾 Saved ${notifications.length} notifications to database`));
+          } catch (error) {
+               logger.error(colors.red('DB Save Error:'), error);
+          }
+     }
+}

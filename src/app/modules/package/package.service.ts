@@ -4,6 +4,7 @@ import AppError from '../../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { IPackage } from './package.interface';
 import { Package } from './package.model';
+import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 
 const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> => {
      if (payload.isGoogle) {
@@ -12,16 +13,27 @@ const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> =>
           payload.provider = 'apple';
      }
 
-     const finalPrice = payload.discount ? payload.price - (payload.price * payload.discount) / 100 : payload.price;
+     const hasDiscount = payload.discount && payload.discount > 0;
+     const finalPrice = hasDiscount ? payload.price - (payload.price * payload.discount!) / 100 : payload.price;
 
      payload.price = finalPrice;
+
      const result = await Package.create(payload);
      if (!result) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Package');
      }
+
+     
+     if (hasDiscount) {
+          await NotificationQueueHelper.sendBroadcastNotification(
+               `🎉 Special offer! Get ${payload.discount}% off on "${payload.name}". Limited time only — grab it now!`,
+               `🏷️ ${payload.discount}% Discount Available!`,
+               'ADMIN',
+          );
+     }
+
      return result;
 };
-
 const updatePackageToDB = async (id: string, payload: Partial<IPackage>): Promise<IPackage | null> => {
      const isExistPackage = await Package.findById(id);
 
