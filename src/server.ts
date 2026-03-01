@@ -21,7 +21,7 @@ async function startServer(): Promise<void> {
           // Validate config first
           validateConfig();
 
-          // Connect to database 
+          // Connect to database
           await connectToDatabase();
 
           // Create HTTP server
@@ -58,7 +58,6 @@ async function startServer(): Promise<void> {
           (global as any).io = socketServer;
 
           logger.info(colors.bgYellow(`♻️  Socket.IO ready on PID ${process.pid}`));
-
      } catch (error) {
           logger.error(colors.red(`Server (PID: ${process.pid}) failed to start:`), error);
           throw error;
