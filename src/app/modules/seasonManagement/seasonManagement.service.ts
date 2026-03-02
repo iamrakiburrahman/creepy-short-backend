@@ -4,6 +4,7 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 import { ISeason } from './seasonManagement.interface';
 import { SeasonModel } from './seasonManagement.model';
+import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 const seasonCache = createCacheHelper('seasonCache');
 
 const createSeasonToDB = async (payload: ISeason) => {
@@ -11,7 +12,16 @@ const createSeasonToDB = async (payload: ISeason) => {
      if (!result) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Season not created');
      }
+
      await seasonCache.clearLists();
+
+     // 🔔 Broadcast notification to all users — new season added
+     await NotificationQueueHelper.sendBroadcastNotification(
+          payload.title ? `New season just added: "${payload.title}". Watch it now!` : 'A new season has just been added. Check it out!',
+          '🎬 New Season Available',
+          'ADMIN',
+     );
+
      return result;
 };
 

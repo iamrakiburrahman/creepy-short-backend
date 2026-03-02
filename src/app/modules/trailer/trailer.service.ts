@@ -10,6 +10,7 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
 import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
+import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 const trailerCacheKey = createCacheHelper('trailer');
 const getAllTrailers = async (query: Record<string, unknown>) => {
      return await trailerCacheKey.wrapList(query, async () => {
@@ -168,8 +169,15 @@ const createTrailer = async (id: string, payload: ITrailer) => {
           uploadedAt: new Date(),
      });
 
-     console.log('✅ Video metadata saved successfully');
      await trailerCacheKey.clearLists();
+
+     // 🔔 Broadcast notification to all users — new trailer uploaded
+     await NotificationQueueHelper.sendBroadcastNotification(
+          title ? `New trailer just dropped: "${title}". Watch it now!` : 'A new trailer has just been uploaded. Check it out!',
+          '🎬 New Trailer Available',
+          'ADMIN',
+     );
+
      return video;
 };
 

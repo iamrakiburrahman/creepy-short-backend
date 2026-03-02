@@ -11,6 +11,7 @@ import { USER_ROLES } from '../../../enums/user';
 import { getDateRange } from '../../../utils/getDateRange';
 import { SeasonModel } from '../seasonManagement/seasonManagement.model';
 import { Video } from '../videoManagement/videoManagement.model';
+import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 const movieCache = createCacheHelper('movieCache');
 
 const createMovieToDB = async (payload: IMovie) => {
@@ -19,11 +20,21 @@ const createMovieToDB = async (payload: IMovie) => {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Category not found');
      }
      payload.category = category.name;
+
      const result = await MovieModel.create(payload);
      if (!result) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Movie not created');
      }
+
      await movieCache.clearLists();
+
+     // 🔔 Broadcast notification to all users — new movie added
+     await NotificationQueueHelper.sendBroadcastNotification(
+          payload.title ? `New movie just added: "${payload.title}". Watch it now!` : 'A new movie has just been added. Check it out!',
+          '🎬 New Movie Available',
+          'ADMIN',
+     );
+
      return result;
 };
 
@@ -176,7 +187,6 @@ const getSingleMovieFromDBWithSession = async (userId: string, id: string) => {
      const seasons = await SeasonModel.find({ movieId: id }).sort({ seasonNumber: 1 });
      const seasonsWithVideos = await Promise.all(
           seasons.map(async (season) => {
-          
                return {
                     seasonId: season._id,
                     seasonNumber: season.seasonNumber,
@@ -202,5 +212,5 @@ export const MovieService = {
      getSingleMovieFromDBWithUser,
      mostPopular,
      getAllMoviesForUserWithDateFilter,
-     getSingleMovieFromDBWithSession
+     getSingleMovieFromDBWithSession,
 };

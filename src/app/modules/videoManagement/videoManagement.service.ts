@@ -11,6 +11,7 @@ import mongoose, { Types } from 'mongoose';
 import { UserService } from '../user/user.service';
 import { AdManagement } from '../adManagement/adManagement.model';
 import { Like } from '../like/like.model';
+import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 
 const getAllVideos = async (query: Record<string, unknown>, seasonId: string) => {
      const queryBuilder = new QueryBuilder(Video.find({ seasonId: new mongoose.Types.ObjectId(seasonId) }), query).paginate().filter().sort().fields().search(['title', 'description']);
@@ -90,8 +91,10 @@ const createVideo = async (id: string, payload: IVideo) => {
 
      const newEpisodeNumber = lastVideo && typeof lastVideo.episodeNumber === 'number' ? lastVideo.episodeNumber + 1 : 1;
 
+     const finalEpisodeNumber = episodeNumber || newEpisodeNumber;
+
      const video = await Video.create({
-          title: title || `Episode ${newEpisodeNumber}`,
+          title: title || `Episode ${finalEpisodeNumber}`,
           description: description || '',
           duration: duration || 0,
           videoUrl: `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`,
@@ -100,9 +103,17 @@ const createVideo = async (id: string, payload: IVideo) => {
           thumbnailUrl: thumbnailUrl,
           movieId: movieId,
           seasonId: seasonId,
-          episodeNumber: episodeNumber || newEpisodeNumber,
+          episodeNumber: finalEpisodeNumber,
           downloadUrls,
      });
+
+     // 🔔 Broadcast notification to all users — new episode added
+     await NotificationQueueHelper.sendBroadcastNotification(
+          title ? `New episode just dropped: "${title}" (Episode ${finalEpisodeNumber}). Watch it now!` : `Episode ${finalEpisodeNumber} has just been added. Watch it now!`,
+          '🎬 New Episode Available',
+          'ADMIN',
+     );
+
      return video;
 };
 const generateUploadUrl = async (payload: { title?: string; fileName: string }) => {
@@ -111,8 +122,6 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
      if (!fileName) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'File name is required');
      }
-
-     console.log('🎬 Creating video object for:', title || fileName);
 
      const createResponse = await axios.post(
           `https://video.bunnycdn.com/library/${config.bunnyCDN.stream_library_id}/videos`,
@@ -128,8 +137,6 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
      const videoId = createResponse.data.guid;
      const libraryId = config.bunnyCDN.stream_library_id as string;
      const pullZone = config.bunnyCDN.pull_zone_host as string;
-
-     console.log('✅ Video object created with ID:', videoId);
 
      const uploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`;
      const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`;
