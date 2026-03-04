@@ -62,13 +62,6 @@ export default {
           authToken: process.env.TWILIO_AUTH_TOKEN || '',
           phoneNumber: process.env.TWILIO_PHONE_NUMBER || '',
      },
-     stripe: {
-          stripe_secret_key: process.env.STRIPE_SECRET_KYE,
-          paymentSuccess_url: process.env.STRIPE_PAYMENT_SUCCESS_URL,
-          stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
-          stripe_webhook_url: process.env.STRIPE_WEBHOOK_URL,
-          stripe_product_id: process.env.STRIPE_PRODUCT_ID,
-     },
      bunnyCDN: {
           account_api_key: process.env.BUNNY_CDN_ACCOUNT_API_KEY,
           apiKey: process.env.BUNNY_CDN_API_KEY,
