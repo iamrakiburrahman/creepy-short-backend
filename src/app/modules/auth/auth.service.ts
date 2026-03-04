@@ -14,7 +14,8 @@ import cryptoToken from '../../../utils/cryptoToken';
 import { verifyToken } from '../../../utils/verifyToken';
 import { createToken } from '../../../utils/createToken';
 import { EmailQueueHelper } from '../../../helpers/bullMQ/bullHelper';
-import { firebaseAdmin } from '../../../config/firebase-config';
+import admin from '../../../firebase/firebase';
+
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -307,7 +308,7 @@ const refreshToken = async (token: string) => {
 
           let decoded;
           try {
-               decoded = await firebaseAdmin.auth().verifyIdToken(token);
+               decoded = await admin.auth().verifyIdToken(token);
           } catch (error) {
                throw new AppError(StatusCodes.UNAUTHORIZED, 'Invalid or expired Firebase token');
           }
