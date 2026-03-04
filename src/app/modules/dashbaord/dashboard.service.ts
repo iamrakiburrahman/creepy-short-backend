@@ -85,7 +85,8 @@ const getProductionReportStats = async (year: number) => {
           // 1. Chart Data (Monthly Aggregation)
           Promise.all([
                User.aggregate([{ $match: { createdAt: { $gte: startDate, $lte: endDate }, isDeleted: false } }, { $group: { _id: { $month: '$createdAt' }, count: { $sum: 1 } } }]),
-               Subscription.aggregate([{ $match: { createdAt: { $gte: startDate, $lte: endDate }, status: 'active' } }, { $group: { _id: { $month: '$createdAt' }, count: { $sum: 1 } } }]),
+               // Subscription revenue (sum of amount) per month
+               Subscription.aggregate([{ $match: { createdAt: { $gte: startDate, $lte: endDate }, status: 'active' } }, { $group: { _id: { $month: '$createdAt' }, count: { $sum: '$price' } } }]),
                MovieModel.aggregate([
                     { $match: { releaseDate: { $gte: startDate, $lte: endDate }, isDeleted: false } },
                     { $group: { _id: { $month: '$releaseDate' }, count: { $sum: '$totalViews' } } },
@@ -97,6 +98,8 @@ const getProductionReportStats = async (year: number) => {
                MovieModel.countDocuments({ status: 'Ongoing', createdAt: { $gte: startOfCurrentMonth } }),
                Trailer.countDocuments({ createdAt: { $gte: startOfCurrentMonth } }),
                MovieModel.aggregate([{ $match: { createdAt: { $gte: startOfCurrentMonth } } }, { $group: { _id: null, total: { $sum: '$totalViews' } } }]),
+               // Current month subscription revenue
+               Subscription.aggregate([{ $match: { status: 'active', createdAt: { $gte: startOfCurrentMonth } } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
           ]),
 
           // 3. Previous Month Stats for Growth
@@ -104,6 +107,8 @@ const getProductionReportStats = async (year: number) => {
                MovieModel.countDocuments({ status: 'Ongoing', createdAt: { $gte: startOfPreviousMonth, $lte: endOfPreviousMonth } }),
                Trailer.countDocuments({ createdAt: { $gte: startOfPreviousMonth, $lte: endOfPreviousMonth } }),
                MovieModel.aggregate([{ $match: { createdAt: { $gte: startOfPreviousMonth, $lte: endOfPreviousMonth } } }, { $group: { _id: null, total: { $sum: '$totalViews' } } }]),
+               // Previous month subscription revenue
+               Subscription.aggregate([{ $match: { status: 'active', createdAt: { $gte: startOfPreviousMonth, $lte: endOfPreviousMonth } } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
           ]),
 
           // 4. Overall Totals
@@ -111,6 +116,8 @@ const getProductionReportStats = async (year: number) => {
                MovieModel.countDocuments({ status: 'Ongoing', isDeleted: false }),
                Trailer.countDocuments({}),
                MovieModel.aggregate([{ $match: { isDeleted: false } }, { $group: { _id: null, total: { $sum: '$totalViews' } } }]),
+               // Total subscription revenue (all time)
+               Subscription.aggregate([{ $match: { status: 'active' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
           ]),
      ]);
 
@@ -121,7 +128,7 @@ const getProductionReportStats = async (year: number) => {
           return {
                month,
                audience: pipelineData[0].find((d) => d._id === monthNum)?.count || 0,
-               subscription: pipelineData[1].find((d) => d._id === monthNum)?.count || 0,
+               subscription: pipelineData[1].find((d) => d._id === monthNum)?.count || 0, // now revenue amount
                view: pipelineData[2].find((d) => d._id === monthNum)?.count || 0,
           };
      });
@@ -141,10 +148,14 @@ const getProductionReportStats = async (year: number) => {
                     total: totalStats[2][0]?.total || 0,
                     growth: calculateGrowth(currMonthStats[2][0]?.total || 0, prevMonthStats[2][0]?.total || 0),
                },
+               // Subscription revenue instead of count
+               totalRevenue: {
+                    total: totalStats[3][0]?.total || 0,
+                    growth: calculateGrowth(currMonthStats[3][0]?.total || 0, prevMonthStats[3][0]?.total || 0),
+               },
           },
      };
 };
-
 
 export const DashboardService = {
      getOverview,
