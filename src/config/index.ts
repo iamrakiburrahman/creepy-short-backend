@@ -51,11 +51,7 @@ export default {
           port: process.env.REDIS_PORT,
           db: process.env.REDIS_DB,
      },
-     twilio: {
-          accountSid: process.env.TWILIO_ACCOUNT_SID || '',
-          authToken: process.env.TWILIO_AUTH_TOKEN || '',
-          phoneNumber: process.env.TWILIO_PHONE_NUMBER || '',
-     },
+
      bunnyCDN: {
           account_api_key: process.env.BUNNY_CDN_ACCOUNT_API_KEY,
           apiKey: process.env.BUNNY_CDN_API_KEY,
