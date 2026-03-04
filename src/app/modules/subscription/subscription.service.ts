@@ -7,6 +7,7 @@ import AppError from '../../../errors/AppError';
 import { errorLogger } from '../../../shared/logger';
 import { validateAppleReceipt, validateGoogleReceipt } from './iap.service';
 import { createCacheHelper } from '../../builder/RedisCacheHelper';
+import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 const userCache = createCacheHelper('user');
 const subscriptionDetailsFromDB = async (id: string): Promise<{ subscription: ISubscription | object }> => {
      const subscription = await Subscription.findOne({ userId: id, status: 'active' }).populate('package', 'title credit duration').lean();
@@ -184,7 +185,6 @@ const createIAPSubscription = async (
           packageName?: string;
      },
 ) => {
-     console.log('userId', userId);
      // 1. Find User
      const user = await User.findById(userId);
      if (!user) throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
@@ -269,6 +269,16 @@ const createIAPSubscription = async (
           { new: true },
      );
      await userCache.clearAfterUpdate(userId);
+     if (isTrial) {
+          await NotificationQueueHelper.sendNotification(userId, `Your free trial for "${targetPackage?.name}" has started! You have 7 days of full access.`, '🎉 Free Trial Started', 'SYSTEM');
+     } else {
+          await NotificationQueueHelper.sendPaymentNotification(
+               userId,
+               `Your subscription to "${targetPackage?.name}" is now active. Enjoy premium access for ${remainingDays} days!`,
+               newSub._id.toString(),
+               '✅ Subscription Activated',
+          );
+     }
      return newSub;
 };
 export const SubscriptionService = {
