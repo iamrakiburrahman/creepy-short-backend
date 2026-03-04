@@ -8,7 +8,6 @@ import { notFound } from './app/middleware/notFound';
 import { welcome } from './utils/welcome';
 import config from './config';
 import path from 'path';
-import passport from './config/passport';
 import setupTimeManagement from './utils/cronJobs';
 import getUploadDirectory from './utils/getUploadDirectory';
 import { corsOptions, generalLimiter, getSessionConfig } from './DB/security';
@@ -60,11 +59,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // ===========================================
 app.use(session(getSessionConfig()));
 
-// ===========================================
-// PASSPORT INITIALIZATION
-// ===========================================
-app.use(passport.initialize());
-app.use(passport.session());
 
 // ==========================================
 // STATIC FILES (Uploads)
