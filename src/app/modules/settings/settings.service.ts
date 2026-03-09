@@ -11,14 +11,14 @@ const upsertSettings = async (data: Partial<ISettings>): Promise<ISettings> => {
           const updatedSettings = await Settings.findOneAndUpdate({}, data, {
                new: true,
           });
-          await settingsCache.clearLists();
+          await settingsCache.clearAll();
           return updatedSettings!;
      } else {
           const newSettings = await Settings.create(data);
           if (!newSettings) {
                throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to add settings');
           }
-          await settingsCache.clearLists();
+          await settingsCache.clearAll();
           return newSettings;
      }
 };
