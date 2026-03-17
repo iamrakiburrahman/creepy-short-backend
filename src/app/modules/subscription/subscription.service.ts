@@ -209,7 +209,7 @@ const createIAPSubscription = async (
           validation = await validateGoogleReceipt(payload.purchaseToken, payload.productId, targetPackageName);
           targetPackage = await Package.findOne({
                googleProductId: payload.productId,
-          }).select('title duration');
+          }).select('name duration');
      } else {
           validation = await validateAppleReceipt(payload.purchaseToken);
           targetPackage = await Package.findOne({
