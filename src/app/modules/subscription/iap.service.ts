@@ -35,11 +35,7 @@ interface IValidationResult {
 // ==========================================
 // 1. Google Validation (Dynamic Package Name)
 // ==========================================
-export const validateGoogleReceipt = async (
-     token: string,
-     productId: string,
-     packageName: string,
-): Promise<IValidationResult> => {
+export const validateGoogleReceipt = async (token: string, productId: string, packageName: string): Promise<IValidationResult> => {
      try {
           const authClient = await getGoogleAuthClient();
           // logger.info('authClient', authClient);
@@ -75,23 +71,60 @@ export const validateGoogleReceipt = async (
 // ... Apple Validation remains same ...
 export const validateAppleReceipt = async (receiptBase64: string): Promise<IValidationResult> => {
      try {
-          const products = await appleReceiptVerify.validate({
-               receipt: receiptBase64
-          });
+          // JWS format detect করো (dot দিয়ে 3 part)
+          const parts = receiptBase64.split('.');
+
+          if (parts.length === 3) {
+               // এটা StoreKit 2 JWS token — সরাসরি decode করো
+               return decodeAppleJWSTransaction(receiptBase64);
+          }
+
+          // পুরনো base64 receipt হলে আগের মতো validate করো
+          const products = await appleReceiptVerify.validate({ receipt: receiptBase64 });
           return processAppleProducts(products);
      } catch (error: any) {
           errorLogger.error('Apple IAP Error:', error.message);
           return { isValid: false, newExpiryDate: null, isTrial: false };
      }
 };
+const decodeAppleJWSTransaction = (jwsToken: string): IValidationResult => {
+     try {
+          // Middle part (payload) decode করো
+          const payload = jwsToken.split('.')[1];
 
+          // Base64URL → Base64 convert করো
+          const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+          const decoded = JSON.parse(Buffer.from(base64, 'base64').toString('utf-8'));
+
+          errorLogger.info('Apple JWS Decoded:', JSON.stringify(decoded, null, 2));
+
+          const expiryDate = new Date(decoded.expiresDate); // milliseconds
+          const isSandbox = decoded.environment === 'Sandbox';
+
+          return {
+               isValid: isSandbox ? true : expiryDate > new Date(),
+               newExpiryDate: expiryDate,
+               isTrial: decoded.offerType === 1, // 1 = free trial
+               productId: decoded.productId,
+          };
+     } catch (err: any) {
+          errorLogger.error('JWS Decode Error:', err.message);
+          return { isValid: false, newExpiryDate: null, isTrial: false };
+     }
+};
 const processAppleProducts = (products: any): IValidationResult => {
-     // ... same code as before ...
-     if (!Array.isArray(products) || products.length === 0) return { isValid: false, newExpiryDate: null, isTrial: false };
-     const latestReceipt = products.sort((a: any, b: any) => b.purchaseDate - a.purchaseDate)[0];
+     if (!Array.isArray(products) || products.length === 0) {
+          return { isValid: false, newExpiryDate: null, isTrial: false };
+     }
+
+     const latestReceipt = products.sort((a: any, b: any) => b.expirationDate - a.expirationDate)[0];
+
      const expiryDate = new Date(latestReceipt.expirationDate);
+     const isSandbox = process.env.NODE_ENV !== 'production';
+
      return {
-          isValid: expiryDate > new Date(),
+          // ✅ Sandbox এ expiry ignore করো, Production এ check করো
+          isValid: isSandbox ? true : expiryDate > new Date(),
           newExpiryDate: expiryDate,
           isTrial: latestReceipt.isTrialPeriod === true || latestReceipt.isTrialPeriod === 'true',
           productId: latestReceipt.productId,

@@ -214,7 +214,7 @@ const createIAPSubscription = async (
           validation = await validateAppleReceipt(payload.purchaseToken);
           targetPackage = await Package.findOne({
                appleProductId: payload.productId,
-          }).select('title duration');
+          }).select('name duration');
      }
      // 4. Validation Check
      if (!validation.isValid || !validation.newExpiryDate) {
