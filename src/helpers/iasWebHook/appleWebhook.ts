@@ -5,6 +5,7 @@ import { Subscription } from '../../app/modules/subscription/subscription.model'
 import { User } from '../../app/modules/user/user.model';
 import { NotificationQueueHelper } from '../bullMQ/bullHelper';
 
+
 // ==========================================
 // APPLE WEBHOOK - Renew, Cancel, Refund
 // ==========================================
@@ -12,63 +13,25 @@ import { NotificationQueueHelper } from '../bullMQ/bullHelper';
 const handleAppleWebhook = async (req: Request, res: Response) => {
      try {
           const payload = req.body;
-
-          if (!payload?.signedPayload) {
-               logger.error('Apple webhook error: Missing signedPayload');
-               res.status(200).send('OK');
-               return;
-          }
-
-          // ✅ FIX: Apple signedPayload is a 3-part JWT — decode the full token
-          const decodedPayload = jwt.decode(payload.signedPayload, { complete: true }) as any;
-          const payloadData = decodedPayload?.payload ?? jwt.decode(payload.signedPayload);
-
-          if (!payloadData) {
-               logger.error('Apple webhook error: Invalid payload', { raw: payload.signedPayload?.slice(0, 100) });
-               res.status(200).send('OK');
+          const decodedPayload = jwt.decode(payload.signedPayload) as any;
+          if (!decodedPayload) {
+               logger.error('Apple webhook error: Invalid payload');
                return;
           }
 
           let transactionInfo: any = null;
           let renewalInfo: any = null;
 
-          if (payloadData.data?.signedTransactionInfo) {
-               const decoded = jwt.decode(payloadData.data.signedTransactionInfo, { complete: true }) as any;
-               transactionInfo = decoded?.payload ?? jwt.decode(payloadData.data.signedTransactionInfo);
+          if (decodedPayload.data?.signedTransactionInfo) {
+               transactionInfo = jwt.decode(decodedPayload.data.signedTransactionInfo);
           }
 
-          if (payloadData.data?.signedRenewalInfo) {
-               const decoded = jwt.decode(payloadData.data.signedRenewalInfo, { complete: true }) as any;
-               renewalInfo = decoded?.payload ?? jwt.decode(payloadData.data.signedRenewalInfo);
+          if (decodedPayload.data?.signedRenewalInfo) {
+               renewalInfo = jwt.decode(decodedPayload.data.signedRenewalInfo);
           }
 
-          // ✅ FIX: notificationType is at top-level of payloadData
-          const notificationType = payloadData.notificationType;
-          const subtype = payloadData.subtype;
-
-          // ✅ DEBUG LOG: See exactly what Apple is sending
-          logger.info('📱 Apple Webhook received:', {
-               notificationType,
-               subtype,
-               environment: payloadData.data?.environment,
-               bundleId: payloadData.data?.bundleId,
-               originalTransactionId: transactionInfo?.originalTransactionId,
-               transactionId: transactionInfo?.transactionId,
-               productId: transactionInfo?.productId,
-               expiresDate: transactionInfo?.expiresDate,
-               autoRenewStatus: renewalInfo?.autoRenewStatus,
-          });
-
-          if (!notificationType) {
-               logger.error('❌ Apple webhook: notificationType missing from payload', {
-                    payloadKeys: Object.keys(payloadData),
-                    dataKeys: payloadData.data ? Object.keys(payloadData.data) : [],
-               });
-               res.status(200).send('OK');
-               return;
-          }
-
-          // Handle different events
+          const notificationType = decodedPayload.notificationType;
+          logger.info('📱 Apple Webhook:', { type: notificationType });
           switch (notificationType) {
                case 'DID_RENEW':
                     await handleAppleRenewal(transactionInfo);
@@ -99,7 +62,7 @@ const handleAppleWebhook = async (req: Request, res: Response) => {
                     break;
 
                default:
-                    logger.info('⚠️ Unhandled Apple event:', { notificationType, subtype });
+                    logger.info('⚠️ Unhandled Apple event:', notificationType);
           }
 
           res.status(200).send('OK');
@@ -110,71 +73,46 @@ const handleAppleWebhook = async (req: Request, res: Response) => {
 };
 
 // ==========================================
-// HELPER: Find subscription by originalTransactionId
+// Helper: Subscription Find
+// originalTransactionId  transactionId 
 // ==========================================
+const findSubscription = async (transactionInfo: any) => {
+     const originalTransactionId = transactionInfo?.originalTransactionId;
+     const transactionId = transactionInfo?.transactionId;
+     const ids = [originalTransactionId, transactionId].filter(Boolean);
+     logger.info('🔍 Looking for subscription with ids:', { ids });
+     const allAppleSubs = await Subscription.find({ provider: 'apple' }).select('iapReceipt userId status').limit(5);
+     logger.info('🔍 Existing apple subscriptions in DB:', JSON.stringify(allAppleSubs));
 
-/**
- * ✅ FIX: Try multiple fields to find subscription
- * because different save points may store different fields
- */
-const findSubscription = async (originalTransactionId: string) => {
-     if (!originalTransactionId) return null;
+     if (ids.length === 0) return null;
 
-     // Try iapReceipt first (most common)
-     let subscription = await Subscription.findOne({
-          iapReceipt: originalTransactionId,
+     return await Subscription.findOne({
+          iapReceipt: { $in: ids },
           provider: 'apple',
      });
-
-     // Fallback: try originalTransactionId field if your schema has it
-     if (!subscription) {
-          subscription = await Subscription.findOne({
-               originalTransactionId,
-               provider: 'apple',
-          });
-     }
-
-     // Fallback: try transactionId field
-     if (!subscription) {
-          subscription = await Subscription.findOne({
-               transactionId: originalTransactionId,
-               provider: 'apple',
-          });
-     }
-
-     if (!subscription) {
-          logger.error('❌ Subscription not found for originalTransactionId:', {
-               originalTransactionId,
-               // ⚠️  If this keeps failing, check what value you saved during
-               // initial purchase — log your purchase handler too
-          });
-     }
-
-     return subscription;
 };
 
 // ==========================================
-// APPLE HANDLERS
+// Apple Renewal
 // ==========================================
-
-// ✅ Apple Renewal
 const handleAppleRenewal = async (transactionInfo: any) => {
      try {
-          if (!transactionInfo?.originalTransactionId) {
-               logger.error('❌ handleAppleRenewal: missing transactionInfo');
-               return;
-          }
-
           const originalTransactionId = transactionInfo.originalTransactionId;
+          const transactionId = transactionInfo.transactionId;
           const expiryDate = new Date(transactionInfo.expiresDate);
 
           logger.info('✅ Apple Renewed:', {
                originalTransactionId,
+               transactionId,
                newExpiry: expiryDate,
           });
 
-          const subscription = await findSubscription(originalTransactionId);
-          if (!subscription) return;
+          const subscription = await findSubscription(transactionInfo);
+
+          if (!subscription) {
+               logger.error('❌ Subscription not found:', { originalTransactionId, transactionId });
+               return;
+          }
 
           subscription.currentPeriodEnd = expiryDate.toISOString();
           subscription.status = 'active';
@@ -185,13 +123,14 @@ const handleAppleRenewal = async (transactionInfo: any) => {
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: true,
                hasAccess: true,
+               isFreeTrial: false,
           });
 
-          await NotificationQueueHelper.sendNotification(
+          await NotificationQueueHelper.sendPaymentNotification(
                subscription.userId.toString(),
-               'Your subscription has been successfully renewed. Enjoy uninterrupted access!',
+               `Your subscription has been successfully renewed. You have access until ${expiryDate.toDateString()}.`,
+               subscription._id.toString(),
                '✅ Subscription Renewed',
-               'SYSTEM',
           );
 
           logger.info('✅ Apple subscription renewed:', subscription._id);
@@ -200,24 +139,29 @@ const handleAppleRenewal = async (transactionInfo: any) => {
      }
 };
 
-// ❌ Apple Cancel (Auto-renew turned off)
+// ==========================================
+//  Apple Cancel (Auto-renew turned off)
+// ==========================================
 const handleAppleCancel = async (transactionInfo: any, renewalInfo: any) => {
      try {
           const originalTransactionId = transactionInfo?.originalTransactionId;
+          const transactionId = transactionInfo?.transactionId;
           const autoRenewStatus = renewalInfo?.autoRenewStatus;
 
-          if (!originalTransactionId) {
-               logger.error('❌ handleAppleCancel: missing originalTransactionId');
-               return;
-          }
+          if (!originalTransactionId && !transactionId) return;
 
           logger.info('❌ Apple Cancel:', {
                originalTransactionId,
+               transactionId,
                autoRenew: autoRenewStatus === 1 ? 'ON' : 'OFF',
           });
 
-          const subscription = await findSubscription(originalTransactionId);
-          if (!subscription) return;
+          const subscription = await findSubscription(transactionInfo);
+
+          if (!subscription) {
+               logger.error('❌ Subscription not found:', { originalTransactionId, transactionId });
+               return;
+          }
 
           if (autoRenewStatus === 0) {
                subscription.cancelAtPeriodEnd = true;
@@ -226,8 +170,8 @@ const handleAppleCancel = async (transactionInfo: any, renewalInfo: any) => {
 
                await NotificationQueueHelper.sendNotification(
                     subscription.userId.toString(),
-                    'Your subscription auto-renewal has been turned off. You will retain access until the current period ends.',
-                    '❌ Auto-Renewal Disabled',
+                    'Your subscription has been canceled. You will still have access until the end of your current billing period.',
+                    '❌ Subscription Canceled',
                     'SYSTEM',
                );
 
@@ -239,7 +183,7 @@ const handleAppleCancel = async (transactionInfo: any, renewalInfo: any) => {
 
                await NotificationQueueHelper.sendNotification(
                     subscription.userId.toString(),
-                    'Your subscription auto-renewal has been re-enabled. Your subscription will continue automatically.',
+                    'Your subscription auto-renewal has been re-enabled. Your subscription will renew automatically.',
                     '✅ Auto-Renewal Enabled',
                     'SYSTEM',
                );
@@ -251,20 +195,22 @@ const handleAppleCancel = async (transactionInfo: any, renewalInfo: any) => {
      }
 };
 
-// ⏰ Apple Expired
+// ==========================================
+//  Apple Expired
+// ==========================================
 const handleAppleExpired = async (transactionInfo: any) => {
      try {
-          if (!transactionInfo?.originalTransactionId) {
-               logger.error('❌ handleAppleExpired: missing transactionInfo');
+          const originalTransactionId = transactionInfo.originalTransactionId;
+          const transactionId = transactionInfo.transactionId;
+
+          logger.info('⏰ Apple Expired:', { originalTransactionId, transactionId });
+
+          const subscription = await findSubscription(transactionInfo);
+
+          if (!subscription) {
+               logger.error('❌ Subscription not found:', { originalTransactionId, transactionId });
                return;
           }
-
-          const originalTransactionId = transactionInfo.originalTransactionId;
-
-          logger.info('⏰ Apple Expired:', { originalTransactionId });
-
-          const subscription = await findSubscription(originalTransactionId);
-          if (!subscription) return;
 
           subscription.status = 'expired';
           await subscription.save();
@@ -272,9 +218,15 @@ const handleAppleExpired = async (transactionInfo: any) => {
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: false,
                hasAccess: false,
+               isFreeTrial: false,
           });
 
-          await NotificationQueueHelper.sendAlert(subscription.userId.toString(), 'Your subscription has expired. Please renew to continue enjoying premium features.');
+          await NotificationQueueHelper.sendNotification(
+               subscription.userId.toString(),
+               'Your subscription has expired. Please renew your subscription to continue enjoying premium access.',
+               '⏰ Subscription Expired',
+               'SYSTEM',
+          );
 
           logger.info('⏰ Apple subscription expired:', subscription._id);
      } catch (error: any) {
@@ -282,20 +234,22 @@ const handleAppleExpired = async (transactionInfo: any) => {
      }
 };
 
-// 💰 Apple Refund
+// ==========================================
+//  Apple Refund
+// ==========================================
 const handleAppleRefund = async (transactionInfo: any) => {
      try {
-          if (!transactionInfo?.originalTransactionId) {
-               logger.error('❌ handleAppleRefund: missing transactionInfo');
+          const originalTransactionId = transactionInfo.originalTransactionId;
+          const transactionId = transactionInfo.transactionId;
+
+          logger.info('💰 Apple Refund:', { originalTransactionId, transactionId });
+
+          const subscription = await findSubscription(transactionInfo);
+
+          if (!subscription) {
+               logger.error('❌ Subscription not found:', { originalTransactionId, transactionId });
                return;
           }
-
-          const originalTransactionId = transactionInfo.originalTransactionId;
-
-          logger.info('💰 Apple Refund:', { originalTransactionId });
-
-          const subscription = await findSubscription(originalTransactionId);
-          if (!subscription) return;
 
           subscription.status = 'cancel';
           await subscription.save();
@@ -303,13 +257,14 @@ const handleAppleRefund = async (transactionInfo: any) => {
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: false,
                hasAccess: false,
+               isFreeTrial: false,
           });
 
           await NotificationQueueHelper.sendPaymentNotification(
                subscription.userId.toString(),
-               'Your refund has been processed and your subscription access has been revoked.',
-               originalTransactionId,
-               '💰 Refund Processed',
+               'Your subscription has been refunded and your access has been revoked. If you have questions, please contact support.',
+               subscription._id.toString(),
+               '💰 Subscription Refunded',
           );
 
           logger.info('💰 Apple refund processed:', subscription._id);
@@ -318,25 +273,30 @@ const handleAppleRefund = async (transactionInfo: any) => {
      }
 };
 
-// 🔄 Apple Failed Renewal
+// ==========================================
+//  Apple Failed Renewal
+// ==========================================
 const handleAppleFailedRenewal = async (transactionInfo: any) => {
      try {
-          if (!transactionInfo?.originalTransactionId) {
-               logger.error('❌ handleAppleFailedRenewal: missing transactionInfo');
+          const originalTransactionId = transactionInfo.originalTransactionId;
+          const transactionId = transactionInfo.transactionId;
+
+          logger.info('🔄 Apple Failed Renewal:', { originalTransactionId, transactionId });
+
+          const subscription = await findSubscription(transactionInfo);
+
+          if (!subscription) {
+               logger.error('❌ Subscription not found:', { originalTransactionId, transactionId });
                return;
           }
-
-          const originalTransactionId = transactionInfo.originalTransactionId;
-
-          logger.info('🔄 Apple Failed Renewal:', { originalTransactionId });
-
-          const subscription = await findSubscription(originalTransactionId);
-          if (!subscription) return;
 
           subscription.status = 'past_due';
           await subscription.save();
 
-          await NotificationQueueHelper.sendAlert(subscription.userId.toString(), 'We were unable to renew your subscription. Please update your payment method to avoid losing access.');
+          await NotificationQueueHelper.sendAlert(
+               subscription.userId.toString(),
+               'We could not process your subscription payment. You are in a grace period — please update your payment method to avoid losing access.',
+          );
 
           logger.info('🔄 Apple billing retry started:', subscription._id);
      } catch (error: any) {
@@ -344,20 +304,22 @@ const handleAppleFailedRenewal = async (transactionInfo: any) => {
      }
 };
 
-// ⏱️ Apple Grace Period Expired
+// ==========================================
+//  Apple Grace Period Expired
+// ==========================================
 const handleAppleGracePeriodExpired = async (transactionInfo: any) => {
      try {
-          if (!transactionInfo?.originalTransactionId) {
-               logger.error('❌ handleAppleGracePeriodExpired: missing transactionInfo');
+          const originalTransactionId = transactionInfo.originalTransactionId;
+          const transactionId = transactionInfo.transactionId;
+
+          logger.info('⏱️ Apple Grace Period Expired:', { originalTransactionId, transactionId });
+
+          const subscription = await findSubscription(transactionInfo);
+
+          if (!subscription) {
+               logger.error('❌ Subscription not found:', { originalTransactionId, transactionId });
                return;
           }
-
-          const originalTransactionId = transactionInfo.originalTransactionId;
-
-          logger.info('⏱️ Apple Grace Period Expired:', { originalTransactionId });
-
-          const subscription = await findSubscription(originalTransactionId);
-          if (!subscription) return;
 
           subscription.status = 'expired';
           await subscription.save();
@@ -365,9 +327,13 @@ const handleAppleGracePeriodExpired = async (transactionInfo: any) => {
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: false,
                hasAccess: false,
+               isFreeTrial: false,
           });
 
-          await NotificationQueueHelper.sendAlert(subscription.userId.toString(), 'Your grace period has ended and subscription access has been removed. Please renew your subscription.');
+          await NotificationQueueHelper.sendAlert(
+               subscription.userId.toString(),
+               'Your grace period has ended and all payment retries have failed. Your subscription access has been removed. Please renew to regain access.',
+          );
 
           logger.info('⏱️ Apple grace period ended, access removed:', subscription._id);
      } catch (error: any) {
@@ -375,24 +341,27 @@ const handleAppleGracePeriodExpired = async (transactionInfo: any) => {
      }
 };
 
-// 🎉 Apple Recovered
+// ==========================================
+//  Apple Recovered
+// ==========================================
 const handleAppleRecovered = async (transactionInfo: any) => {
      try {
-          if (!transactionInfo?.originalTransactionId) {
-               logger.error('❌ handleAppleRecovered: missing transactionInfo');
-               return;
-          }
-
           const originalTransactionId = transactionInfo.originalTransactionId;
+          const transactionId = transactionInfo.transactionId;
           const expiryDate = new Date(transactionInfo.expiresDate);
 
           logger.info('🎉 Apple Recovered:', {
                originalTransactionId,
+               transactionId,
                newExpiry: expiryDate,
           });
 
-          const subscription = await findSubscription(originalTransactionId);
-          if (!subscription) return;
+          const subscription = await findSubscription(transactionInfo);
+
+          if (!subscription) {
+               logger.error('❌ Subscription not found:', { originalTransactionId, transactionId });
+               return;
+          }
 
           subscription.currentPeriodEnd = expiryDate.toISOString();
           subscription.status = 'active';
@@ -402,13 +371,14 @@ const handleAppleRecovered = async (transactionInfo: any) => {
           await User.findByIdAndUpdate(subscription.userId, {
                isSubscribed: true,
                hasAccess: true,
+               isFreeTrial: false,
           });
 
-          await NotificationQueueHelper.sendNotification(
+          await NotificationQueueHelper.sendPaymentNotification(
                subscription.userId.toString(),
-               'Great news! Your subscription payment was successful and your access has been fully restored.',
-               '🎉 Subscription Recovered',
-               'SYSTEM',
+               `Great news! Your payment was successful and your subscription has been restored. Access is valid until ${expiryDate.toDateString()}.`,
+               subscription._id.toString(),
+               '🎉 Subscription Restored',
           );
 
           logger.info('🎉 Apple subscription recovered:', subscription._id);

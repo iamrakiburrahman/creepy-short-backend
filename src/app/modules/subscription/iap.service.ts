@@ -30,6 +30,7 @@ interface IValidationResult {
      newExpiryDate: Date | null;
      isTrial: boolean;
      productId?: string;
+     originalTransactionId?: string; // ✅ যোগ করা হয়েছে
 }
 
 // ==========================================
@@ -38,7 +39,6 @@ interface IValidationResult {
 export const validateGoogleReceipt = async (token: string, productId: string, packageName: string): Promise<IValidationResult> => {
      try {
           const authClient = await getGoogleAuthClient();
-          // logger.info('authClient', authClient);
           const response = await androidPublisher.purchases.subscriptions.get({
                auth: authClient as any,
                packageName: packageName,
@@ -68,7 +68,9 @@ export const validateGoogleReceipt = async (token: string, productId: string, pa
      }
 };
 
-// ... Apple Validation remains same ...
+// ==========================================
+// 2. Apple Validation
+// ==========================================
 export const validateAppleReceipt = async (receiptBase64: string): Promise<IValidationResult> => {
      try {
           // JWS format detect করো (dot দিয়ে 3 part)
@@ -87,6 +89,7 @@ export const validateAppleReceipt = async (receiptBase64: string): Promise<IVali
           return { isValid: false, newExpiryDate: null, isTrial: false };
      }
 };
+
 const decodeAppleJWSTransaction = (jwsToken: string): IValidationResult => {
      try {
           // Middle part (payload) decode করো
@@ -106,12 +109,14 @@ const decodeAppleJWSTransaction = (jwsToken: string): IValidationResult => {
                newExpiryDate: expiryDate,
                isTrial: decoded.offerType === 1, // 1 = free trial
                productId: decoded.productId,
+               originalTransactionId: decoded.originalTransactionId, // ✅ যোগ করা হয়েছে
           };
      } catch (err: any) {
           errorLogger.error('JWS Decode Error:', err.message);
           return { isValid: false, newExpiryDate: null, isTrial: false };
      }
 };
+
 const processAppleProducts = (products: any): IValidationResult => {
      if (!Array.isArray(products) || products.length === 0) {
           return { isValid: false, newExpiryDate: null, isTrial: false };
@@ -123,10 +128,10 @@ const processAppleProducts = (products: any): IValidationResult => {
      const isSandbox = process.env.NODE_ENV !== 'production';
 
      return {
-          // ✅ Sandbox এ expiry ignore করো, Production এ check করো
           isValid: isSandbox ? true : expiryDate > new Date(),
           newExpiryDate: expiryDate,
           isTrial: latestReceipt.isTrialPeriod === true || latestReceipt.isTrialPeriod === 'true',
           productId: latestReceipt.productId,
+          originalTransactionId: latestReceipt.originalTransactionId, // ✅ যোগ করা হয়েছে
      };
 };
