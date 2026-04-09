@@ -189,19 +189,11 @@ const createIAPSubscription = async (
      const user = await User.findById(userId);
      if (!user) throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
 
-     // 2. Check for Duplicate Purchase
-     const existingSub = await Subscription.findOne({
-          iapReceipt: payload.purchaseToken,
-     });
-     if (existingSub) {
-          throw new AppError(StatusCodes.CONFLICT, 'Subscription already exists with this receipt');
-     }
-
      let validation;
      let targetPackage;
      const targetPackageName = payload.packageName || '';
 
-     // 3. Validate Receipt & Fetch Package
+     // 2. Validate Receipt & Fetch Package
      if (payload.provider === 'google') {
           if (!targetPackageName) {
                throw new AppError(StatusCodes.BAD_REQUEST, 'Package Name is required for Google');
@@ -209,14 +201,15 @@ const createIAPSubscription = async (
           validation = await validateGoogleReceipt(payload.purchaseToken, payload.productId, targetPackageName);
           targetPackage = await Package.findOne({
                googleProductId: payload.productId,
-          }).select('name duration');
+          }).select('title duration price');
      } else {
           validation = await validateAppleReceipt(payload.purchaseToken);
           targetPackage = await Package.findOne({
                appleProductId: payload.productId,
-          }).select('name duration');
+          }).select('title duration price');
      }
-     // 4. Validation Check
+
+     // 3. Validation Check
      if (!validation.isValid || !validation.newExpiryDate) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid or Expired Subscription Receipt');
      }
@@ -225,14 +218,28 @@ const createIAPSubscription = async (
           throw new AppError(StatusCodes.NOT_FOUND, 'Package configuration not found');
      }
 
+     // ✅ Apple হলে originalTransactionId ব্যবহার করো, না হলে purchaseToken
+     const iapReceipt =
+          payload.provider === 'apple' && validation.originalTransactionId
+               ? validation.originalTransactionId
+               : payload.purchaseToken;
+
+     // 4. Check for Duplicate Purchase (fix করা হয়েছে — সঠিক receipt দিয়ে check)
+     const existingSub = await Subscription.findOne({ iapReceipt });
+     if (existingSub) {
+          throw new AppError(StatusCodes.CONFLICT, 'Subscription already exists with this receipt');
+     }
+
      const currentPeriodStart = new Date();
      const currentPeriodEnd = validation.newExpiryDate;
      const isTrial = validation.isTrial;
 
-     const remainingDays = isTrial ? 7 : Math.ceil((currentPeriodEnd.getTime() - currentPeriodStart.getTime()) / (1000 * 60 * 60 * 24));
+     const remainingDays = isTrial
+          ? 7
+          : Math.ceil((currentPeriodEnd.getTime() - currentPeriodStart.getTime()) / (1000 * 60 * 60 * 24));
 
-     // 6. Prepare Status
      const status = isTrial ? 'trialing' : 'active';
+
 
      // 7. Create Subscription
      const newSub = await Subscription.create({
