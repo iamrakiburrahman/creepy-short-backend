@@ -10,8 +10,8 @@ import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
 import { getDateRange } from '../../../utils/getDateRange';
 import { SeasonModel } from '../seasonManagement/seasonManagement.model';
-import { Video } from '../videoManagement/videoManagement.model';
 import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
+import { Video } from '../videoManagement/videoManagement.model';
 const movieCache = createCacheHelper('movieCache');
 
 const createMovieToDB = async (payload: IMovie) => {
@@ -26,7 +26,7 @@ const createMovieToDB = async (payload: IMovie) => {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Movie not created');
      }
 
-     await movieCache.clearLists();
+     await movieCache.clearAll();
 
      // 🔔 Broadcast notification to all users — new movie added
      await NotificationQueueHelper.sendBroadcastNotification(
@@ -105,6 +105,7 @@ const deleteMovieFromDB = async (id: string) => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
      }
+     await Video.deleteMany({ movieId: id });
      await movieCache.clearAfterUpdate(id);
      return result;
 };
