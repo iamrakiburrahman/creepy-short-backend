@@ -3,6 +3,7 @@ import auth from '../../middleware/auth';
 import { USER_ROLES } from '../../../enums/user';
 import { uploadThumbnail } from '../../middleware/multer';
 import { VideoManagementController } from './videoManagement.controller';
+import authOptional from '../../middleware/authOptional';
 
 const router = express.Router();
 
@@ -16,8 +17,11 @@ router.delete('/delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), Vid
 router.post('/generate-upload-url', VideoManagementController.generateUploadUrl);
 // Upload thumbnail for a video
 router.post('/:videoId/thumbnail', uploadThumbnail, VideoManagementController.uploadThumbnail);
-router.get('/single-video-for-user/:id', auth(USER_ROLES.USER), VideoManagementController.getSingleVideo);
-router.get('/all-season-videos-by/:seasonId', auth(USER_ROLES.USER), VideoManagementController.getSeasonVideos);
-router.get('/shorts-videos', auth(USER_ROLES.USER), VideoManagementController.getSortVideos);
+
+// Waiting for video to be processed
+
+router.get('/single-video-for-user/:id', authOptional(USER_ROLES.USER), VideoManagementController.getSingleVideo);
+router.get('/all-season-videos-by/:seasonId', authOptional(USER_ROLES.USER), VideoManagementController.getSeasonVideos);
+router.get('/shorts-videos', authOptional(USER_ROLES.USER), VideoManagementController.getSortVideos);
 
 export const VideoManagementRoutes = router;

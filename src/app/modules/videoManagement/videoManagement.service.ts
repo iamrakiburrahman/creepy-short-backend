@@ -29,7 +29,9 @@ const getSingleVideo = async (id: string, userId: string): Promise<IVideo> => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
      }
-     await UserService.addRecentlyViewedVideosFromDB(userId, id);
+     if (userId) {
+          await UserService.addRecentlyViewedVideosFromDB(userId, id);
+     }
      return result;
 };
 
@@ -173,40 +175,50 @@ const generateUploadUrl = async (payload: { title?: string; fileName: string }) 
 
 //      return result;
 // };
-const getSeasonVideos = async (seasonId: string, userId: string) => {
-     const [videos, user] = await Promise.all([Video.find({ seasonId }).sort({ episodeNumber: 1 }), User.findById(userId).select('isSubscribed')]);
-     if (!user) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+const getSeasonVideos = async (seasonId: string, userId?: string) => {
+     // Fetch videos first
+     const videos = await Video.find({ seasonId }).sort({ episodeNumber: 1 });
+
+     let isSubscribed = false;
+
+     // If userId exists, check subscription status
+     if (userId) {
+          const user = await User.findById(userId).select('isSubscribed');
+          if (user) {
+               isSubscribed = user.isSubscribed;
+          }
      }
-     const isSubscribed = user.isSubscribed;
 
      const result = videos.map((video, index) => ({
           type: 'video',
           ...video.toObject(),
           isSubscribed,
-          isAccess: isSubscribed || index < 3,
+          isAccess: isSubscribed || index < 3, // First 3 free
      }));
 
      return result;
 };
-const getSortVideos = async (userId: string) => {
-     const user = await User.findById(userId).select('isSubscribed');
-     if (!user) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
-     }
+const getSortVideos = async (userId?: string) => {
+     let isSubscribed = false;
+     let likedVideoSet = new Set<string>();
 
-     const isSubscribed = user.isSubscribed;
+     if (userId) {
+          const [user, likedVideos] = await Promise.all([User.findById(userId).select('isSubscribed'), Like.find({ userId }).select('videoId')]);
+
+          if (user) {
+               isSubscribed = user.isSubscribed;
+          }
+          likedVideoSet = new Set(likedVideos.map((like) => like.videoId.toString()));
+     }
 
      const query: any = { isDeleted: false };
 
+     // Guest or unsubscribed user only sees episode 1 or standalone movies
      if (!isSubscribed) {
           query.$or = [{ episodeNumber: 1 }, { seasonId: { $exists: false } }];
      }
 
      const videos = await Video.find(query).populate('seasonId', 'title seasonNumber').populate('movieId', 'title').sort({ seasonId: 1, episodeNumber: 1, createdAt: -1 });
-
-     const likedVideos = await Like.find({ userId }).select('videoId');
-     const likedVideoSet = new Set(likedVideos.map((like) => like.videoId.toString()));
 
      return videos.map((video) => {
           const videoId = video._id.toString();
