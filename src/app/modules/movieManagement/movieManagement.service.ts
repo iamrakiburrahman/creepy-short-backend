@@ -67,20 +67,29 @@ const getMovieFromDB = async (id: string) => {
           CACHE_TTL.VERY_LONG,
      );
 };
-const getSingleMovieFromDBWithUser = async (userId: string, id: string) => {
-     const isUser = await User.findById(userId);
-     if (!isUser) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+const getSingleMovieFromDBWithUser = async (id: string, userId?: string) => {
+     // Check user only if userId is provided
+     let isUser = null;
+     if (userId) {
+          isUser = await User.findById(userId);
+          // If a token was provided but user doesn't exist in DB, throw error
+          if (!userId && !isUser) {
+               throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+          }
      }
 
      const result = await MovieModel.findById(id);
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
      }
-     if (isUser.role === USER_ROLES.USER) {
+
+     // Increment views if it's a guest OR a regular user (not an admin)
+     // This ensures views are counted even for guest mood
+     if (!isUser || isUser.role === USER_ROLES.USER) {
           await MovieModel.findByIdAndUpdate(id, { $inc: { totalViews: 1 } }, { timestamps: false });
           await movieCache.clearAfterUpdate(id);
      }
+
      return result;
 };
 
@@ -167,10 +176,12 @@ const getAllMoviesForUserWithDateFilter = async (query: Record<string, unknown>)
      const meta = await queryBuilder.countTotal();
      return { meta, result };
 };
-const getSingleMovieFromDBWithSession = async (userId: string, id: string) => {
-     const isUser = await User.findById(userId);
-     if (!isUser) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+const getSingleMovieFromDBWithSession = async (id: string, userId?: string) => {
+     let isUser = null;
+
+     // Only check user if userId exists
+     if (userId) {
+          isUser = await User.findById(userId);
      }
 
      const movie = await MovieModel.findById(id);
@@ -178,23 +189,22 @@ const getSingleMovieFromDBWithSession = async (userId: string, id: string) => {
           throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
      }
 
-     // User role হলে view count বাড়াবে
-     if (isUser.role === USER_ROLES.USER) {
+     // Increment view count for guests or standard users
+     if (!isUser || isUser.role === USER_ROLES.USER) {
           await MovieModel.findByIdAndUpdate(id, { $inc: { totalViews: 1 } }, { timestamps: false });
           await movieCache.clearAfterUpdate(id);
      }
 
-     // Movie এর সব seasons fetch করা
-     const seasons = await SeasonModel.find({ movieId: id }).sort({ seasonNumber: 1 });
-     const seasonsWithVideos = await Promise.all(
-          seasons.map(async (season) => {
-               return {
-                    seasonId: season._id,
-                    seasonNumber: season.seasonNumber,
-                    seasonTitle: season.title,
-               };
-          }),
-     );
+     // Fetch all seasons for the movie
+     const seasons = await SeasonModel.find({ movieId: id }).sort({
+          seasonNumber: 1,
+     });
+
+     const seasonsWithVideos = seasons.map((season) => ({
+          seasonId: season._id,
+          seasonNumber: season.seasonNumber,
+          seasonTitle: season.title,
+     }));
 
      return {
           movie: movie,
