@@ -8,6 +8,7 @@ import validateRequest from '../../middleware/validateRequest';
 import parseFileData from '../../middleware/parseFileData';
 import { FOLDER_NAMES } from '../../../enums/files';
 import { authLimiter } from '../../../DB/security';
+import authOptional from '../../middleware/authOptional';
 const router = express.Router();
 
 router
@@ -22,7 +23,7 @@ router
      );
 
 router.route('/register').post(authLimiter, validateRequest(UserValidation.createUserZodSchema), UserController.createUser);
-router.get('/recently-viewed', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), UserController.getRecentlyViewedVideosByUser);
+router.get('/recently-viewed', authOptional(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), UserController.getRecentlyViewedVideosByUser);
 router.post('/add-recently-viewed/:videoId', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), UserController.addRecentlyViewedVideos);
 router.delete('/delete-account', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), UserController.deleteProfile);
 

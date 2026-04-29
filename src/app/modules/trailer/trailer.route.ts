@@ -3,12 +3,13 @@ import { TrailerController } from './trailer.controller';
 import auth from '../../middleware/auth';
 import { USER_ROLES } from '../../../enums/user';
 import { uploadThumbnail } from '../../middleware/multer';
+import authOptional from '../../middleware/authOptional';
 
 const router = express.Router();
 
 router.get('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.getAllTrailers);
-router.get('/all-trailers', auth(USER_ROLES.USER), TrailerController.getAllTrailers);
-router.get('/trailer-for-user/:id', auth(USER_ROLES.USER), TrailerController.getSingleTrailerForUser);
+router.get('/all-trailers', authOptional(USER_ROLES.USER), TrailerController.getAllTrailers);
+router.get('/trailer-for-user/:id', authOptional(USER_ROLES.USER), TrailerController.getSingleTrailerForUser);
 router.get('/single/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.getSingleTrailer);
 // Save video metadata
 router.post('/create', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TrailerController.createTrailer);
