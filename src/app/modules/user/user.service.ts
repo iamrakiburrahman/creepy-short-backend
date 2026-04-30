@@ -167,11 +167,15 @@ const softDeleteUser = async (id: string) => {
      return true;
 };
 const getRecentlyViewedVideos = async (userId: string) => {
-     const user = await User.findById(userId).populate({
-          path: 'recentlyViewed.videoId',
-          model: Video,
-     });
-     return user?.recentlyViewed || [];
+     if (userId) {
+          const user = await User.findById(userId).populate({
+               path: 'recentlyViewed.videoId',
+               model: Video,
+          });
+          return user?.recentlyViewed || [];
+     } else {
+          return [];
+     }
 };
 // ========== USER SEARCH AND MANAGEMENT METHODS ==========
 
