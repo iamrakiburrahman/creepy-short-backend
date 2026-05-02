@@ -176,7 +176,7 @@ const getAllMoviesForUserWithDateFilter = async (query: Record<string, unknown>)
      const meta = await queryBuilder.countTotal();
      return { meta, result };
 };
-const getSingleMovieFromDBWithSession = async (id: string, userId?: string) => {
+const getSingleMovieFromDBWithSession = async (userId: string, id: string) => {
      let isUser = null;
 
      // Only check user if userId exists
