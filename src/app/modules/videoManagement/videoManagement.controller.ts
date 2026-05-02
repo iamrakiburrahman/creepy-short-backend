@@ -89,8 +89,8 @@ const createVideo = catchAsync(async (req, res) => {
 });
 const getSeasonVideos = catchAsync(async (req, res) => {
      const { seasonId } = req.params;
-     const { id } = req.user as { id: string };
-     const result = await VideoManagementServices.getSeasonVideos(seasonId, id);
+     const userId = (req.user as { id: string })?.id;
+     const result = await VideoManagementServices.getSeasonVideos(seasonId, userId);
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.OK,
