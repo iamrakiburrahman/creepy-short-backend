@@ -176,10 +176,10 @@ const getAllMoviesForUserWithDateFilter = async (query: Record<string, unknown>)
      const meta = await queryBuilder.countTotal();
      return { meta, result };
 };
-const getSingleMovieFromDBWithSession = async (userId: string, id: string) => {
+
+const getSingleMovieFromDBWithSession = async (userId: string | undefined, id: string) => {
      let isUser = null;
 
-     // Only check user if userId exists
      if (userId) {
           isUser = await User.findById(userId);
      }
@@ -188,14 +188,11 @@ const getSingleMovieFromDBWithSession = async (userId: string, id: string) => {
      if (!movie) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
      }
-
-     // Increment view count for guests or standard users
      if (!isUser || isUser.role === USER_ROLES.USER) {
           await MovieModel.findByIdAndUpdate(id, { $inc: { totalViews: 1 } }, { timestamps: false });
           await movieCache.clearAfterUpdate(id);
      }
 
-     // Fetch all seasons for the movie
      const seasons = await SeasonModel.find({ movieId: id }).sort({
           seasonNumber: 1,
      });

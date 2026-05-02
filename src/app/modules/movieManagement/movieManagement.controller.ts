@@ -120,8 +120,10 @@ const getAllMoviesForUserWithDateFilter = catchAsync(async (req, res) => {
 });
 
 const getSingleMovieFromDBWithSession = catchAsync(async (req, res) => {
-     const { id } = req.user as { id: string };
-     const result = await MovieService.getSingleMovieFromDBWithSession(id, req.params.id);
+     // Safely access id from req.user
+     const userId = (req.user as { id: string })?.id;
+
+     const result = await MovieService.getSingleMovieFromDBWithSession(userId, req.params.id);
 
      sendResponse(res, {
           statusCode: StatusCodes.OK,
@@ -141,5 +143,5 @@ export const MovieController = {
      getMovieFromDBWithSeasons,
      mostPopularMovies,
      getAllMoviesForUserWithDateFilter,
-     getSingleMovieFromDBWithSession
+     getSingleMovieFromDBWithSession,
 };
