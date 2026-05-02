@@ -122,8 +122,17 @@ const findUserById = catchAsync(async (req, res) => {
      });
 });
 const getRecentlyViewedVideosByUser = catchAsync(async (req, res) => {
-     const { id } = req.user as { id: string };
-     const result = await UserService.getRecentlyViewedVideos(id);
+     const user = req.user as { id: string } | undefined;
+     if (!user) {
+          return sendResponse(res, {
+               success: true,
+               statusCode: StatusCodes.OK,
+               message: 'Guest user: No recently viewed videos found',
+               data: [], // Return empty data for guests
+          });
+     }
+
+     const result = await UserService.getRecentlyViewedVideos(user.id);
 
      sendResponse(res, {
           success: true,
