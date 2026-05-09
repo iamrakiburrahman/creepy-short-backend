@@ -15,34 +15,33 @@ const overview = catchAsync(async (req, res) => {
 });
 
 const userGrowth = catchAsync(async (req, res) => {
-     const { year = new Date().getFullYear() } = req.query;
-     const data = await DashboardService.getUserGrowth(Number(year));
+     const data = await DashboardService.getUserGrowth(req.query);
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,
-          message: `User growth retrieved for ${year}`,
+          message: `User growth retrieved for ${req.query.year}`,
           data,
      });
 });
 
 const topWatched = catchAsync(async (req, res) => {
-     const { year = new Date().getFullYear() } = req.query;
-     const data = await DashboardService.getTopWatchedVideos(Number(year));
+
+     const data = await DashboardService.getTopWatchedVideos(req.query);
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,
-          message: `Top watched content retrieved for ${year}`,
+          message: `Top watched content retrieved for ${req.query.year}`,
           data,
      });
 });
 const getProductionReport = catchAsync(async (req, res) => {
-     const { year = new Date().getFullYear() } = req.query;
-     const data = await DashboardService.getProductionReportStats(Number(year));
+
+     const data = await DashboardService.getProductionReportStats(req.query);
 
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,
-          message: `Production analytics retrieved for ${year}`,
+          message: `Production analytics retrieved for ${req.query.year}`,
           data,
      });
 });
