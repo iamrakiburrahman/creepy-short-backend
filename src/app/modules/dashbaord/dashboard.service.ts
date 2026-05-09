@@ -5,14 +5,60 @@ import { Video } from '../videoManagement/videoManagement.model';
 import { MovieModel } from '../movieManagement/movieManagement.model';
 import { Trailer } from '../trailer/trailer.model';
 
-const getOverview = async () => {
-     const totalMovies = await Video.countDocuments({ isDeleted: false });
-     const totalUsers = await User.countDocuments({ role: 'USER', isDeleted: false });
-     const activeSubscriptions = await Subscription.countDocuments({ status: 'active' });
-     const totalRevenueAgg = await Subscription.aggregate([{ $match: { status: 'active' } }, { $group: { _id: null, total: { $sum: '$price' } } }]);
+const getOverview = async (query: Record<string, unknown>) => {
+     const year = Number(query.year) || new Date().getFullYear();
+     const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+     const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+
+     // Common date filter object
+     const dateFilter = {
+          createdAt: { $gte: startDate, $lte: endDate },
+     };
+
+     // 1. Total Movies in that year
+     const totalMovies = await Video.countDocuments({
+          isDeleted: false,
+          ...dateFilter,
+     });
+
+     // 2. Total Users joined in that year
+     const totalUsers = await User.countDocuments({
+          role: 'USER',
+          isDeleted: false,
+          ...dateFilter,
+     });
+
+     // 3. Active Subscriptions within that year
+     const activeSubscriptions = await Subscription.countDocuments({
+          status: 'active',
+          ...dateFilter,
+     });
+
+     // 4. Total Revenue in that year
+     const totalRevenueAgg = await Subscription.aggregate([
+          {
+               $match: {
+                    status: 'active',
+                    ...dateFilter,
+               },
+          },
+          {
+               $group: {
+                    _id: null,
+                    total: { $sum: '$price' },
+               },
+          },
+     ]);
+
      const totalRevenue = totalRevenueAgg[0]?.total || 0;
 
-     return { totalMovies, totalUsers, activeSubscriptions, totalRevenue };
+     return {
+          year,
+          totalMovies,
+          totalUsers,
+          activeSubscriptions,
+          totalRevenue,
+     };
 };
 
 const getUserGrowth = async (year?: number) => {

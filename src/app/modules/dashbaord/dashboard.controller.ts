@@ -5,7 +5,7 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 
 const overview = catchAsync(async (req, res) => {
-     const data = await DashboardService.getOverview();
+     const data = await DashboardService.getOverview(req.query);
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,
