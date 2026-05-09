@@ -1,6 +1,5 @@
 import { User } from '../user/user.model';
 import { Subscription } from '../subscription/subscription.model';
-import { StatusCodes } from 'http-status-codes';
 import { Video } from '../videoManagement/videoManagement.model';
 import { MovieModel } from '../movieManagement/movieManagement.model';
 import { Trailer } from '../trailer/trailer.model';
