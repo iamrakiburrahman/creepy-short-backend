@@ -99,8 +99,8 @@ const getSeasonVideos = catchAsync(async (req, res) => {
      });
 });
 const getSortVideos = catchAsync(async (req, res) => {
-     const { id } = req.user as { id: string };
-     const result = await VideoManagementServices.getSortVideos(id);
+    const userId = (req.user as { id: string })?.id;
+     const result = await VideoManagementServices.getSortVideos(userId);
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.OK,
