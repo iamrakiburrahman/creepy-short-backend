@@ -24,4 +24,10 @@ router.patch(
   DashboardUserController.updateStatus,
 );
 
+router.delete(
+  '/delete/:id',
+  auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+  DashboardUserController.deleteUser,
+);
+
 export const UserManagementsRouter = router;

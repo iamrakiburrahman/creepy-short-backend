@@ -75,8 +75,20 @@ const updateUserStatus = async (id: string, status: string) => {
   return result;
 };
 
+const deleteUser = async (id: string) => {
+  // Your EXACT SAME delete code
+  const result = await User.findByIdAndDelete(id);
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found.');
+  }
+  // ✅ Just add this ONE line - clears all related caches
+  await userCache.clearAfterUpdate(id);
+  return result;
+};
+
 export const DashboardUserService = {
   allUser,
   singleUser,
-  updateUserStatus
+  updateUserStatus,
+  deleteUser
 };

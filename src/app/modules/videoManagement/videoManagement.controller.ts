@@ -1,8 +1,8 @@
+import { StatusCodes } from 'http-status-codes';
+import AppError from '../../../errors/AppError';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
-import { StatusCodes } from 'http-status-codes';
 import { VideoManagementServices } from './videoManagement.service';
-import AppError from '../../../errors/AppError';
 
 const updateVideo = catchAsync(async (req, res) => {
      const { id } = req.params;
@@ -99,12 +99,33 @@ const getSeasonVideos = catchAsync(async (req, res) => {
      });
 });
 const getSortVideos = catchAsync(async (req, res) => {
-    const userId = (req.user as { id: string })?.id;
+     const userId = (req.user as { id: string })?.id;
      const result = await VideoManagementServices.getSortVideos(userId);
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.OK,
           message: 'Videos retrieved successfully',
+          data: result,
+     });
+});
+const generateShareVideoUrl = catchAsync(async (req, res) => {
+     const { videoId } = req.params;
+     const result = await VideoManagementServices.generateShareVideoUrl(videoId);
+     sendResponse(res, {
+          success: true,
+          statusCode: StatusCodes.OK,
+          message: 'Video URL generated successfully',
+          data: result,
+     });
+});
+const getShareVideo = catchAsync(async (req, res) => {
+     const { videoId } = req.params;
+     const userId = (req.user as { id: string })?.id;
+     const result = await VideoManagementServices.getSingleVideo(videoId, userId);
+     sendResponse(res, {
+          success: true,
+          statusCode: StatusCodes.OK,
+          message: 'Video retrieved successfully',
           data: result,
      });
 });
@@ -118,4 +139,6 @@ export const VideoManagementController = {
      createVideo,
      getSeasonVideos,
      getSortVideos,
+     generateShareVideoUrl,
+     getShareVideo,
 };

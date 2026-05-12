@@ -39,10 +39,21 @@ const updateStatus = catchAsync(async (req, res) => {
   });
 });
 
+const deleteUser = catchAsync(async (req, res) => {
+  const result = await DashboardUserService.deleteUser(req.params.id);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'User deleted successfully',
+    data: result,
+  });
+});
+
 
 
 export const DashboardUserController = {
   getAllUser,
   getSingleUser,
-  updateStatus
+  updateStatus,
+  deleteUser
 };

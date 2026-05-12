@@ -1,18 +1,20 @@
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import session from 'express-session';
-import router from './routes';
-import { Morgan } from './shared/morgen';
-import globalErrorHandler from './globalErrorHandler/globalErrorHandler';
-import { notFound } from './app/middleware/notFound';
-import { welcome } from './utils/welcome';
-import config from './config';
 import path from 'path';
-import setupTimeManagement from './utils/cronJobs';
-import getUploadDirectory from './utils/getUploadDirectory';
+import authOptional from './app/middleware/authOptional';
+import { notFound } from './app/middleware/notFound';
+import { VideoManagementController } from './app/modules/videoManagement/videoManagement.controller';
+import config from './config';
 import { corsOptions, generalLimiter, getSessionConfig } from './DB/security';
+import globalErrorHandler from './globalErrorHandler/globalErrorHandler';
 import handleAppleWebhook from './helpers/iasWebHook/appleWebhook';
 import handleGoogleWebhook from './helpers/iasWebHook/googleWebhook';
+import router from './routes';
+import { Morgan } from './shared/morgen';
+import setupTimeManagement from './utils/cronJobs';
+import getUploadDirectory from './utils/getUploadDirectory';
+import { welcome } from './utils/welcome';
 
 const app: Application = express();
 const isProd = config.node_env === 'production';
@@ -21,6 +23,45 @@ if (isProd) {
 } else {
      app.set('trust proxy', 'loopback');
 }
+/* =====================================================
+   Apple App Site Association (AASA) - Universal Links
+===================================================== */
+app.get('/.well-known/apple-app-site-association', (req: Request, res: Response) => {
+     const aasaContent = {
+          applinks: {
+               apps: [],
+               details: [
+                    {
+                         appID: '474QT7LGUB.com.rubengalindo.creepyshorts',
+                         paths: ['/shorts', '/shorts/*'],
+                    },
+               ],
+          },
+     };
+     res.type('application/json');
+     res.status(200).json(aasaContent);
+});
+/* =====================================================
+   Android Asset Links
+===================================================== */
+app.get('/.well-known/assetlinks.json', (req: Request, res: Response) => {
+     const assetLinksContent = [
+          {
+               relation: ['delegate_permission/common.handle_all_urls'],
+               target: {
+                    namespace: 'android_app',
+                    package_name: 'com.rubengalindo.creepyshorts',
+                    sha256_cert_fingerprints: [],
+               },
+          },
+     ];
+     res.type('application/json');
+     res.status(200).json(assetLinksContent);
+});
+/* =====================================================
+   Share Video Link Handler (for Universal Links/App Links)
+===================================================== */
+app.get('/shorts/:videoId', authOptional(), VideoManagementController.getShareVideo);
 /* =====================================================
    Apple webhook (MUST BE FIRST)
 ===================================================== */
@@ -58,7 +99,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // SESSION (OAuth)
 // ===========================================
 app.use(session(getSessionConfig()));
-
 
 // ==========================================
 // STATIC FILES (Uploads)

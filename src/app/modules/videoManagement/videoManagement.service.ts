@@ -1,17 +1,16 @@
-import { StatusCodes } from 'http-status-codes';
-import AppError from '../../../errors/AppError';
 import axios from 'axios';
+import { StatusCodes } from 'http-status-codes';
+import mongoose, { Types } from 'mongoose';
 import config from '../../../config';
+import AppError from '../../../errors/AppError';
+import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
+import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { Like } from '../like/like.model';
+import { User } from '../user/user.model';
+import { UserService } from '../user/user.service';
 import { IVideo } from './videoManagement.interface';
 import { Video } from './videoManagement.model';
-import QueryBuilder from '../../builder/QueryBuilder';
-import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
-import { User } from '../user/user.model';
-import mongoose, { Types } from 'mongoose';
-import { UserService } from '../user/user.service';
-import { AdManagement } from '../adManagement/adManagement.model';
-import { Like } from '../like/like.model';
-import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 
 const getAllVideos = async (query: Record<string, unknown>, seasonId: string) => {
      const queryBuilder = new QueryBuilder(Video.find({ seasonId: new mongoose.Types.ObjectId(seasonId) }), query).paginate().filter().sort().fields().search(['title', 'description']);
@@ -231,7 +230,16 @@ const getSortVideos = async (userId?: string) => {
           };
      });
 };
-
+const generateShareVideoUrl = async (videoId: string) => {
+     const video = await Video.findById(videoId);
+     if (!video) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Video not found');
+     }
+     return {
+          shareUrl: `https://api.creepy-shorts.com/shorts/${videoId}`,
+          video: video,
+     };
+};
 export const VideoManagementServices = {
      createVideo,
      getAllVideos,
@@ -242,4 +250,5 @@ export const VideoManagementServices = {
      uploadThumbnail,
      getSeasonVideos,
      getSortVideos,
+     generateShareVideoUrl,
 };
