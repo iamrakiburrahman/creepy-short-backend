@@ -51,7 +51,7 @@ app.get('/.well-known/assetlinks.json', (req: Request, res: Response) => {
                target: {
                     namespace: 'android_app',
                     package_name: 'com.rubengalindo.creepyshorts',
-                    sha256_cert_fingerprints: [],
+                    sha256_cert_fingerprints: ['9E:10:1F:1F:4A:5E:C2:31:3F:8A:20:FA:AB:73:7E:89:39:31:77:67:03:7B:A5:4A:A1:98:4C:19:1D:65:DE:55'],
                },
           },
      ];
