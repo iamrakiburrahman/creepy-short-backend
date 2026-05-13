@@ -15,5 +15,6 @@ router
      .delete(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), CategoryController.deleteCategory);
 
 router.get('/', authOptional(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), CategoryController.getCategories);
+router.get('/all', authOptional(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), CategoryController.getAllCategories);
 
 export const CategoryRoutes = router;

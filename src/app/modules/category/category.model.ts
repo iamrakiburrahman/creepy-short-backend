@@ -7,7 +7,11 @@ const serviceSchema = new Schema<ICategory, CategoryModel>(
                type: String,
                required: true,
                unique: true,
-          }
+          },
+          status: {
+               type: String,
+               default: 'active',
+          },
      },
      { timestamps: true },
 );

@@ -20,11 +20,14 @@ const createCategoryToDB = async (payload: ICategory) => {
 };
 
 const getCategoriesFromDB = async (): Promise<ICategory[]> => {
-     const result = await categoryCache.wrapList(
-          {},
-          async () => await Category.find({}),
-          CACHE_TTL.VERY_LONG
-     );
+     const result = await categoryCache.wrapList({}, async () => await Category.find({ status: 'active' }), CACHE_TTL.VERY_LONG);
+     return result;
+};
+const getAllCategoriesFromDB = async (): Promise<ICategory[]> => {
+     const result = await Category.find({});
+     if (!result) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'No categories found');
+     }
      return result;
 };
 
@@ -55,4 +58,5 @@ export const CategoryService = {
      getCategoriesFromDB,
      updateCategoryToDB,
      deleteCategoryToDB,
+     getAllCategoriesFromDB
 };
