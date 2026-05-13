@@ -9,12 +9,12 @@ const router = express.Router();
 
 router.post('/create', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), validateRequest(CategoryValidation.createCategoryZodSchema), CategoryController.createCategory);
 
+router.get('/', authOptional(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), CategoryController.getCategories);
+router.get('/all', authOptional(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), CategoryController.getAllCategories);
 router
      .route('/:id')
      .patch(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), CategoryController.updateCategory)
      .delete(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), CategoryController.deleteCategory);
 
-router.get('/', authOptional(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), CategoryController.getCategories);
-router.get('/all', authOptional(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), CategoryController.getAllCategories);
 
 export const CategoryRoutes = router;
