@@ -6,13 +6,12 @@ export type TMovieType = 'Movie' | 'Series';
 export interface IMovie {
      title: string;
      genre: string;
-     category: string;
-     categoryId: Types.ObjectId;
-     tags: string[]; // From "Tags" input
+     category: string[];
+     categoryId: Types.ObjectId[];
+     tags: string[];
      description: string;
-     accentColor: string; // "Accent Color" (Hex code)
+     accentColor: string;
      thumbnail: string;
-     // Derived/Default fields visible in Image 2 & 4
      status: 'Ongoing' | 'Completed';
      totalViews: number;
      rating: number;

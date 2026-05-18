@@ -5,8 +5,8 @@ import { IMovie } from './movieManagement.interface';
 const movieSchema = new Schema<IMovie>(
      {
           title: { type: String, required: true },
-          category: { type: String, required: true },
-          categoryId: { type: Schema.Types.ObjectId, required: true },
+          category: [{ type: String, required: true }],
+          categoryId: [{ type: Schema.Types.ObjectId, required: true }],
           genre: { type: String, required: true },
           tags: [{ type: String }],
           description: { type: String },

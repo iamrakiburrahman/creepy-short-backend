@@ -1,25 +1,26 @@
 import { StatusCodes } from 'http-status-codes';
+import { USER_ROLES } from '../../../enums/user';
 import AppError from '../../../errors/AppError';
+import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
+import unlinkFile from '../../../shared/unlinkFile';
+import { getDateRange } from '../../../utils/getDateRange';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
+import { Category } from '../category/category.model';
+import { SeasonModel } from '../seasonManagement/seasonManagement.model';
+import { User } from '../user/user.model';
+import { Video } from '../videoManagement/videoManagement.model';
 import { IMovie } from './movieManagement.interface';
 import { MovieModel } from './movieManagement.model';
-import unlinkFile from '../../../shared/unlinkFile';
-import { Category } from '../category/category.model';
-import { User } from '../user/user.model';
-import { USER_ROLES } from '../../../enums/user';
-import { getDateRange } from '../../../utils/getDateRange';
-import { SeasonModel } from '../seasonManagement/seasonManagement.model';
-import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
-import { Video } from '../videoManagement/videoManagement.model';
+import { buildCategoryFilter, buildMeta, getFieldsParam, getPaginationParams, getSortParam, TMovieQuery } from './movieManagement.helper';
 const movieCache = createCacheHelper('movieCache');
 
 const createMovieToDB = async (payload: IMovie) => {
-     const category = await Category.findById(payload.categoryId);
-     if (!category) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Category not found');
+     const categories = await Category.find({ _id: { $in: payload.categoryId } });
+     if (!categories.length) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'No categories found');
      }
-     payload.category = category.name;
+     payload.category = categories.map((cat) => cat.name);
 
      const result = await MovieModel.create(payload);
      if (!result) {
@@ -28,7 +29,6 @@ const createMovieToDB = async (payload: IMovie) => {
 
      await movieCache.clearAll();
 
-     // 🔔 Broadcast notification to all users — new movie added
      await NotificationQueueHelper.sendBroadcastNotification(
           payload.title ? `New movie just added: "${payload.title}". Watch it now!` : 'A new movie has just been added. Check it out!',
           '🎬 New Movie Available',
@@ -38,17 +38,34 @@ const createMovieToDB = async (payload: IMovie) => {
      return result;
 };
 
-const getAllMoviesFromDB = async (query: Record<string, unknown>) => {
+const getAllMoviesFromDB = async (query: TMovieQuery) => {
      return await movieCache.wrapList(
           query,
           async () => {
-               const queryBuilder = new QueryBuilder(MovieModel.find(), query);
-               const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
-               const meta = await queryBuilder.countTotal();
-               return {
-                    meta,
-                    result,
+               const { page, limit, skip } = getPaginationParams(query);
+               const sort = getSortParam(query);
+               const fields = getFieldsParam(query);
+               const categoryFilter = buildCategoryFilter(query);
+
+               const filter: Record<string, unknown> = {
+                    isDeleted: false,
+                    ...categoryFilter,
                };
+
+               if (query.search) {
+                    filter.title = { $regex: query.search, $options: 'i' };
+               }
+
+               const [result, total] = await Promise.all([
+                    MovieModel.find(filter)
+                         .sort(sort)
+                         .skip(skip)
+                         .limit(limit)
+                         .select(fields ?? {}),
+                    MovieModel.countDocuments(filter),
+               ]);
+
+               return { meta: buildMeta(page, limit, total), result };
           },
           CACHE_TTL.VERY_LONG,
      );
@@ -101,6 +118,13 @@ const updateMovieFromDB = async (id: string, payload: IMovie) => {
      if (payload.thumbnail && existingMovie.thumbnail) {
           unlinkFile(existingMovie.thumbnail);
      }
+     if (payload.categoryId && payload.categoryId.length) {
+          const categories = await Category.find({ _id: { $in: payload.categoryId } });
+          if (!categories.length) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'No categories found');
+          }
+          payload.category = categories.map((cat) => cat.name);
+     }
      const result = await MovieModel.findByIdAndUpdate(id, payload, { new: true });
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
@@ -119,62 +143,128 @@ const deleteMovieFromDB = async (id: string) => {
      return result;
 };
 
-const getAllMoviesForUser = async (query: Record<string, unknown>) => {
+const getAllMoviesForUser = async (query: TMovieQuery) => {
      return await movieCache.wrapList(
           query,
           async () => {
-               const queryBuilder = new QueryBuilder(MovieModel.find(), query);
-               const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).dateFilter('releaseDate').modelQuery.exec();
-               const meta = await queryBuilder.countTotal();
-               return {
-                    meta,
-                    result,
+               const { page, limit, skip } = getPaginationParams(query);
+               const sort = getSortParam(query);
+               const fields = getFieldsParam(query);
+               const categoryFilter = buildCategoryFilter(query);
+ 
+               const filter: Record<string, unknown> = {
+                    isDeleted: false,
+                    ...categoryFilter,
                };
+ 
+               if (query.search) {
+                    filter.title = { $regex: query.search, $options: 'i' };
+               }
+ 
+               const [result, total] = await Promise.all([
+                    MovieModel.find(filter)
+                         .sort(sort)
+                         .skip(skip)
+                         .limit(limit)
+                         .select(fields ?? {}),
+                    MovieModel.countDocuments(filter),
+               ]);
+ 
+               return { meta: buildMeta(page, limit, total), result };
+          },
+          CACHE_TTL.VERY_LONG,
+     );
+};
+ 
+const getNewReleaseMovies = async (query: TMovieQuery) => {
+     return await movieCache.wrapList(
+          query,
+          async () => {
+               const { page, limit, skip } = getPaginationParams(query);
+               const fields = getFieldsParam(query);
+               const categoryFilter = buildCategoryFilter(query);
+
+               const filter: Record<string, unknown> = {
+                    isDeleted: false,
+                    isReleased: true,
+                    ...categoryFilter,
+               };
+
+               if (query.search) {
+                    filter.title = { $regex: query.search, $options: 'i' };
+               }
+
+               const [result, total] = await Promise.all([
+                    MovieModel.find(filter)
+                         .sort({ releaseDate: -1 })
+                         .skip(skip)
+                         .limit(limit)
+                         .select(fields ?? {}),
+                    MovieModel.countDocuments(filter),
+               ]);
+
+               return { meta: buildMeta(page, limit, total), result };
           },
           CACHE_TTL.VERY_LONG,
      );
 };
 
-const getNewReleaseMovies = async (query: Record<string, unknown>) => {
-     return await movieCache.wrapList(
-          query,
-          async () => {
-               const queryBuilder = new QueryBuilder(MovieModel.find({ isReleased: true }).sort({ releaseDate: -1 }), query);
-               const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
-               const meta = await queryBuilder.countTotal();
-               return {
-                    meta,
-                    result,
-               };
-          },
-          CACHE_TTL.VERY_LONG,
-     );
-};
-const mostPopular = async (query: Record<string, unknown>) => {
-     const queryBuilder = new QueryBuilder(MovieModel.find({ isReleased: true }).sort({ totalViews: -1 }), query);
-     const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
-     const meta = await queryBuilder.countTotal();
-     return {
-          meta,
-          result,
+const mostPopular = async (query: TMovieQuery) => {
+     const { page, limit, skip } = getPaginationParams(query);
+     const fields = getFieldsParam(query);
+     const categoryFilter = buildCategoryFilter(query);
+
+     const filter: Record<string, unknown> = {
+          isDeleted: false,
+          isReleased: true,
+          ...categoryFilter,
      };
-};
 
-const getAllMoviesForUserWithDateFilter = async (query: Record<string, unknown>) => {
-     const filter = query?.filter as 'today' | 'week' | 'month';
-
-     // Base query
-     const baseQuery: any = {};
-     if (filter && ['today', 'week', 'month'].includes(filter)) {
-          baseQuery.releaseDate = getDateRange(filter || 'today');
+     if (query.search) {
+          filter.title = { $regex: query.search, $options: 'i' };
      }
 
-     const queryBuilder = new QueryBuilder(MovieModel.find(baseQuery), query);
+     const [result, total] = await Promise.all([
+          MovieModel.find(filter)
+               .sort({ totalViews: -1 })
+               .skip(skip)
+               .limit(limit)
+               .select(fields ?? {}),
+          MovieModel.countDocuments(filter),
+     ]);
 
-     const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
+     return { meta: buildMeta(page, limit, total), result };
+};
 
-     const meta = await queryBuilder.countTotal();
-     return { meta, result };
+const getAllMoviesForUserWithDateFilter = async (query: TMovieQuery) => {
+     const { page, limit, skip } = getPaginationParams(query);
+     const sort = getSortParam(query);
+     const fields = getFieldsParam(query);
+     const categoryFilter = buildCategoryFilter(query);
+
+     const filter: Record<string, unknown> = {
+          isDeleted: false,
+          ...categoryFilter,
+     };
+
+     if (query.filter && ['today', 'week', 'month'].includes(query.filter)) {
+          filter.releaseDate = getDateRange(query.filter);
+     }
+
+     if (query.search) {
+          filter.title = { $regex: query.search, $options: 'i' };
+     }
+
+     const [result, total] = await Promise.all([
+          MovieModel.find(filter)
+               .sort(sort)
+               .skip(skip)
+               .limit(limit)
+               .select(fields ?? {}),
+          MovieModel.countDocuments(filter),
+     ]);
+
+     return { meta: buildMeta(page, limit, total), result };
 };
 
 const getSingleMovieFromDBWithSession = async (userId: string | undefined, id: string) => {
