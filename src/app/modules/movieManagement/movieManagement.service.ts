@@ -20,7 +20,7 @@ const createMovieToDB = async (payload: IMovie) => {
      if (!categories.length) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'No categories found');
      }
-     payload.category = categories.map((cat) => cat.name);
+     payload.categories = categories.map((cat) => cat.name);
 
      const result = await MovieModel.create(payload);
      if (!result) {
@@ -118,12 +118,12 @@ const updateMovieFromDB = async (id: string, payload: IMovie) => {
      if (payload.thumbnail && existingMovie.thumbnail) {
           unlinkFile(existingMovie.thumbnail);
      }
-     if (payload.categoryId && payload.categoryId.length) {
+     if (payload.categoryIds && payload.categoryIds.length) {
           const categories = await Category.find({ _id: { $in: payload.categoryId } });
           if (!categories.length) {
                throw new AppError(StatusCodes.BAD_REQUEST, 'No categories found');
           }
-          payload.category = categories.map((cat) => cat.name);
+          payload.categories = categories.map((cat) => cat.name);
      }
      const result = await MovieModel.findByIdAndUpdate(id, payload, { new: true });
      if (!result) {

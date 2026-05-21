@@ -1,7 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import { ICategory } from './category.interface';
 import { Category } from './category.model';
-import unlinkFile from '../../../shared/unlinkFile';
 import AppError from '../../../errors/AppError';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 const categoryCache = createCacheHelper('category');

@@ -1,5 +1,5 @@
 export const buildCategoryFilter = (query: TMovieQuery): Record<string, unknown> => {
-     const raw = query?.category;
+     const raw = query?.categories;
      if (!raw) return {};
 
      const categories = (Array.isArray(raw) ? raw : [raw])
@@ -8,8 +8,8 @@ export const buildCategoryFilter = (query: TMovieQuery): Record<string, unknown>
           .filter(Boolean);
 
      if (categories.length === 0) return {};
-     if (categories.length === 1) return { category: categories[0] };
-     return { category: { $in: categories } };
+     if (categories.length === 1) return { categories: categories[0] };
+     return { categories: { $in: categories } };
 };
 
 export const getPaginationParams = (query: TMovieQuery) => {
@@ -68,7 +68,7 @@ export type TMovieQuery = {
      sort?: string;
      fields?: string;
      search?: string;
-     category?: string | string[];
+     categories?: string | string[];
      filter?: 'today' | 'week' | 'month';
      [key: string]: unknown;
 };

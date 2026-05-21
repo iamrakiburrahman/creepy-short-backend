@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+import { Types } from 'mongoose';
 
 // Based on Image 3: Create New Movies Modal
 export type TMovieType = 'Movie' | 'Series';
@@ -6,8 +6,12 @@ export type TMovieType = 'Movie' | 'Series';
 export interface IMovie {
      title: string;
      genre: string;
-     category: string[];
-     categoryId: Types.ObjectId[];
+     category: string;
+     categoryId: Types.ObjectId;
+     subCategory?: string;
+     subCategoryId?: Types.ObjectId;
+     categories: string[];
+     categoryIds: Types.ObjectId[];
      tags: string[];
      description: string;
      accentColor: string;
