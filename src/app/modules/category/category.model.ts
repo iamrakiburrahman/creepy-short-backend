@@ -1,5 +1,5 @@
 import { model, Schema } from 'mongoose';
-import { ICategory, CategoryModel } from './category.interface';
+import { CategoryModel, ICategory } from './category.interface';
 
 const serviceSchema = new Schema<ICategory, CategoryModel>(
      {

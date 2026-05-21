@@ -16,12 +16,14 @@ import { buildCategoryFilter, buildMeta, getFieldsParam, getPaginationParams, ge
 const movieCache = createCacheHelper('movieCache');
 
 const createMovieToDB = async (payload: IMovie) => {
-     const categories = await Category.find({ _id: { $in: payload.categoryId } });
+     const categories = await Category.find({ _id: { $in: payload.categoryIds } });
      if (!categories.length) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'No categories found');
      }
      payload.categories = categories.map((cat) => cat.name);
-
+     payload.category = categories[0].name;
+     payload.categoryId = categories[0]._id;
+     console.log(payload);
      const result = await MovieModel.create(payload);
      if (!result) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Movie not created');
@@ -151,16 +153,16 @@ const getAllMoviesForUser = async (query: TMovieQuery) => {
                const sort = getSortParam(query);
                const fields = getFieldsParam(query);
                const categoryFilter = buildCategoryFilter(query);
- 
+
                const filter: Record<string, unknown> = {
                     isDeleted: false,
                     ...categoryFilter,
                };
- 
+
                if (query.search) {
                     filter.title = { $regex: query.search, $options: 'i' };
                }
- 
+
                const [result, total] = await Promise.all([
                     MovieModel.find(filter)
                          .sort(sort)
@@ -169,13 +171,13 @@ const getAllMoviesForUser = async (query: TMovieQuery) => {
                          .select(fields ?? {}),
                     MovieModel.countDocuments(filter),
                ]);
- 
+
                return { meta: buildMeta(page, limit, total), result };
           },
           CACHE_TTL.VERY_LONG,
      );
 };
- 
+
 const getNewReleaseMovies = async (query: TMovieQuery) => {
      return await movieCache.wrapList(
           query,
