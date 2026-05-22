@@ -7,14 +7,6 @@ const createSubCategoryZodSchema = z.object({
      }),
 });
 
-const updateSubCategoryZodSchema = z.object({
-     body: z.object({
-          name: z.string().optional(),
-          categoryId: z.string().optional(),
-     }),
-});
-
 export const SubCategoryValidation = {
      createSubCategoryZodSchema,
-     updateSubCategoryZodSchema,
 };

@@ -35,36 +35,6 @@ const getSubCategoriesFromDB = async (categoryId?: string): Promise<ISubCategory
      return result;
 };
 
-const getAllSubCategoriesFromDB = async (): Promise<ISubCategory[]> => {
-     const result = await SubCategory.find({});
-     if (!result) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'No subcategories found');
-     }
-     return result;
-};
-
-const updateSubCategoryToDB = async (id: string, payload: ISubCategory) => {
-     const isExistSubCategory: any = await SubCategory.findById(id);
-
-     if (!isExistSubCategory) {
-          throw new AppError(StatusCodes.BAD_REQUEST, "Subcategory doesn't exist");
-     }
-
-     if (payload.categoryId && payload.categoryId !== isExistSubCategory.categoryId) {
-          const parentCategory = await Category.findById(payload.categoryId);
-          if (!parentCategory) {
-               throw new AppError(StatusCodes.NOT_ACCEPTABLE, 'Parent Category not found');
-          }
-     }
-
-     const updateSubCategory = await SubCategory.findOneAndUpdate({ _id: id }, payload, {
-          new: true,
-     });
-
-     await subCategoryCache.clearAfterUpdate(id);
-     return updateSubCategory;
-};
-
 const deleteSubCategoryToDB = async (id: string): Promise<ISubCategory | null> => {
      const deleteSubCategory = await SubCategory.findByIdAndDelete(id);
      if (!deleteSubCategory) {
@@ -78,7 +48,5 @@ const deleteSubCategoryToDB = async (id: string): Promise<ISubCategory | null> =
 export const SubCategoryService = {
      createSubCategoryToDB,
      getSubCategoriesFromDB,
-     updateSubCategoryToDB,
      deleteSubCategoryToDB,
-     getAllSubCategoriesFromDB,
 };
