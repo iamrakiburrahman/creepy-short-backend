@@ -8,8 +8,8 @@ export interface IMovie {
      genre: string;
      category: string;
      categoryId: Types.ObjectId;
-     subCategory?: string;
-     subCategoryId?: Types.ObjectId;
+     subCategories?: string[];
+     subCategoryIds?: Types.ObjectId[];
      categories: string[];
      categoryIds: Types.ObjectId[];
      tags: string[];
