@@ -1,15 +1,33 @@
 export const buildCategoryFilter = (query: TMovieQuery): Record<string, unknown> => {
-     const raw = query?.categories;
-     if (!raw) return {};
+     const filter: Record<string, unknown> = {};
+     const rawCat = query?.categories;
+     if (rawCat) {
+          const categories = (Array.isArray(rawCat) ? rawCat : [rawCat])
+               .flatMap((c) => String(c).split(','))
+               .map((c) => c.trim())
+               .filter(Boolean);
 
-     const categories = (Array.isArray(raw) ? raw : [raw])
-          .flatMap((c) => String(c).split(','))
-          .map((c) => c.trim())
-          .filter(Boolean);
+          if (categories.length === 1) {
+               filter.categories = categories[0];
+          } else if (categories.length > 1) {
+               filter.categories = { $in: categories };
+          }
+     }
+     const rawSub = query?.subCategories;
+     if (rawSub) {
+          const subCategories = (Array.isArray(rawSub) ? rawSub : [rawSub])
+               .flatMap((s) => String(s).split(','))
+               .map((s) => s.trim())
+               .filter(Boolean);
 
-     if (categories.length === 0) return {};
-     if (categories.length === 1) return { categories: categories[0] };
-     return { categories: { $in: categories } };
+          if (subCategories.length === 1) {
+               filter.subCategories = subCategories[0];
+          } else if (subCategories.length > 1) {
+               filter.subCategories = { $in: subCategories };
+          }
+     }
+
+     return filter;
 };
 
 export const getPaginationParams = (query: TMovieQuery) => {
@@ -67,8 +85,9 @@ export type TMovieQuery = {
      limit?: string | number;
      sort?: string;
      fields?: string;
-     search?: string;
+     searchTerm?: string;
      categories?: string | string[];
+     subCategories?: string | string[]; // ← new
      filter?: 'today' | 'week' | 'month';
      [key: string]: unknown;
 };

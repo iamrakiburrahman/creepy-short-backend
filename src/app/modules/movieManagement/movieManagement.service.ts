@@ -54,8 +54,8 @@ const getAllMoviesFromDB = async (query: TMovieQuery) => {
                     ...categoryFilter,
                };
 
-               if (query.search) {
-                    filter.title = { $regex: query.search, $options: 'i' };
+               if (query.searchTerm) {
+                    filter.title = { $regex: query.searchTerm, $options: 'i' };
                }
 
                const [result, total] = await Promise.all([
@@ -159,8 +159,8 @@ const getAllMoviesForUser = async (query: TMovieQuery) => {
                     ...categoryFilter,
                };
 
-               if (query.search) {
-                    filter.title = { $regex: query.search, $options: 'i' };
+               if (query.searchTerm) {
+                    filter.title = { $regex: query.searchTerm, $options: 'i' };
                }
 
                const [result, total] = await Promise.all([
@@ -192,8 +192,8 @@ const getNewReleaseMovies = async (query: TMovieQuery) => {
                     ...categoryFilter,
                };
 
-               if (query.search) {
-                    filter.title = { $regex: query.search, $options: 'i' };
+               if (query.searchTerm) {
+                    filter.title = { $regex: query.searchTerm, $options: 'i' };
                }
 
                const [result, total] = await Promise.all([
@@ -222,8 +222,8 @@ const mostPopular = async (query: TMovieQuery) => {
           ...categoryFilter,
      };
 
-     if (query.search) {
-          filter.title = { $regex: query.search, $options: 'i' };
+     if (query.searchTerm) {
+          filter.title = { $regex: query.searchTerm, $options: 'i' };
      }
 
      const [result, total] = await Promise.all([
@@ -253,8 +253,8 @@ const getAllMoviesForUserWithDateFilter = async (query: TMovieQuery) => {
           filter.releaseDate = getDateRange(query.filter);
      }
 
-     if (query.search) {
-          filter.title = { $regex: query.search, $options: 'i' };
+     if (query.searchTerm) {
+          filter.title = { $regex: query.searchTerm, $options: 'i' };
      }
 
      const [result, total] = await Promise.all([
