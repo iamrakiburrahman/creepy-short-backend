@@ -1,10 +1,11 @@
+import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../../errors/AppError';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { VideoManagementServices } from './videoManagement.service';
 
-const updateVideo = catchAsync(async (req, res) => {
+const updateVideo = catchAsync(async (req: Request, res: Response) => {
      const { id } = req.params;
      const result = await VideoManagementServices.updateVideo(id, req.body);
 
@@ -18,7 +19,7 @@ const updateVideo = catchAsync(async (req, res) => {
 
 const getSingleVideo = catchAsync(async (req, res) => {
      const { id } = req.params;
-     const { id: userId } = req.user as { id: string };
+     const userId = (req.user as { id: string })?.id;
      const result = await VideoManagementServices.getSingleVideo(id, userId);
 
      sendResponse(res, {
@@ -29,9 +30,10 @@ const getSingleVideo = catchAsync(async (req, res) => {
      });
 });
 
-const getAllVideos = catchAsync(async (req, res) => {
+const getAllVideos = catchAsync(async (req: Request, res: Response) => {
      const { seasonId } = req.params;
      const result = await VideoManagementServices.getAllVideos(req.query, seasonId);
+
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,
@@ -41,9 +43,10 @@ const getAllVideos = catchAsync(async (req, res) => {
      });
 });
 
-const deleteVideo = catchAsync(async (req, res) => {
+const deleteVideo = catchAsync(async (req: Request, res: Response) => {
      const { id } = req.params;
      const result = await VideoManagementServices.deleteVideo(id);
+
      sendResponse(res, {
           statusCode: StatusCodes.OK,
           success: true,
@@ -51,8 +54,10 @@ const deleteVideo = catchAsync(async (req, res) => {
           data: result,
      });
 });
-const generateUploadUrl = catchAsync(async (req, res) => {
+
+const generateUploadUrl = catchAsync(async (req: Request, res: Response) => {
      const result = await VideoManagementServices.generateUploadUrl(req.body);
+
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.OK,
@@ -61,12 +66,13 @@ const generateUploadUrl = catchAsync(async (req, res) => {
      });
 });
 
-const uploadThumbnail = catchAsync(async (req, res) => {
+const uploadThumbnail = catchAsync(async (req: Request, res: Response) => {
      const file = req.file;
      if (!file) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'No file uploaded');
      }
      const result = await VideoManagementServices.uploadThumbnail(file);
+
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.OK,
@@ -75,8 +81,8 @@ const uploadThumbnail = catchAsync(async (req, res) => {
      });
 });
 
-const createVideo = catchAsync(async (req, res) => {
-     const { id: userId } = req.user as { id: string }; // Assuming you have auth middleware that sets req.user
+const createVideo = catchAsync(async (req: Request, res: Response) => {
+     const userId = (req.user as { id: string })?.id;
 
      const result = await VideoManagementServices.createVideo(userId, req.body);
 
@@ -87,10 +93,12 @@ const createVideo = catchAsync(async (req, res) => {
           data: result,
      });
 });
-const getSeasonVideos = catchAsync(async (req, res) => {
+
+const getSeasonVideos = catchAsync(async (req: Request, res: Response) => {
      const { seasonId } = req.params;
      const userId = (req.user as { id: string })?.id;
      const result = await VideoManagementServices.getSeasonVideos(seasonId, userId);
+
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.OK,
@@ -98,9 +106,11 @@ const getSeasonVideos = catchAsync(async (req, res) => {
           data: result,
      });
 });
-const getSortVideos = catchAsync(async (req, res) => {
+
+const getSortVideos = catchAsync(async (req: Request, res: Response) => {
      const userId = (req.user as { id: string })?.id;
      const result = await VideoManagementServices.getSortVideos(userId);
+
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.OK,
@@ -108,9 +118,11 @@ const getSortVideos = catchAsync(async (req, res) => {
           data: result,
      });
 });
-const generateShareVideoUrl = catchAsync(async (req, res) => {
+
+const generateShareVideoUrl = catchAsync(async (req: Request, res: Response) => {
      const { videoId } = req.params;
      const result = await VideoManagementServices.generateShareVideoUrl(videoId);
+
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.OK,
@@ -118,10 +130,26 @@ const generateShareVideoUrl = catchAsync(async (req, res) => {
           data: result,
      });
 });
+
+/* =====================================================
+   FOR WEB BROWSERS: Redirects users without the app
+===================================================== */
 const getShareVideo = catchAsync(async (req, res) => {
      const { videoId } = req.params;
+     const demoWebsiteUrl = `https://creepy-shorts.com?videoId=${videoId}`;
+     // Redirect with 302 Found
+     res.redirect(302, demoWebsiteUrl);
+});
+
+/* =====================================================
+   FOR MOBILE APP: Returns the JSON video data via deep link API
+===================================================== */
+const getSingleVideoApp = catchAsync(async (req, res) => {
+     const { videoId } = req.params;
      const userId = (req.user as { id: string })?.id;
+
      const result = await VideoManagementServices.getSingleVideo(videoId, userId);
+
      sendResponse(res, {
           success: true,
           statusCode: StatusCodes.OK,
@@ -129,6 +157,7 @@ const getShareVideo = catchAsync(async (req, res) => {
           data: result,
      });
 });
+
 export const VideoManagementController = {
      updateVideo,
      getSingleVideo,
@@ -141,4 +170,5 @@ export const VideoManagementController = {
      getSortVideos,
      generateShareVideoUrl,
      getShareVideo,
+     getSingleVideoApp,
 };
