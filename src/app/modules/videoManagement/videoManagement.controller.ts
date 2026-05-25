@@ -1,11 +1,10 @@
-import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../../errors/AppError';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { VideoManagementServices } from './videoManagement.service';
 
-const updateVideo = catchAsync(async (req: Request, res: Response) => {
+const updateVideo = catchAsync(async (req, res) => {
      const { id } = req.params;
      const result = await VideoManagementServices.updateVideo(id, req.body);
 
@@ -30,7 +29,7 @@ const getSingleVideo = catchAsync(async (req, res) => {
      });
 });
 
-const getAllVideos = catchAsync(async (req: Request, res: Response) => {
+const getAllVideos = catchAsync(async (req, res) => {
      const { seasonId } = req.params;
      const result = await VideoManagementServices.getAllVideos(req.query, seasonId);
 
@@ -43,7 +42,7 @@ const getAllVideos = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
-const deleteVideo = catchAsync(async (req: Request, res: Response) => {
+const deleteVideo = catchAsync(async (req, res) => {
      const { id } = req.params;
      const result = await VideoManagementServices.deleteVideo(id);
 
@@ -55,7 +54,7 @@ const deleteVideo = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
-const generateUploadUrl = catchAsync(async (req: Request, res: Response) => {
+const generateUploadUrl = catchAsync(async (req, res) => {
      const result = await VideoManagementServices.generateUploadUrl(req.body);
 
      sendResponse(res, {
@@ -66,7 +65,7 @@ const generateUploadUrl = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
-const uploadThumbnail = catchAsync(async (req: Request, res: Response) => {
+const uploadThumbnail = catchAsync(async (req, res) => {
      const file = req.file;
      if (!file) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'No file uploaded');
@@ -81,7 +80,7 @@ const uploadThumbnail = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
-const createVideo = catchAsync(async (req: Request, res: Response) => {
+const createVideo = catchAsync(async (req, res) => {
      const userId = (req.user as { id: string })?.id;
 
      const result = await VideoManagementServices.createVideo(userId, req.body);
@@ -94,7 +93,7 @@ const createVideo = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
-const getSeasonVideos = catchAsync(async (req: Request, res: Response) => {
+const getSeasonVideos = catchAsync(async (req, res) => {
      const { seasonId } = req.params;
      const userId = (req.user as { id: string })?.id;
      const result = await VideoManagementServices.getSeasonVideos(seasonId, userId);
@@ -107,7 +106,7 @@ const getSeasonVideos = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
-const getSortVideos = catchAsync(async (req: Request, res: Response) => {
+const getSortVideos = catchAsync(async (req, res) => {
      const userId = (req.user as { id: string })?.id;
      const result = await VideoManagementServices.getSortVideos(userId);
 
@@ -119,7 +118,7 @@ const getSortVideos = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
-const generateShareVideoUrl = catchAsync(async (req: Request, res: Response) => {
+const generateShareVideoUrl = catchAsync(async (req, res) => {
      const { videoId } = req.params;
      const result = await VideoManagementServices.generateShareVideoUrl(videoId);
 
