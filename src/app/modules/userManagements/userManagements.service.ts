@@ -16,7 +16,7 @@ const allUser = async (query: Record<string, unknown>) => {
     );
 
     const users = await queryBuilder
-      .search(['firstName', 'lastName', "phone", 'email', 'address'])
+      .search(['name', "phone", 'email', 'address'])
       .filter()
       .sort()
       .paginate()
