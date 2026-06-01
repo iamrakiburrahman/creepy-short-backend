@@ -120,12 +120,22 @@ const updateMovieFromDB = async (id: string, payload: IMovie) => {
      if (payload.thumbnail && existingMovie.thumbnail) {
           unlinkFile(existingMovie.thumbnail);
      }
+     console.log(payload)
      if (payload.categoryIds && payload.categoryIds.length) {
-          const categories = await Category.find({ _id: { $in: payload.categoryId } });
-          if (!categories.length) {
-               throw new AppError(StatusCodes.BAD_REQUEST, 'No categories found');
-          }
+        const categories = await Category.find({
+          _id: { $in: payload.categoryIds },
+     });
+
+     if (!categories.length) {
+          throw new AppError(
+               StatusCodes.BAD_REQUEST,
+               'No categories found'
+          );
+     }
           payload.categories = categories.map((cat) => cat.name);
+     }
+     if (!payload.thumbnail) {
+          delete payload.thumbnail
      }
      const result = await MovieModel.findByIdAndUpdate(id, payload, { new: true });
      if (!result) {

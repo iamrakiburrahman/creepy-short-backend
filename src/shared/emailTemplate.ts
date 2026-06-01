@@ -6,7 +6,7 @@ const createAccount = (values: ICreateAccount) => {
         subject: 'Verify your account',
         html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
     <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: center;">
-        <img src="https://i.postimg.cc/6pgNvKhD/logo.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
+        <img src="https://res.cloudinary.com/dn83fu2pc/image/upload/v1780295427/Logo_uqqpzr.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
           <h2 style="color: #277E16; font-size: 24px; margin-bottom: 20px;">Hey! ${values.name}, Your Account Credentials</h2>
         <div style="text-align: center;">
             <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">Your single use code is:</p>
@@ -24,7 +24,7 @@ const contact = (values: IContact) => {
         subject: 'We’ve Received Your Message – Thank You!',
         html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">      
       <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-          <img src="https://res.cloudinary.com/ddhhyc6mr/image/upload/v1742293522/buzzy-box-logo.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
+          <img src="https://res.cloudinary.com/dn83fu2pc/image/upload/v1780295427/Logo_uqqpzr.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
           <h2 style="color: #277E16; font-size: 24px; margin-bottom: 20px; text-align: center;">Thank You for Contacting Us, ${values.name}!</h2>
           
           <p style="color: #555; font-size: 16px; line-height: 1.5; text-align: center;">
@@ -60,7 +60,7 @@ const resetPassword = (values: IResetPassword) => {
         subject: 'Reset your password',
         html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
     <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <img src="https://i.postimg.cc/6pgNvKhD/logo.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
+        <img src="https://res.cloudinary.com/dn83fu2pc/image/upload/v1780295427/Logo_uqqpzr.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
         <div style="text-align: center;">
             <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">Your single use code is:</p>
             <div style="background-color: #277E16; width: 120px; padding: 10px; text-align: center; border-radius: 8px; color: #fff; font-size: 25px; letter-spacing: 2px; margin: 20px auto;">${values.otp}</div>
@@ -78,7 +78,7 @@ const resetPasswordByUrl = (values: IResetPasswordByEmail) => {
         subject: 'Reset Your Password',
         html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
       <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <img src="https://i.postimg.cc/6pgNvKhD/logo.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
+        <img src="https://res.cloudinary.com/dn83fu2pc/image/upload/v1780295427/Logo_uqqpzr.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
         <div style="text-align: center;">
           <h2 style="color: #333;">Reset Your Password</h2>
           <p style="color: #555; font-size: 16px; line-height: 1.5;">We received a request to reset your password. Click the button below to reset it:</p>
@@ -98,7 +98,7 @@ const contactFormTemplate = (values: IHelpContact) => {
         subject: 'Thank you for reaching out to us',
         html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
     <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <img src="https://i.postimg.cc/6pgNvKhD/logo.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
+        <img src="https://res.cloudinary.com/dn83fu2pc/image/upload/v1780295427/Logo_uqqpzr.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
         <div style="text-align: center;">
             <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">Hello ${values.name},</p>
             <p style="color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">Thank you for reaching out to us. We have received your message:</p>
@@ -121,7 +121,7 @@ const helpReplyTemplate = (values: IHelpReplay, adminMessage: string) => {
         subject: 'Response to Your Help Request',
         html: `<body style="font-family: 'Roboto', sans-serif; background-color: #f3f3f3; margin: 0; padding: 0; color: #333;">
   <div style="max-width: 650px; margin: 40px auto; background-color: #fff; border-radius: 8px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); padding: 25px; color: #333;">
-    <img src="https://res.cloudinary.com/dreiyzj42/image/upload/v1762927212/sundarbanila_hp4s7g.png" alt="Logo" style="display: block; margin: 0 auto 20px; width: 150px;" />
+    <img src="https://res.cloudinary.com/dn83fu2pc/image/upload/v1780295427/Logo_uqqpzr.png" alt="Logo" style="display: block; margin: 0 auto 20px; width: 150px;" />
     
     <div style="text-align: left; padding: 0 20px;">
       <p style="font-size: 18px; color: #555; line-height: 1.6; margin-bottom: 15px;">Hello ${values.name},</p>
@@ -156,7 +156,7 @@ const blockAccountTemplate = (values: IBlockAccount) => {
     subject: 'Account Blocked Notification',
     html: `<body style="font-family: 'Roboto', sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; color: #333;">
   <div style="max-width: 650px; margin: 40px auto; background-color: #fff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); padding: 30px; color: #333;">
-    <img src="https://res.cloudinary.com/dreiyzj42/image/upload/v1762927212/sundarbanila_hp4s7g.png" alt="Logo" style="display: block; margin: 0 auto 25px; width: 160px;" />
+    <img src="https://res.cloudinary.com/dn83fu2pc/image/upload/v1780295427/Logo_uqqpzr.png" alt="Logo" style="display: block; margin: 0 auto 25px; width: 160px;" />
     
     <div style="text-align: left; padding: 0 20px;">
       <p style="font-size: 20px; color: #444; line-height: 1.6; margin-bottom: 15px;">Hello ${values.name},</p>
@@ -167,7 +167,7 @@ const blockAccountTemplate = (values: IBlockAccount) => {
       <div style="border-top: 2px solid #f1f1f1; padding-top: 30px; text-align: center;">
         <p style="font-size: 14px; color: #888; margin: 0;">Best regards,</p>
         <p style="font-size: 16px; font-weight: bold; color: #333;">Support Team</p>
-        <p style="font-size: 14px; color: #888; margin-top: 5px;">Company Name | <a href="https://www.companywebsite.com" style="color: #2196F3; text-decoration: none;">www.companywebsite.com</a></p>
+        <p style="font-size: 14px; color: #888; margin-top: 5px;">Company Name | <a href="https://creepy-shorts.com" style="color: #2196F3; text-decoration: none;">www.creepy-shorts.com</a></p>
       </div>
     </div>
   </div>

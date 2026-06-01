@@ -15,7 +15,7 @@ export interface IMovie {
      tags: string[];
      description: string;
      accentColor: string;
-     thumbnail: string;
+     thumbnail?: string;
      status: 'Ongoing' | 'Completed';
      totalViews: number;
      rating: number;

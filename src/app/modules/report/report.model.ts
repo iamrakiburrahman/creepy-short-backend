@@ -1,7 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { IReport, ReportModel } from './report.interface';
-import { StatusCodes } from 'http-status-codes';
-import AppError from '../../../errors/AppError';
+
 
 const reportSchema = new Schema<IReport, ReportModel>(
      {

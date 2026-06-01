@@ -106,10 +106,10 @@ const getOverview = async (query: Record<string, unknown>) => {
      const { dateFilter, filterMeta } = buildFilter(view, year, monthIndex);
 
      const [totalMovies, totalUsers, activeSubscriptions, revenueAgg] = await Promise.all([
-          Video.countDocuments({ isDeleted: false, ...dateFilter }),
+          MovieModel.countDocuments({ isDeleted: false, ...dateFilter }),
           User.countDocuments({ role: 'USER', isDeleted: false, ...dateFilter }),
           Subscription.countDocuments({ status: 'active', ...dateFilter }),
-          Subscription.aggregate([{ $match: { status: 'active', ...dateFilter } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+          Subscription.aggregate([{ $match: { status: 'active', ...dateFilter } }, { $group: { _id: null, total: { $sum: '$price' } } }]),
      ]);
 
      return {
