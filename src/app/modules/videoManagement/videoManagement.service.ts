@@ -28,6 +28,7 @@ const getSingleVideo = async (id: string, userId: string): Promise<IVideo> => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
      }
+     await Video.findByIdAndUpdate(id, { $inc: { views: 1 } });
      if (userId) {
           await UserService.addRecentlyViewedVideosFromDB(userId, id);
      }

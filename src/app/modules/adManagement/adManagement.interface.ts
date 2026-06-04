@@ -7,6 +7,7 @@ export interface IAdManagement {
      videoUrl: string;
      videoId: string;
      libraryId: string;
+     redirectUrl: string;
      views: number;
      downloadUrls: string;
 }
