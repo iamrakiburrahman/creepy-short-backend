@@ -638,10 +638,10 @@ async function getCustomRangeBreakdown(view: ViewType, startDate: Date, endDate:
                     current = endOfPeriod.clone().add(1, 'day');
                     break;
                case 'week':
-                    startOfPeriod = current.startOf('week');
-                    endOfPeriod = current.endOf('week');
-                    label = `${startOfPeriod.format('MM-DD')} - ${endOfPeriod.format('MM-DD')}`;
-                    current = endOfPeriod.clone().add(1, 'day');
+                    startOfPeriod = current.startOf('day');
+                    endOfPeriod = current.endOf('day');
+                    label = startOfPeriod.format('YYYY-MM-DD');
+                    current.add(1, 'day');
                     break;
                case 'day':
                default:
@@ -711,10 +711,10 @@ async function getRevenueCustomRangeBreakdown(view: ViewType, startDate: Date, e
                     current = endOfPeriod.clone().add(1, 'day');
                     break;
                case 'week':
-                    startOfPeriod = current.startOf('week');
-                    endOfPeriod = current.endOf('week');
-                    label = `${startOfPeriod.format('MM-DD')} - ${endOfPeriod.format('MM-DD')}`;
-                    current = endOfPeriod.clone().add(1, 'day');
+                    startOfPeriod = current.startOf('day');
+                    endOfPeriod = current.endOf('day');
+                    label = startOfPeriod.format('YYYY-MM-DD');
+                    current.add(1, 'day');
                     break;
                case 'day':
                default:
