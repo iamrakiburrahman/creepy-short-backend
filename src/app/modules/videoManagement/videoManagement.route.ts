@@ -4,6 +4,8 @@ import auth from '../../middleware/auth';
 import authOptional from '../../middleware/authOptional';
 import { uploadThumbnail } from '../../middleware/multer';
 import { VideoManagementController } from './videoManagement.controller';
+import { VideoManagementValidation } from './videoManagement.validation';
+import validateRequest from '../../middleware/validateRequest';
 
 const router = express.Router();
 
@@ -25,5 +27,5 @@ router.get('/generate-share-url/:videoId', authOptional(), VideoManagementContro
 router.get('/single-video-for-user/:id', authOptional(USER_ROLES.USER), VideoManagementController.getSingleVideo);
 router.get('/all-season-videos-by/:seasonId', authOptional(USER_ROLES.USER), VideoManagementController.getSeasonVideos);
 router.get('/shorts-videos', authOptional(USER_ROLES.USER), VideoManagementController.getSortVideos);
-
+router.post('/watch-time', authOptional(USER_ROLES.USER), validateRequest(VideoManagementValidation.watchTimePayloadSchema), VideoManagementController.syncWatchTime);
 export const VideoManagementRoutes = router;

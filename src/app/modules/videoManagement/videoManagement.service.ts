@@ -241,6 +241,26 @@ const generateShareVideoUrl = async (videoId: string) => {
           video: video,
      };
 };
+
+const syncWatchTime = async (userId: string, watchedSeconds: number) => {
+     if (!userId) {
+          return null;
+     }
+
+     const updatedUser = await User.findByIdAndUpdate(
+          userId,
+          {
+               $inc: { totalWatchTime: watchedSeconds },
+          },
+          { new: true, select: 'totalWatchTime' }, // Only return the updated field
+     );
+
+     if (!updatedUser) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+     }
+     return updatedUser;
+};
+
 export const VideoManagementServices = {
      createVideo,
      getAllVideos,
@@ -252,4 +272,5 @@ export const VideoManagementServices = {
      getSeasonVideos,
      getSortVideos,
      generateShareVideoUrl,
+     syncWatchTime,
 };

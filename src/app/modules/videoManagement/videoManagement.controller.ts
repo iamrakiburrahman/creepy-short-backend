@@ -156,7 +156,18 @@ const getSingleVideoApp = catchAsync(async (req, res) => {
           data: result,
      });
 });
+const syncWatchTime = catchAsync(async (req, res) => {
+     const { videoSeconds } = req.body;
+     const userId = (req.user as { id: string })?.id;
+     const result = await VideoManagementServices.syncWatchTime(userId, videoSeconds);
 
+     sendResponse(res, {
+          success: true,
+          statusCode: StatusCodes.OK,
+          message: 'Watch time synchronized successfully',
+          data: result,
+     });
+});
 export const VideoManagementController = {
      updateVideo,
      getSingleVideo,
@@ -170,4 +181,5 @@ export const VideoManagementController = {
      generateShareVideoUrl,
      getShareVideo,
      getSingleVideoApp,
+     syncWatchTime,
 };

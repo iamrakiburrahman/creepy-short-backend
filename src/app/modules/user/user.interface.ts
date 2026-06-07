@@ -25,6 +25,7 @@ export type IUser = {
           name: string;
           access: boolean;
      }[];
+     totalWatchTime: number;
      authentication?: {
           isResetPassword: boolean;
           oneTimeCode: number;

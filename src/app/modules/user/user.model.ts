@@ -70,6 +70,10 @@ const userSchema = new Schema<IUser, UserModel>(
                type: String,
                enum: ['google', 'facebook'],
           },
+          totalWatchTime: {
+               type: Number,
+               default: 0,
+          },
           isSubscribed: {
                type: Boolean,
                default: false,
