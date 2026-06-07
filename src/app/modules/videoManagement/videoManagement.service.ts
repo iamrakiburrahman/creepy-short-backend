@@ -254,10 +254,6 @@ const syncWatchTime = async (userId: string, watchedSeconds: number) => {
           },
           { new: true, select: 'totalWatchTime' }, // Only return the updated field
      );
-
-     if (!updatedUser) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
-     }
      return updatedUser;
 };
 
