@@ -17,12 +17,12 @@ const packageSchema = new Schema<IPackage, PackageModel>(
           },
           duration: {
                type: String,
-               enum: ['1 month', '3 months', '6 months', '1 year'],
+               enum: ['1 week', '1 month', '3 months', '6 months', '1 year'],
                required: true,
           },
           paymentType: {
                type: String,
-               enum: ['Monthly', 'Yearly'],
+               enum: ['Monthly', 'Yearly', 'Weekly'],
                required: true,
           },
           isGoogle: {

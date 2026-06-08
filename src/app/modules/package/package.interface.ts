@@ -5,8 +5,8 @@ export interface IPackage {
      description: string;
      price: number;
      discount: number;
-     duration: '1 month' | '3 months' | '6 months' | '1 year';
-     paymentType: 'Monthly' | 'Yearly';
+     duration: '1 week' | '1 month' | '3 months' | '6 months' | '1 year' | '1 week';
+     paymentType: 'Monthly' | 'Yearly' | 'Weekly';
      googleProductId?: string; // ID from Google Play Console
      appleProductId?: string; // ID from App Store Connect
      isGoogle?: boolean;
