@@ -10,10 +10,10 @@ const createPackageZodSchema = z.object({
                .refine((val) => !isNaN(val), {
                     message: 'Price must be a valid number.',
                }),
-          duration: z.enum(['1 month', '3 months', '6 months', '1 year'], {
+          duration: z.enum(['1 week', '1 month', '3 months', '6 months', '1 year'], {
                required_error: 'Duration is required',
           }),
-          paymentType: z.enum(['Monthly', 'Yearly'], {
+          paymentType: z.enum(['Monthly', 'Yearly', 'Weekly'], {
                required_error: 'Payment type is required',
           })
      }),
