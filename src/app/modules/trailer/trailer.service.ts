@@ -32,6 +32,7 @@ const getSingleTrailer = async (id: string): Promise<ITrailer> => {
           const result = await Trailer.findById(id);
           if (result) {
                await Trailer.findByIdAndUpdate(id, { $inc: { views: 1 } });
+               await trailerCacheKey.clearAfterUpdate(id);
           }
           if (!result) {
                throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
@@ -40,22 +41,19 @@ const getSingleTrailer = async (id: string): Promise<ITrailer> => {
           return result;
      });
 };
-const getSingleTrailerForUser = async (id: string, userId: string) => {
+const getSingleTrailerForUser = async (id: string, userId?: string) => {
      if (!Types.ObjectId.isValid(id)) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
      }
-     const isUser = await User.findById(userId);
-     if (!isUser) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
-     }
      const result = await Trailer.findById(id);
+
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
      }
-     if (isUser.role === USER_ROLES.USER) {
-          await Trailer.findByIdAndUpdate(id, { $inc: { views: 1 } });
+          await Trailer.findByIdAndUpdate(id, {
+               $inc: { views: 1 },
+          });
           await trailerCacheKey.clearAfterUpdate(id);
-     }
      return result;
 };
 

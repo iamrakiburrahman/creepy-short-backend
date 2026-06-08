@@ -29,8 +29,7 @@ const getSingleTrailer = catchAsync(async (req, res) => {
 });
 const getSingleTrailerForUser = catchAsync(async (req, res) => {
      const { id } = req.params;
-     const { id: userId } = req.user as { id: string };
-     const result = await TrailerServices.getSingleTrailerForUser(id, userId);
+     const result = await TrailerServices.getSingleTrailerForUser(id);
 
      sendResponse(res, {
           statusCode: StatusCodes.OK,
