@@ -29,8 +29,10 @@ const getSingleTrailer = async (id: string): Promise<ITrailer> => {
           if (!Types.ObjectId.isValid(id)) {
                throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
           }
-
           const result = await Trailer.findById(id);
+          if (result) {
+               await Trailer.findByIdAndUpdate(id, { $inc: { views: 1 } });
+          }
           if (!result) {
                throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
           }
