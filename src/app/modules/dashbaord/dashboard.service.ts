@@ -241,7 +241,7 @@ const getTopWatchedVideos = async (query: Record<string, unknown>) => {
      const { view, year, monthIndex, day } = parseOriginalQueryParams(query);
      const { startDate: finalStartDate, endDate: finalEndDate, filterMeta } = buildOriginalFilter(view, year, monthIndex, day);
 
-     const videos = await Video.find({
+     const videos = await MovieModel.find({
           isDeleted: false,
           createdAt: { $gte: finalStartDate, $lte: finalEndDate },
      })
