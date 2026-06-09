@@ -7,13 +7,9 @@ import axios from 'axios';
 import config from '../../../config';
 import { createCacheHelper } from '../../builder/RedisCacheHelper';
 import QueryBuilder from '../../builder/QueryBuilder';
-import { User } from '../user/user.model';
-import { USER_ROLES } from '../../../enums/user';
 import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
 import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
-const trailerCacheKey = createCacheHelper('trailer');
 const getAllTrailers = async (query: Record<string, unknown>) => {
-     return await trailerCacheKey.wrapList(query, async () => {
           const queryBuilder = new QueryBuilder(Trailer.find(), query);
           const result = await queryBuilder.filter().sort().fields().paginate().modelQuery.exec();
           const meta = await queryBuilder.countTotal();
@@ -21,25 +17,21 @@ const getAllTrailers = async (query: Record<string, unknown>) => {
                meta,
                result,
           };
-     });
 };
 
 const getSingleTrailer = async (id: string): Promise<ITrailer> => {
-     return await trailerCacheKey.wrapSingle(id, async () => {
           if (!Types.ObjectId.isValid(id)) {
                throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
           }
           const result = await Trailer.findById(id);
           if (result) {
                await Trailer.findByIdAndUpdate(id, { $inc: { views: 1 } });
-               await trailerCacheKey.clearAfterUpdate(id);
           }
           if (!result) {
                throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
           }
 
           return result;
-     });
 };
 const getSingleTrailerForUser = async (id: string, userId?: string) => {
      if (!Types.ObjectId.isValid(id)) {
@@ -53,7 +45,6 @@ const getSingleTrailerForUser = async (id: string, userId?: string) => {
           await Trailer.findByIdAndUpdate(id, {
                $inc: { views: 1 },
           });
-          await trailerCacheKey.clearAfterUpdate(id);
      return result;
 };
 
@@ -74,7 +65,6 @@ const updateTrailer = async (id: string, payload: Partial<ITrailer>): Promise<IT
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
      }
-     await trailerCacheKey.clearAfterUpdate(id);
      return result;
 };
 
@@ -87,7 +77,6 @@ const deleteTrailer = async (id: string): Promise<ITrailer> => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Something went wrong while deleting trailer, please try again with valid id.');
      }
-     await trailerCacheKey.clearAfterUpdate(id);
      return result;
 };
 // const uploadThumbnail = async (videoId: string, thumbnailFile: Express.Multer.File) => {
@@ -168,9 +157,6 @@ const createTrailer = async (id: string, payload: ITrailer) => {
           uploadedBy: new Types.ObjectId(id),
           uploadedAt: new Date(),
      });
-
-     await trailerCacheKey.clearLists();
-
      // 🔔 Broadcast notification to all users — new trailer uploaded
      await NotificationQueueHelper.sendBroadcastNotification(
           title ? `New trailer just dropped: "${title}". Watch it now!` : 'A new trailer has just been uploaded. Check it out!',
