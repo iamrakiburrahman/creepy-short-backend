@@ -245,14 +245,14 @@ const getTopWatchedVideos = async (query: Record<string, unknown>) => {
           isDeleted: false,
           createdAt: { $gte: finalStartDate, $lte: finalEndDate },
      })
-          .sort({ views: -1 })
+          .sort({ totalViews: -1 })
           .limit(5)
-          .select('title views')
+          .select('title totalViews')
           .lean();
 
      return {
           filter: filterMeta,
-          data: videos.map((v: any) => ({ title: v.title, views: v.views })),
+          data: videos.map((v: any) => ({ title: v.title, views: v.totalViews })),
      };
 };
 
