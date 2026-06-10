@@ -62,7 +62,17 @@ const readSingleNotificationToDB = async (notificationId: string): Promise<INoti
      return result;
 };
 
- const fakeNotificationToDB = async (userId: string) => {
+const deleteNotificationToDB = async (id: string) => {
+     const result = await Notification.findByIdAndDelete(id);
+     return result;
+};
+
+const deleteAllNotificationToDB = async (userId: string) => {
+     const result = await Notification.deleteMany({ receiver: userId });
+     return result;
+};
+
+const fakeNotificationToDB = async (userId: string) => {
      if (!userId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'User ID is required');
      }
@@ -88,4 +98,6 @@ export const NotificationService = {
      readAllNotificationToDB,
      readSingleNotificationToDB,
      fakeNotificationToDB,
+     deleteNotificationToDB,
+     deleteAllNotificationToDB,
 };
