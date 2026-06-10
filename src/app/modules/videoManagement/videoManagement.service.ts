@@ -11,6 +11,7 @@ import { Like } from '../like/like.model';
 import { Trailer } from '../trailer/trailer.model';
 import { User } from '../user/user.model';
 import { UserService } from '../user/user.service';
+import { ViewHistoryServices } from '../viewHistory/viewHistory.service';
 import { IVideo } from './videoManagement.interface';
 import { Video } from './videoManagement.model';
 const userCache = createCacheHelper('user');
@@ -31,6 +32,7 @@ const getSingleVideo = async (id: string, userId: string): Promise<IVideo> => {
           throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
      }
      await Video.findByIdAndUpdate(id, { $inc: { views: 1 } });
+     await ViewHistoryServices.incrementViewCount('Video', id);
      if (userId) {
           await UserService.addRecentlyViewedVideosFromDB(userId, id);
      }
@@ -268,12 +270,14 @@ const syncWatchTime = async (userId: string, watchedSeconds: number, videoId: st
                await Video.findByIdAndUpdate(videoId, {
                     $inc: { views: 1 },
                });
+               await ViewHistoryServices.incrementViewCount('Video', videoId);
           } else {
                const trailer = await Trailer.findById(videoId);
                if (trailer) {
                     await Trailer.findByIdAndUpdate(videoId, {
                          $inc: { views: 1 },
                     });
+                    await ViewHistoryServices.incrementViewCount('Trailer', videoId);
                }
           }
      }

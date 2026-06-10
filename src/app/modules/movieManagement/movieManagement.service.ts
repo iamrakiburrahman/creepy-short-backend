@@ -4,15 +4,15 @@ import AppError from '../../../errors/AppError';
 import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 import unlinkFile from '../../../shared/unlinkFile';
 import { getDateRange } from '../../../utils/getDateRange';
-import QueryBuilder from '../../builder/QueryBuilder';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 import { Category } from '../category/category.model';
 import { SeasonModel } from '../seasonManagement/seasonManagement.model';
 import { User } from '../user/user.model';
 import { Video } from '../videoManagement/videoManagement.model';
+import { ViewHistoryServices } from '../viewHistory/viewHistory.service';
+import { buildCategoryFilter, buildMeta, getFieldsParam, getPaginationParams, getSortParam, TMovieQuery } from './movieManagement.helper';
 import { IMovie } from './movieManagement.interface';
 import { MovieModel } from './movieManagement.model';
-import { buildCategoryFilter, buildMeta, getFieldsParam, getPaginationParams, getSortParam, TMovieQuery } from './movieManagement.helper';
 const movieCache = createCacheHelper('movieCache');
 
 const createMovieToDB = async (payload: IMovie) => {
@@ -106,6 +106,7 @@ const getSingleMovieFromDBWithUser = async (id: string, userId?: string) => {
      // This ensures views are counted even for guest mood
      if (!isUser || isUser.role === USER_ROLES.USER) {
           await MovieModel.findByIdAndUpdate(id, { $inc: { totalViews: 1 } }, { timestamps: false });
+          await ViewHistoryServices.incrementViewCount('Movie', id);
           await movieCache.clearAfterUpdate(id);
      }
 
@@ -120,22 +121,19 @@ const updateMovieFromDB = async (id: string, payload: IMovie) => {
      if (payload.thumbnail && existingMovie.thumbnail) {
           unlinkFile(existingMovie.thumbnail);
      }
-     console.log(payload)
+     console.log(payload);
      if (payload.categoryIds && payload.categoryIds.length) {
-        const categories = await Category.find({
-          _id: { $in: payload.categoryIds },
-     });
+          const categories = await Category.find({
+               _id: { $in: payload.categoryIds },
+          });
 
-     if (!categories.length) {
-          throw new AppError(
-               StatusCodes.BAD_REQUEST,
-               'No categories found'
-          );
-     }
+          if (!categories.length) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'No categories found');
+          }
           payload.categories = categories.map((cat) => cat.name);
      }
      if (!payload.thumbnail) {
-          delete payload.thumbnail
+          delete payload.thumbnail;
      }
      const result = await MovieModel.findByIdAndUpdate(id, payload, { new: true });
      if (!result) {
@@ -292,6 +290,7 @@ const getSingleMovieFromDBWithSession = async (userId: string | undefined, id: s
      }
      if (!isUser || isUser.role === USER_ROLES.USER) {
           await MovieModel.findByIdAndUpdate(id, { $inc: { totalViews: 1 } }, { timestamps: false });
+          await ViewHistoryServices.incrementViewCount('Movie', id);
           await movieCache.clearAfterUpdate(id);
      }
 

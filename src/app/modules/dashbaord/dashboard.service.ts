@@ -4,6 +4,7 @@ import { MovieModel } from '../movieManagement/movieManagement.model';
 import { Subscription } from '../subscription/subscription.model';
 import { Trailer } from '../trailer/trailer.model';
 import { User } from '../user/user.model';
+import { ViewHistory } from '../viewHistory/viewHistory.model';
 
 // ─── Shared Helpers ──────────────────────────────────────────────────────────
 
@@ -278,7 +279,7 @@ async function getYearlyBreakdown(year: number): Promise<PeriodStat[]> {
                const range = { $gte: start, $lte: end };
                return Promise.all([
                     Subscription.aggregate([{ $match: { createdAt: range } }, { $group: { _id: null, total: { $sum: '$price' } } }]),
-                    MovieModel.aggregate([{ $match: { createdAt: range, isDeleted: false } }, { $group: { _id: null, total: { $sum: '$totalViews' } } }]),
+                    ViewHistory.aggregate([{ $match: { date: range } }, { $group: { _id: null, total: { $sum: '$count' } } }]),
                     MovieModel.countDocuments({ status: 'Ongoing', createdAt: range, isDeleted: false }),
                     Trailer.countDocuments({ createdAt: range }),
                ]);
@@ -313,7 +314,7 @@ async function getMonthlyBreakdown(year: number, monthIndex: number): Promise<Pe
                const range = { $gte: start, $lte: end };
                return Promise.all([
                     Subscription.aggregate([{ $match: { createdAt: range } }, { $group: { _id: null, total: { $sum: '$price' } } }]),
-                    MovieModel.aggregate([{ $match: { createdAt: range, isDeleted: false } }, { $group: { _id: null, total: { $sum: '$totalViews' } } }]),
+                    ViewHistory.aggregate([{ $match: { date: range } }, { $group: { _id: null, total: { $sum: '$count' } } }]),
                     MovieModel.countDocuments({ status: 'Ongoing', createdAt: range, isDeleted: false }),
                     Trailer.countDocuments({ createdAt: range }),
                ]);
@@ -355,7 +356,7 @@ async function getWeeklyBreakdown(year?: number, monthIndex?: number, day?: numb
                const range = { $gte: start, $lte: end };
                return Promise.all([
                     Subscription.aggregate([{ $match: { createdAt: range } }, { $group: { _id: null, total: { $sum: '$price' } } }]),
-                    MovieModel.aggregate([{ $match: { createdAt: range, isDeleted: false } }, { $group: { _id: null, total: { $sum: '$totalViews' } } }]),
+                    ViewHistory.aggregate([{ $match: { date: range } }, { $group: { _id: null, total: { $sum: '$count' } } }]),
                     MovieModel.countDocuments({ status: 'Ongoing', createdAt: range, isDeleted: false }),
                     Trailer.countDocuments({ createdAt: range }),
                ]);
@@ -396,7 +397,7 @@ async function getDailyBreakdown(year?: number, monthIndex?: number, day?: numbe
                const range = { $gte: start, $lte: end };
                return Promise.all([
                     Subscription.aggregate([{ $match: { createdAt: range } }, { $group: { _id: null, total: { $sum: '$price' } } }]),
-                    MovieModel.aggregate([{ $match: { createdAt: range, isDeleted: false } }, { $group: { _id: null, total: { $sum: '$totalViews' } } }]),
+                    ViewHistory.aggregate([{ $match: { date: range } }, { $group: { _id: null, total: { $sum: '$count' } } }]),
                     MovieModel.countDocuments({ status: 'Ongoing', createdAt: range, isDeleted: false }),
                     Trailer.countDocuments({ createdAt: range }),
                ]);
@@ -462,24 +463,29 @@ const getProductionReportStats = async (query: Record<string, unknown>) => {
      const currRange = { $gte: startDate, $lte: endDate };
      const prevRange = { $gte: prevStartDate, $lte: prevEndDate };
 
-     const sumViews = (match: object) => MovieModel.aggregate([{ $match: { ...match, isDeleted: false } }, { $group: { _id: null, total: { $sum: '$totalViews' } } }]);
+     const sumViews = (match: object) => ViewHistory.aggregate([{ $match: { date: match } }, { $group: { _id: null, total: { $sum: '$count' } } }]);
 
      const sumRevenue = (match: object) => Subscription.aggregate([{ $match: { ...match } }, { $group: { _id: null, total: { $sum: '$price' } } }]);
 
      const [currPeriodData, prevPeriodStats, totalStats, breakdown] = await Promise.all([
           Promise.all([
                sumRevenue({ createdAt: currRange }),
-               sumViews({ createdAt: currRange }),
+               sumViews(currRange),
                MovieModel.countDocuments({ status: 'Ongoing', createdAt: currRange, isDeleted: false }),
                Trailer.countDocuments({ createdAt: currRange }),
           ]),
           Promise.all([
                MovieModel.countDocuments({ status: 'Ongoing', createdAt: prevRange, isDeleted: false }),
                Trailer.countDocuments({ createdAt: prevRange }),
-               sumViews({ createdAt: prevRange }),
+               sumViews(prevRange),
                sumRevenue({ createdAt: prevRange }),
           ]),
-          Promise.all([MovieModel.countDocuments({ status: 'Ongoing', isDeleted: false }), Trailer.countDocuments({}), sumViews({}), sumRevenue({})]),
+          Promise.all([
+               MovieModel.countDocuments({ status: 'Ongoing', isDeleted: false }),
+               Trailer.countDocuments({}),
+               ViewHistory.aggregate([{ $group: { _id: null, total: { $sum: '$count' } } }]),
+               sumRevenue({}),
+          ]),
           getOriginalBreakdown(view, year, monthIndex, day),
      ]);
 
@@ -668,7 +674,7 @@ async function getCustomRangeBreakdown(view: ViewType, startDate: Date, endDate:
                const range = { $gte: start, $lte: end };
                return Promise.all([
                     Subscription.aggregate([{ $match: { createdAt: range } }, { $group: { _id: null, total: { $sum: '$price' } } }]),
-                    MovieModel.aggregate([{ $match: { createdAt: range, isDeleted: false } }, { $group: { _id: null, total: { $sum: '$totalViews' } } }]),
+                    ViewHistory.aggregate([{ $match: { date: range } }, { $group: { _id: null, total: { $sum: '$count' } } }]),
                     MovieModel.countDocuments({ status: 'Ongoing', createdAt: range, isDeleted: false }),
                     Trailer.countDocuments({ createdAt: range }),
                ]);

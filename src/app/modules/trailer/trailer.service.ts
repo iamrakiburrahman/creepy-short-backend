@@ -1,37 +1,38 @@
-import { StatusCodes } from 'http-status-codes';
-import { ITrailer } from './trailer.interface';
-import { Trailer } from './trailer.model';
-import { Types } from 'mongoose';
-import AppError from '../../../errors/AppError';
 import axios from 'axios';
+import { StatusCodes } from 'http-status-codes';
+import { Types } from 'mongoose';
 import config from '../../../config';
-import { createCacheHelper } from '../../builder/RedisCacheHelper';
-import QueryBuilder from '../../builder/QueryBuilder';
+import AppError from '../../../errors/AppError';
 import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
 import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { ViewHistoryServices } from '../viewHistory/viewHistory.service';
+import { ITrailer } from './trailer.interface';
+import { Trailer } from './trailer.model';
 const getAllTrailers = async (query: Record<string, unknown>) => {
-          const queryBuilder = new QueryBuilder(Trailer.find(), query);
-          const result = await queryBuilder.filter().sort().fields().paginate().modelQuery.exec();
-          const meta = await queryBuilder.countTotal();
-          return {
-               meta,
-               result,
-          };
+     const queryBuilder = new QueryBuilder(Trailer.find(), query);
+     const result = await queryBuilder.filter().sort().fields().paginate().modelQuery.exec();
+     const meta = await queryBuilder.countTotal();
+     return {
+          meta,
+          result,
+     };
 };
 
 const getSingleTrailer = async (id: string): Promise<ITrailer> => {
-          if (!Types.ObjectId.isValid(id)) {
-               throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
-          }
-          const result = await Trailer.findById(id);
-          if (result) {
-               await Trailer.findByIdAndUpdate(id, { $inc: { views: 1 } });
-          }
-          if (!result) {
-               throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
-          }
+     if (!Types.ObjectId.isValid(id)) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid Trailer ID');
+     }
+     const result = await Trailer.findById(id);
+     if (result) {
+          await Trailer.findByIdAndUpdate(id, { $inc: { views: 1 } });
+          await ViewHistoryServices.incrementViewCount('Trailer', id);
+     }
+     if (!result) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
+     }
 
-          return result;
+     return result;
 };
 const getSingleTrailerForUser = async (id: string, userId?: string) => {
      if (!Types.ObjectId.isValid(id)) {
@@ -42,9 +43,10 @@ const getSingleTrailerForUser = async (id: string, userId?: string) => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
      }
-          await Trailer.findByIdAndUpdate(id, {
-               $inc: { views: 1 },
-          });
+     await Trailer.findByIdAndUpdate(id, {
+          $inc: { views: 1 },
+     });
+     await ViewHistoryServices.incrementViewCount('Trailer', id);
      return result;
 };
 
