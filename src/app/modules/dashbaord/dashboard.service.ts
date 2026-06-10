@@ -4,7 +4,6 @@ import { MovieModel } from '../movieManagement/movieManagement.model';
 import { Subscription } from '../subscription/subscription.model';
 import { Trailer } from '../trailer/trailer.model';
 import { User } from '../user/user.model';
-import { Video } from '../videoManagement/videoManagement.model';
 
 // ─── Shared Helpers ──────────────────────────────────────────────────────────
 
@@ -781,7 +780,7 @@ const getRevenueData = async (query: Record<string, unknown>) => {
           Subscription.aggregate([{ $match: { createdAt: currRange } }, { $group: { _id: null, total: { $sum: '$price' } } }]),
           Subscription.aggregate([{ $match: { createdAt: prevRange } }, { $group: { _id: null, total: { $sum: '$price' } } }]),
           Subscription.aggregate([{ $group: { _id: null, total: { $sum: '$price' } } }]),
-          getRevenueBreakdown(view, year, monthIndex, day, finalStartDate, finalEndDate),
+          getRevenueBreakdown(view, year, monthIndex, day, startDate, endDate),
      ]);
 
      // const currentRevenue = currRevenueRes[0]?.total ?? 0;
