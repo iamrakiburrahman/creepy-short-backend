@@ -59,20 +59,20 @@ function getDateRange(
      switch (view) {
           case 'year':
                return {
-                    startDate: moment([year]).startOf('year').toDate(),
-                    endDate: moment([year]).endOf('year').toDate(),
+                    startDate: moment([year]).utc().startOf('year').toDate(),
+                    endDate: moment([year]).utc().endOf('year').toDate(),
                };
 
           case 'month':
                return {
-                    startDate: moment([year, monthIndex]).startOf('month').toDate(),
-                    endDate: moment([year, monthIndex]).endOf('month').toDate(),
+                    startDate: moment([year, monthIndex]).utc().startOf('month').toDate(),
+                    endDate: moment([year, monthIndex]).utc().endOf('month').toDate(),
                };
 
           case 'week': {
                // If day is provided → use year/month/day to find the week that contains it
                // Otherwise → use current week
-               const anchor = day ? moment([year, monthIndex, day]) : moment();
+               const anchor = day ? moment([year, monthIndex, day]).utc() : moment().utc();
                return {
                     startDate: anchor.clone().startOf('week').toDate(),
                     endDate: anchor.clone().endOf('week').toDate(),
@@ -82,7 +82,7 @@ function getDateRange(
           case 'day': {
                // If day is provided → use year/month/day
                // Otherwise → use today
-               const target = day ? moment([year, monthIndex, day]) : moment();
+               const target = day ? moment([year, monthIndex, day]).utc() : moment().utc();
                return {
                     startDate: target.clone().startOf('day').toDate(),
                     endDate: target.clone().endOf('day').toDate(),
@@ -269,9 +269,9 @@ async function getYearlyBreakdown(year: number): Promise<PeriodStat[]> {
      const months = Array.from({ length: 12 }, (_, i) => i);
 
      const ranges = months.map((monthIndex) => ({
-          label: moment([year, monthIndex]).format('MMMM'),
-          start: moment([year, monthIndex]).startOf('month').toDate(),
-          end: moment([year, monthIndex]).endOf('month').toDate(),
+          label: moment([year, monthIndex]).utc().format('MMMM'),
+          start: moment([year, monthIndex]).utc().startOf('month').toDate(),
+          end: moment([year, monthIndex]).utc().endOf('month').toDate(),
      }));
 
      const results = await Promise.all(
@@ -300,13 +300,13 @@ async function getYearlyBreakdown(year: number): Promise<PeriodStat[]> {
 
 // ─── STEP 2: getMonthlyBreakdown ──────────────────────────────────────────────
 async function getMonthlyBreakdown(year: number, monthIndex: number): Promise<PeriodStat[]> {
-     const daysInMonth = moment([year, monthIndex]).daysInMonth();
+     const daysInMonth = moment([year, monthIndex]).utc().daysInMonth();
      const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
      const ranges = days.map((day) => ({
-          label: moment([year, monthIndex, day]).format('YYYY-MM-DD'),
-          start: moment([year, monthIndex, day]).startOf('day').toDate(),
-          end: moment([year, monthIndex, day]).endOf('day').toDate(),
+          label: moment([year, monthIndex, day]).utc().format('YYYY-MM-DD'),
+          start: moment([year, monthIndex, day]).utc().startOf('day').toDate(),
+          end: moment([year, monthIndex, day]).utc().endOf('day').toDate(),
      }));
 
      const results = await Promise.all(
@@ -339,7 +339,7 @@ async function getMonthlyBreakdown(year: number, monthIndex: number): Promise<Pe
 // If not → show current week
 
 async function getWeeklyBreakdown(year?: number, monthIndex?: number, day?: number): Promise<PeriodStat[]> {
-     const anchor = year !== undefined && monthIndex !== undefined && day !== undefined ? moment([year, monthIndex, day]) : moment();
+     const anchor = year !== undefined && monthIndex !== undefined && day !== undefined ? moment([year, monthIndex, day]).utc() : moment().utc();
 
      const weekStart = anchor.clone().startOf('week');
 
@@ -381,7 +381,7 @@ async function getWeeklyBreakdown(year?: number, monthIndex?: number, day?: numb
 // If not → show today's hours
 
 async function getDailyBreakdown(year?: number, monthIndex?: number, day?: number): Promise<PeriodStat[]> {
-     const target = year !== undefined && monthIndex !== undefined && day !== undefined ? moment([year, monthIndex, day]) : moment();
+     const target = year !== undefined && monthIndex !== undefined && day !== undefined ? moment([year, monthIndex, day]).utc() : moment().utc();
 
      const dayStart = target.clone().startOf('day');
      const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -528,9 +528,9 @@ async function getRevenueYearlyBreakdown(year: number) {
      const months = Array.from({ length: 12 }, (_, i) => i);
 
      const ranges = months.map((monthIndex) => ({
-          label: moment([year, monthIndex]).format('MMMM'),
-          start: moment([year, monthIndex]).startOf('month').toDate(),
-          end: moment([year, monthIndex]).endOf('month').toDate(),
+          label: moment([year, monthIndex]).utc().format('MMMM'),
+          start: moment([year, monthIndex]).utc().startOf('month').toDate(),
+          end: moment([year, monthIndex]).utc().endOf('month').toDate(),
      }));
 
      const results = await Promise.all(
@@ -547,13 +547,13 @@ async function getRevenueYearlyBreakdown(year: number) {
 }
 
 async function getRevenueMonthlyBreakdown(year: number, monthIndex: number) {
-     const daysInMonth = moment([year, monthIndex]).daysInMonth();
+     const daysInMonth = moment([year, monthIndex]).utc().daysInMonth();
      const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
      const ranges = days.map((day) => ({
-          label: moment([year, monthIndex, day]).format('YYYY-MM-DD'),
-          start: moment([year, monthIndex, day]).startOf('day').toDate(),
-          end: moment([year, monthIndex, day]).endOf('day').toDate(),
+          label: moment([year, monthIndex, day]).utc().format('YYYY-MM-DD'),
+          start: moment([year, monthIndex, day]).utc().startOf('day').toDate(),
+          end: moment([year, monthIndex, day]).utc().endOf('day').toDate(),
      }));
 
      const results = await Promise.all(
@@ -570,7 +570,7 @@ async function getRevenueMonthlyBreakdown(year: number, monthIndex: number) {
 }
 
 async function getRevenueWeeklyBreakdown(year?: number, monthIndex?: number, day?: number) {
-     const anchor = year !== undefined && monthIndex !== undefined && day !== undefined ? moment([year, monthIndex, day]) : moment();
+     const anchor = year !== undefined && monthIndex !== undefined && day !== undefined ? moment([year, monthIndex, day]).utc() : moment().utc();
 
      const weekStart = anchor.clone().startOf('week');
 
@@ -596,7 +596,7 @@ async function getRevenueWeeklyBreakdown(year?: number, monthIndex?: number, day
 }
 
 async function getRevenueDailyBreakdown(year?: number, monthIndex?: number, day?: number) {
-     const target = year !== undefined && monthIndex !== undefined && day !== undefined ? moment([year, monthIndex, day]) : moment();
+     const target = year !== undefined && monthIndex !== undefined && day !== undefined ? moment([year, monthIndex, day]).utc() : moment().utc();
 
      const dayStart = target.clone().startOf('day');
      const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -621,8 +621,8 @@ async function getRevenueDailyBreakdown(year?: number, monthIndex?: number, day?
 }
 
 async function getCustomRangeBreakdown(view: ViewType, startDate: Date, endDate: Date): Promise<PeriodStat[]> {
-     const startMoment = moment(startDate);
-     const endMoment = moment(endDate);
+     const startMoment = moment(startDate).utc();
+     const endMoment = moment(endDate).utc();
      const ranges: { label: string; start: Date; end: Date }[] = [];
      let current = startMoment.clone();
 
@@ -694,8 +694,8 @@ async function getCustomRangeBreakdown(view: ViewType, startDate: Date, endDate:
 }
 
 async function getRevenueCustomRangeBreakdown(view: ViewType, startDate: Date, endDate: Date) {
-     const startMoment = moment(startDate);
-     const endMoment = moment(endDate);
+     const startMoment = moment(startDate).utc();
+     const endMoment = moment(endDate).utc();
      const ranges: { label: string; start: Date; end: Date }[] = [];
      let current = startMoment.clone();
 

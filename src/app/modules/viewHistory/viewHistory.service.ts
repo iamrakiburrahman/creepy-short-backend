@@ -1,14 +1,14 @@
 import moment from 'moment';
 import { Types } from 'mongoose';
-import { ViewHistory } from './viewHistory.model';
 import { ItemType } from './viewHistory.interface';
+import { ViewHistory } from './viewHistory.model';
 
 const incrementViewCount = async (itemType: ItemType, itemId: string | Types.ObjectId) => {
-     const today = moment().startOf('day').toDate();
-     
+     const currentHour = moment().utc().startOf('hour').toDate();
+
      await ViewHistory.updateOne(
           {
-               date: today,
+               date: currentHour,
                itemType,
                itemId: new Types.ObjectId(itemId),
           },
