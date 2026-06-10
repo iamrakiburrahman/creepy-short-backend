@@ -6,13 +6,13 @@ import AppError from '../../../errors/AppError';
 import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 import { BunnyStorageHandeler } from '../../../helpers/BunnyHelper';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { createCacheHelper } from '../../builder/RedisCacheHelper';
 import { Like } from '../like/like.model';
+import { Trailer } from '../trailer/trailer.model';
 import { User } from '../user/user.model';
 import { UserService } from '../user/user.service';
 import { IVideo } from './videoManagement.interface';
 import { Video } from './videoManagement.model';
-import { createCacheHelper } from '../../builder/RedisCacheHelper';
-import { Trailer } from '../trailer/trailer.model';
 const userCache = createCacheHelper('user');
 const getAllVideos = async (query: Record<string, unknown>, seasonId: string) => {
      const queryBuilder = new QueryBuilder(Video.find({ seasonId: new mongoose.Types.ObjectId(seasonId) }), query).paginate().filter().sort().fields().search(['title', 'description']);
@@ -249,10 +249,13 @@ const syncWatchTime = async (userId: string, watchedSeconds: number, videoId: st
           return null;
      }
 
+     // Ensure watchedSeconds is a valid number, default to 0 if undefined or invalid
+     const validWatchedSeconds = typeof watchedSeconds === 'number' && !isNaN(watchedSeconds) ? watchedSeconds : 0;
+
      const updatedUser = await User.findByIdAndUpdate(
           userId,
           {
-               $inc: { totalWatchTime: watchedSeconds },
+               $inc: { totalWatchTime: validWatchedSeconds },
           },
           { new: true, select: 'totalWatchTime' }, // Only return the updated field
      );
@@ -263,13 +266,13 @@ const syncWatchTime = async (userId: string, watchedSeconds: number, videoId: st
           const video = await Video.findById(videoId);
           if (video) {
                await Video.findByIdAndUpdate(videoId, {
-                    $inc: { views: { $inc: 1 } },
+                    $inc: { views: 1 },
                });
           } else {
                const trailer = await Trailer.findById(videoId);
                if (trailer) {
                     await Trailer.findByIdAndUpdate(videoId, {
-                         $inc: { views: { $inc: 1 } },
+                         $inc: { views: 1 },
                     });
                }
           }
