@@ -4,7 +4,7 @@ import { MovieModel } from '../movieManagement/movieManagement.model';
 import { Subscription } from '../subscription/subscription.model';
 import { Trailer } from '../trailer/trailer.model';
 import { User } from '../user/user.model';
-import { Video } from '../videoManagement/videoManagement.model';
+import { ViewHistory } from '../viewHistory/viewHistory.model';
 
 // ─── Shared Helpers ──────────────────────────────────────────────────────────
 
@@ -59,20 +59,20 @@ function getDateRange(
      switch (view) {
           case 'year':
                return {
-                    startDate: moment([year]).startOf('year').toDate(),
-                    endDate: moment([year]).endOf('year').toDate(),
+                    startDate: moment([year]).utc().startOf('year').toDate(),
+                    endDate: moment([year]).utc().endOf('year').toDate(),
                };
 
           case 'month':
                return {
-                    startDate: moment([year, monthIndex]).startOf('month').toDate(),
-                    endDate: moment([year, monthIndex]).endOf('month').toDate(),
+                    startDate: moment([year, monthIndex]).utc().startOf('month').toDate(),
+                    endDate: moment([year, monthIndex]).utc().endOf('month').toDate(),
                };
 
           case 'week': {
                // If day is provided → use year/month/day to find the week that contains it
                // Otherwise → use current week
-               const anchor = day ? moment([year, monthIndex, day]) : moment();
+               const anchor = day ? moment([year, monthIndex, day]).utc() : moment().utc();
                return {
                     startDate: anchor.clone().startOf('week').toDate(),
                     endDate: anchor.clone().endOf('week').toDate(),
@@ -82,7 +82,7 @@ function getDateRange(
           case 'day': {
                // If day is provided → use year/month/day
                // Otherwise → use today
-               const target = day ? moment([year, monthIndex, day]) : moment();
+               const target = day ? moment([year, monthIndex, day]).utc() : moment().utc();
                return {
                     startDate: target.clone().startOf('day').toDate(),
                     endDate: target.clone().endOf('day').toDate(),
@@ -274,18 +274,18 @@ const getTopWatchedVideos = async (query: Record<string, unknown>) => {
           filterMeta,
      } = buildOriginalFilter(view, year, monthIndex, day);
 
-     const videos = await Video.find({
+     const videos = await MovieModel.find({
           isDeleted: false,
           createdAt: { $gte: finalStartDate, $lte: finalEndDate },
      })
-          .sort({ views: -1 })
+          .sort({ totalViews: -1 })
           .limit(5)
-          .select('title views')
+          .select('title totalViews')
           .lean();
 
      return {
           filter: filterMeta,
-          data: videos.map((v: any) => ({ title: v.title, views: v.views })),
+          data: videos.map((v: any) => ({ title: v.title, views: v.totalViews })),
      };
 };
 
@@ -302,9 +302,9 @@ async function getYearlyBreakdown(year: number): Promise<PeriodStat[]> {
      const months = Array.from({ length: 12 }, (_, i) => i);
 
      const ranges = months.map((monthIndex) => ({
-          label: moment([year, monthIndex]).format('MMMM'),
-          start: moment([year, monthIndex]).startOf('month').toDate(),
-          end: moment([year, monthIndex]).endOf('month').toDate(),
+          label: moment([year, monthIndex]).utc().format('MMMM'),
+          start: moment([year, monthIndex]).utc().startOf('month').toDate(),
+          end: moment([year, monthIndex]).utc().endOf('month').toDate(),
      }));
 
      const results = await Promise.all(
@@ -315,9 +315,9 @@ async function getYearlyBreakdown(year: number): Promise<PeriodStat[]> {
                          { $match: { createdAt: range } },
                          { $group: { _id: null, total: { $sum: '$price' } } },
                     ]),
-                    MovieModel.aggregate([
-                         { $match: { createdAt: range, isDeleted: false } },
-                         { $group: { _id: null, total: { $sum: '$totalViews' } } },
+                    ViewHistory.aggregate([
+                         { $match: { date: range } },
+                         { $group: { _id: null, total: { $sum: '$count' } } },
                     ]),
                     MovieModel.countDocuments({
                          status: 'Ongoing',
@@ -343,13 +343,13 @@ async function getYearlyBreakdown(year: number): Promise<PeriodStat[]> {
 
 // ─── STEP 2: getMonthlyBreakdown ──────────────────────────────────────────────
 async function getMonthlyBreakdown(year: number, monthIndex: number): Promise<PeriodStat[]> {
-     const daysInMonth = moment([year, monthIndex]).daysInMonth();
+     const daysInMonth = moment([year, monthIndex]).utc().daysInMonth();
      const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
      const ranges = days.map((day) => ({
-          label: moment([year, monthIndex, day]).format('YYYY-MM-DD'),
-          start: moment([year, monthIndex, day]).startOf('day').toDate(),
-          end: moment([year, monthIndex, day]).endOf('day').toDate(),
+          label: moment([year, monthIndex, day]).utc().format('YYYY-MM-DD'),
+          start: moment([year, monthIndex, day]).utc().startOf('day').toDate(),
+          end: moment([year, monthIndex, day]).utc().endOf('day').toDate(),
      }));
 
      const results = await Promise.all(
@@ -360,9 +360,9 @@ async function getMonthlyBreakdown(year: number, monthIndex: number): Promise<Pe
                          { $match: { createdAt: range } },
                          { $group: { _id: null, total: { $sum: '$price' } } },
                     ]),
-                    MovieModel.aggregate([
-                         { $match: { createdAt: range, isDeleted: false } },
-                         { $group: { _id: null, total: { $sum: '$totalViews' } } },
+                    ViewHistory.aggregate([
+                         { $match: { date: range } },
+                         { $group: { _id: null, total: { $sum: '$count' } } },
                     ]),
                     MovieModel.countDocuments({
                          status: 'Ongoing',
@@ -398,8 +398,8 @@ async function getWeeklyBreakdown(
 ): Promise<PeriodStat[]> {
      const anchor =
           year !== undefined && monthIndex !== undefined && day !== undefined
-               ? moment([year, monthIndex, day])
-               : moment();
+               ? moment([year, monthIndex, day]).utc()
+               : moment().utc();
 
      const weekStart = anchor.clone().startOf('week');
 
@@ -419,9 +419,9 @@ async function getWeeklyBreakdown(
                          { $match: { createdAt: range } },
                          { $group: { _id: null, total: { $sum: '$price' } } },
                     ]),
-                    MovieModel.aggregate([
-                         { $match: { createdAt: range, isDeleted: false } },
-                         { $group: { _id: null, total: { $sum: '$totalViews' } } },
+                    ViewHistory.aggregate([
+                         { $match: { date: range } },
+                         { $group: { _id: null, total: { $sum: '$count' } } },
                     ]),
                     MovieModel.countDocuments({
                          status: 'Ongoing',
@@ -457,8 +457,8 @@ async function getDailyBreakdown(
 ): Promise<PeriodStat[]> {
      const target =
           year !== undefined && monthIndex !== undefined && day !== undefined
-               ? moment([year, monthIndex, day])
-               : moment();
+               ? moment([year, monthIndex, day]).utc()
+               : moment().utc();
 
      const dayStart = target.clone().startOf('day');
      const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -477,9 +477,9 @@ async function getDailyBreakdown(
                          { $match: { createdAt: range } },
                          { $group: { _id: null, total: { $sum: '$price' } } },
                     ]),
-                    MovieModel.aggregate([
-                         { $match: { createdAt: range, isDeleted: false } },
-                         { $group: { _id: null, total: { $sum: '$totalViews' } } },
+                    ViewHistory.aggregate([
+                         { $match: { date: range } },
+                         { $group: { _id: null, total: { $sum: '$count' } } },
                     ]),
                     MovieModel.countDocuments({
                          status: 'Ongoing',
@@ -564,9 +564,9 @@ const getProductionReportStats = async (query: Record<string, unknown>) => {
      const prevRange = { $gte: prevStartDate, $lte: prevEndDate };
 
      const sumViews = (match: object) =>
-          MovieModel.aggregate([
-               { $match: { ...match, isDeleted: false } },
-               { $group: { _id: null, total: { $sum: '$totalViews' } } },
+          ViewHistory.aggregate([
+               { $match: { date: match } },
+               { $group: { _id: null, total: { $sum: '$count' } } },
           ]);
 
      const sumRevenue = (match: object) =>
@@ -578,7 +578,7 @@ const getProductionReportStats = async (query: Record<string, unknown>) => {
      const [currPeriodData, prevPeriodStats, totalStats, breakdown] = await Promise.all([
           Promise.all([
                sumRevenue({ createdAt: currRange }),
-               sumViews({ createdAt: currRange }),
+               sumViews(currRange),
                MovieModel.countDocuments({
                     status: 'Ongoing',
                     createdAt: currRange,
@@ -593,13 +593,13 @@ const getProductionReportStats = async (query: Record<string, unknown>) => {
                     isDeleted: false,
                }),
                Trailer.countDocuments({ createdAt: prevRange }),
-               sumViews({ createdAt: prevRange }),
+               sumViews(prevRange),
                sumRevenue({ createdAt: prevRange }),
           ]),
           Promise.all([
                MovieModel.countDocuments({ status: 'Ongoing', isDeleted: false }),
                Trailer.countDocuments({}),
-               sumViews({}),
+               ViewHistory.aggregate([{ $group: { _id: null, total: { $sum: '$count' } } }]),
                sumRevenue({}),
           ]),
           getOriginalBreakdown(view, year, monthIndex, day),
@@ -644,9 +644,9 @@ async function getRevenueYearlyBreakdown(year: number) {
      const months = Array.from({ length: 12 }, (_, i) => i);
 
      const ranges = months.map((monthIndex) => ({
-          label: moment([year, monthIndex]).format('MMMM'),
-          start: moment([year, monthIndex]).startOf('month').toDate(),
-          end: moment([year, monthIndex]).endOf('month').toDate(),
+          label: moment([year, monthIndex]).utc().format('MMMM'),
+          start: moment([year, monthIndex]).utc().startOf('month').toDate(),
+          end: moment([year, monthIndex]).utc().endOf('month').toDate(),
      }));
 
      const results = await Promise.all(
@@ -666,13 +666,13 @@ async function getRevenueYearlyBreakdown(year: number) {
 }
 
 async function getRevenueMonthlyBreakdown(year: number, monthIndex: number) {
-     const daysInMonth = moment([year, monthIndex]).daysInMonth();
+     const daysInMonth = moment([year, monthIndex]).utc().daysInMonth();
      const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
      const ranges = days.map((day) => ({
-          label: moment([year, monthIndex, day]).format('YYYY-MM-DD'),
-          start: moment([year, monthIndex, day]).startOf('day').toDate(),
-          end: moment([year, monthIndex, day]).endOf('day').toDate(),
+          label: moment([year, monthIndex, day]).utc().format('YYYY-MM-DD'),
+          start: moment([year, monthIndex, day]).utc().startOf('day').toDate(),
+          end: moment([year, monthIndex, day]).utc().endOf('day').toDate(),
      }));
 
      const results = await Promise.all(
@@ -694,8 +694,8 @@ async function getRevenueMonthlyBreakdown(year: number, monthIndex: number) {
 async function getRevenueWeeklyBreakdown(year?: number, monthIndex?: number, day?: number) {
      const anchor =
           year !== undefined && monthIndex !== undefined && day !== undefined
-               ? moment([year, monthIndex, day])
-               : moment();
+               ? moment([year, monthIndex, day]).utc()
+               : moment().utc();
 
      const weekStart = anchor.clone().startOf('week');
 
@@ -726,8 +726,8 @@ async function getRevenueWeeklyBreakdown(year?: number, monthIndex?: number, day
 async function getRevenueDailyBreakdown(year?: number, monthIndex?: number, day?: number) {
      const target =
           year !== undefined && monthIndex !== undefined && day !== undefined
-               ? moment([year, monthIndex, day])
-               : moment();
+               ? moment([year, monthIndex, day]).utc()
+               : moment().utc();
 
      const dayStart = target.clone().startOf('day');
      const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -759,8 +759,8 @@ async function getCustomRangeBreakdown(
      startDate: Date,
      endDate: Date,
 ): Promise<PeriodStat[]> {
-     const startMoment = moment(startDate);
-     const endMoment = moment(endDate);
+     const startMoment = moment(startDate).utc();
+     const endMoment = moment(endDate).utc();
      const ranges: { label: string; start: Date; end: Date }[] = [];
      let current = startMoment.clone();
 
@@ -818,9 +818,9 @@ async function getCustomRangeBreakdown(
                          { $match: { createdAt: range } },
                          { $group: { _id: null, total: { $sum: '$price' } } },
                     ]),
-                    MovieModel.aggregate([
-                         { $match: { createdAt: range, isDeleted: false } },
-                         { $group: { _id: null, total: { $sum: '$totalViews' } } },
+                    ViewHistory.aggregate([
+                         { $match: { date: range } },
+                         { $group: { _id: null, total: { $sum: '$count' } } },
                     ]),
                     MovieModel.countDocuments({
                          status: 'Ongoing',
@@ -845,8 +845,8 @@ async function getCustomRangeBreakdown(
 }
 
 async function getRevenueCustomRangeBreakdown(view: ViewType, startDate: Date, endDate: Date) {
-     const startMoment = moment(startDate);
-     const endMoment = moment(endDate);
+     const startMoment = moment(startDate).utc();
+     const endMoment = moment(endDate).utc();
      const ranges: { label: string; start: Date; end: Date }[] = [];
      let current = startMoment.clone();
 
@@ -961,7 +961,7 @@ const getRevenueData = async (query: Record<string, unknown>) => {
                { $group: { _id: null, total: { $sum: '$price' } } },
           ]),
           Subscription.aggregate([{ $group: { _id: null, total: { $sum: '$price' } } }]),
-          getRevenueBreakdown(view, year, monthIndex, day, finalStartDate, finalEndDate),
+          getRevenueBreakdown(view, year, monthIndex, day, startDate, endDate),
      ]);
 
      // const currentRevenue = currRevenueRes[0]?.total ?? 0;

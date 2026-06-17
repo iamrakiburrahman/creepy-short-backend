@@ -4,14 +4,12 @@ import AppError from '../../../errors/AppError';
 import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 import unlinkFile from '../../../shared/unlinkFile';
 import { getDateRange } from '../../../utils/getDateRange';
-import QueryBuilder from '../../builder/QueryBuilder';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 import { Category } from '../category/category.model';
 import { SeasonModel } from '../seasonManagement/seasonManagement.model';
 import { User } from '../user/user.model';
 import { Video } from '../videoManagement/videoManagement.model';
-import { IMovie } from './movieManagement.interface';
-import { MovieModel } from './movieManagement.model';
+import { ViewHistoryServices } from '../viewHistory/viewHistory.service';
 import {
      buildCategoryFilter,
      buildMeta,
@@ -20,6 +18,8 @@ import {
      getSortParam,
      TMovieQuery,
 } from './movieManagement.helper';
+import { IMovie } from './movieManagement.interface';
+import { MovieModel } from './movieManagement.model';
 const movieCache = createCacheHelper('movieCache');
 
 const createMovieToDB = async (payload: IMovie) => {
@@ -119,6 +119,7 @@ const getSingleMovieFromDBWithUser = async (id: string, userId?: string) => {
                { $inc: { totalViews: 1 } },
                { timestamps: false },
           );
+          await ViewHistoryServices.incrementViewCount('Movie', id);
           await movieCache.clearAfterUpdate(id);
      }
 
@@ -306,6 +307,7 @@ const getSingleMovieFromDBWithSession = async (userId: string | undefined, id: s
                { $inc: { totalViews: 1 } },
                { timestamps: false },
           );
+          await ViewHistoryServices.incrementViewCount('Movie', id);
           await movieCache.clearAfterUpdate(id);
      }
 

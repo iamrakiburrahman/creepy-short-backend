@@ -16,7 +16,16 @@ router.patch(
      auth(USER_ROLES.USER),
      NotificationController.readSingleNotification,
 );
-
 router.post('/fake', auth(USER_ROLES.USER), NotificationController.fakeNotification);
+router.delete(
+     '/clear-all',
+     auth(USER_ROLES.USER, USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+     NotificationController.deleteAllNotification,
+);
+router.delete(
+     '/single/:id/delete',
+     auth(USER_ROLES.USER, USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+     NotificationController.deleteNotification,
+);
 
 export const NotificationRoutes = router;

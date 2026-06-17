@@ -68,10 +68,36 @@ const fakeNotification = catchAsync(async (req, res) => {
      });
 });
 
+const deleteNotification = catchAsync(async (req, res) => {
+     const { id } = req.params;
+     const result = await NotificationService.deleteNotificationToDB(id);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'Notification Deleted Successfully',
+          data: result,
+     });
+});
+
+const deleteAllNotification = catchAsync(async (req, res) => {
+     const { id } = req.user as { id: string };
+     const result = await NotificationService.deleteAllNotificationToDB(id);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'All Notifications Deleted Successfully',
+          data: result,
+     });
+});
+
 export const NotificationController = {
      adminNotificationFromDB,
      getNotificationFromDB,
      readAllNotification,
      readSingleNotification,
      fakeNotification,
+     deleteNotification,
+     deleteAllNotification,
 };

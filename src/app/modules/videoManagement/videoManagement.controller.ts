@@ -157,9 +157,9 @@ const getSingleVideoApp = catchAsync(async (req, res) => {
      });
 });
 const syncWatchTime = catchAsync(async (req, res) => {
-     const { videoSeconds } = req.body;
+     const { watchedSeconds, videoId } = req.body;
      const userId = (req.user as { id: string })?.id;
-     const result = await VideoManagementServices.syncWatchTime(userId, videoSeconds);
+     const result = await VideoManagementServices.syncWatchTime(userId, watchedSeconds, videoId);
 
      sendResponse(res, {
           success: true,
