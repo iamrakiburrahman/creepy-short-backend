@@ -6,6 +6,7 @@ import { User } from '../user/user.model';
 import { logger } from '../../../shared/logger';
 import { EmailQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
+import { Subscription } from '../subscription/subscription.model';
 
 const userCache = createCacheHelper('user');
 const allUser = async (query: Record<string, unknown>) => {
@@ -27,12 +28,31 @@ const allUser = async (query: Record<string, unknown>) => {
 
                const meta = await queryBuilder.countTotal();
 
-               // Map through users and format the watch time
+               // Fetch active subscriptions for all users in one query
+               const userIds = users.map((user: any) => user._id);
+
+               const activeSubscriptions = await Subscription.find({
+                    userId: { $in: userIds },
+                    status: 'active',
+               })
+                    .select(
+                         'userId subscriptionId package packageName currentPeriodStart currentPeriodEnd remaining provider price',
+                    )
+                    .lean();
+
+               // Map subscriptions by userId for O(1) lookup
+               const subscriptionMap = new Map(
+                    activeSubscriptions.map((sub) => [sub.userId.toString(), sub]),
+               );
+
+               // Map through users and format watch time + attach subscription
                const formattedUsers = users.map((user: any) => {
                     const totalSeconds = user.totalWatchTime || 0;
                     const hours = Math.floor(totalSeconds / 3600);
                     const minutes = Math.floor((totalSeconds % 3600) / 60);
                     const seconds = totalSeconds % 60;
+
+                    const activeSubscription = subscriptionMap.get(user._id.toString()) || null;
 
                     return {
                          ...user,
@@ -41,6 +61,7 @@ const allUser = async (query: Record<string, unknown>) => {
                               formatted: `${hours}h ${minutes}m ${seconds}s`,
                               breakdown: { hours, minutes, seconds },
                          },
+                         activeSubscription,
                     };
                });
 
