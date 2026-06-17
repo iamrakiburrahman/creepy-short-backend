@@ -12,43 +12,74 @@ import { EmailQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 import { CACHE_TTL, createCacheHelper } from '../../builder/RedisCacheHelper';
 import mongoose from 'mongoose';
 import { Video } from '../videoManagement/videoManagement.model';
+import { logger } from '../../../shared/logger';
 
 const userCache = createCacheHelper('user');
 
 // create user
 const createUserToDB = async (payload: IUser): Promise<IUser> => {
-     //set role
-     const user = await User.isExistUserByEmail(payload.email);
-     if (user) {
-          throw new AppError(StatusCodes.CONFLICT, 'Email already exists');
+     const { createUser, otp } = await createUserHelper(payload);
+     try {
+          await userCache.clearLists();
+     } catch (cacheError) {
+          logger.error('Cache clear failed after user creation:', cacheError);
      }
-     payload.role = USER_ROLES.USER;
-     const createUser = await User.create(payload);
-     if (!createUser) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create user');
+     try {
+          await EmailQueueHelper.sendWelcomeEmail(createUser.email!, createUser.name, otp);
+     } catch (emailError) {
+          logger.error('Welcome email failed for user:', {
+               userId: createUser._id,
+               email: createUser.email,
+               error: emailError,
+          });
      }
-
-     //send email
-     const otp = generateOTP(6);
-     // const values = {
-     //      name: createUser.name,
-     //      otp: otp,
-     //      email: createUser.email!,
-     // };
-     // const createAccountTemplate = emailTemplate.createAccount(values);
-     // emailHelper.sendEmail(createAccountTemplate);
-     await EmailQueueHelper.sendWelcomeEmail(createUser.email!, createUser.name, otp);
-
-     //save to DB
-     const authentication = {
-          oneTimeCode: otp,
-          expireAt: new Date(Date.now() + 3 * 60000),
-     };
-     await User.findOneAndUpdate({ _id: createUser._id }, { $set: { authentication } });
-     await userCache.clearLists();
      return createUser;
 };
+const createUserHelper = async (payload: IUser) => {
+     const session = await mongoose.startSession();
 
+     try {
+          session.startTransaction();
+          const existingUser = await User.isExistUserByEmail(payload.email).session(session);
+          if (existingUser) {
+               throw new AppError(StatusCodes.CONFLICT, 'Email already exists');
+          }
+
+          if (payload.age < 13) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Age must be at least 13');
+          }
+          const userPayload: IUser = {
+               ...payload,
+               role: USER_ROLES.USER,
+          };
+
+          const [createUser] = await User.create([userPayload], { session });
+
+          if (!createUser) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create user');
+          }
+
+          const otp = generateOTP(6);
+
+          const authentication = {
+               oneTimeCode: otp,
+               expireAt: new Date(Date.now() + 3 * 60000),
+          };
+
+          await User.updateOne({ _id: createUser._id }, { $set: { authentication } }, { session });
+
+          await session.commitTransaction();
+
+          return { createUser, otp };
+     } catch (error) {
+          if (session.inTransaction()) {
+               await session.abortTransaction();
+          }
+          throw error;
+     } finally {
+          session.endSession();
+     }
+};
 // create Admin
 const createAdminToDB = async (payload: Partial<IUser>): Promise<IUser> => {
      //set role
