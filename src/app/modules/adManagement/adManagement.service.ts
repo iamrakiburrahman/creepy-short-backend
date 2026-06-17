@@ -32,8 +32,25 @@ const getAllAdds = async (query: Record<string, unknown>) => {
      );
 };
 const getRandomAd = async () => {
-     const [ad] = await AdManagement.aggregate([{ $sample: { size: 1 } }]);
-     return ad || null;
+     const [randomAd] = await AdManagement.aggregate<{ _id: string }>([
+          { $sample: { size: 1 } },
+          { $project: { _id: 1 } },
+     ]);
+
+     if (!randomAd) {
+          return null;
+     }
+
+     const ad = await AdManagement.findByIdAndUpdate(
+          randomAd._id,
+          { $inc: { views: 1 } },
+          {
+               new: true,
+               lean: true,
+          },
+     );
+
+     return ad;
 };
 
 const getSingleAdd = async (id: string): Promise<IAdManagement> => {
