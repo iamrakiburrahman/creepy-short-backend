@@ -49,7 +49,9 @@ const getRandomAd = async () => {
                lean: true,
           },
      );
-
+     if (ad) {
+          await addCacheKey.clearAfterUpdate(ad._id.toString());
+     }
      return ad;
 };
 
