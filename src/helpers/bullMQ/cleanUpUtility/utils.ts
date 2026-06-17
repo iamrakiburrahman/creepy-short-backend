@@ -224,7 +224,6 @@ export async function getWaitingJobs(queueName: string, start: number = 0, end: 
           throw error;
      }
 }
-
 // Retry all failed jobs in a queue
 export async function retryAllFailedJobs(queueName: string) {
      try {
