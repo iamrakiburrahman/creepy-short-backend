@@ -18,13 +18,19 @@ export interface INotificationPayload {
 export class NotificationHelper {
      // MAIN METHOD: SEND TO SINGLE USER
 
-     static async sendToUser(userId: string | mongoose.Types.ObjectId, payload: INotificationPayload) {
+     static async sendToUser(
+          userId: string | mongoose.Types.ObjectId,
+          payload: INotificationPayload,
+     ) {
           return this.sendToBatch([userId], payload);
      }
 
      // MAIN METHOD: SEND TO MULTIPLE USERS (BATCH)
 
-     static async sendToBatch(userIds: (string | mongoose.Types.ObjectId)[], payload: INotificationPayload) {
+     static async sendToBatch(
+          userIds: (string | mongoose.Types.ObjectId)[],
+          payload: INotificationPayload,
+     ) {
           try {
                if (!userIds.length) return;
 
@@ -47,7 +53,7 @@ export class NotificationHelper {
                })
                     .select('fcmToken')
                     .lean();
-               const fcmTokens = tokensData.map((t:any) => t.fcmToken);
+               const fcmTokens = tokensData.map((t: any) => t.fcmToken);
 
                // --- PARALLEL EXECUTION ---
                const tasks = [];
@@ -62,7 +68,11 @@ export class NotificationHelper {
                     tasks.push(this.saveToDatabase(validUserIds, payload));
                }
                await Promise.allSettled(tasks);
-               logger.info(colors.green(`✅ Notification flow completed for ${validUserIds.length} users.`));
+               logger.info(
+                    colors.green(
+                         `✅ Notification flow completed for ${validUserIds.length} users.`,
+                    ),
+               );
           } catch (error) {
                logger.error(colors.red('❌ NotificationHelper Error:'), error);
           }
@@ -80,7 +90,9 @@ export class NotificationHelper {
                if (!bodyText) bodyText = 'Sent a new message';
 
                // sender removed filter others participants
-               const recipients = chat.participants.filter((p: any) => p._id.toString() !== senderId).map((p: any) => p._id);
+               const recipients = chat.participants
+                    .filter((p: any) => p._id.toString() !== senderId)
+                    .map((p: any) => p._id);
 
                if (recipients.length === 0) return;
 
@@ -143,21 +155,35 @@ export class NotificationHelper {
                // Token Cleanup
                if (response.failureCount > 0) {
                     const failedTokens: string[] = [];
-                    response.responses.forEach((resp: admin.messaging.SendResponse, idx: number) => {
-                         if (!resp.success) {
-                              const errCode = resp.error?.code;
-                              if (errCode === 'messaging/registration-token-not-registered' || errCode === 'messaging/invalid-registration-token' || errCode === 'messaging/mismatched-credential') {
-                                   failedTokens.push(tokens[idx]);
+                    response.responses.forEach(
+                         (resp: admin.messaging.SendResponse, idx: number) => {
+                              if (!resp.success) {
+                                   const errCode = resp.error?.code;
+                                   if (
+                                        errCode === 'messaging/registration-token-not-registered' ||
+                                        errCode === 'messaging/invalid-registration-token' ||
+                                        errCode === 'messaging/mismatched-credential'
+                                   ) {
+                                        failedTokens.push(tokens[idx]);
+                                   }
                               }
-                         }
-                    });
+                         },
+                    );
                     if (failedTokens.length > 0) {
                          await DeviceToken.deleteMany({ fcmToken: { $in: failedTokens } });
-                         logger.info(colors.yellow(`🗑️  Removed ${failedTokens.length} invalid FCM tokens`));
+                         logger.info(
+                              colors.yellow(
+                                   `🗑️  Removed ${failedTokens.length} invalid FCM tokens`,
+                              ),
+                         );
                     }
                }
 
-               logger.info(colors.green(`📱 FCM sent: ${response.successCount} success, ${response.failureCount} failed out of ${tokens.length} tokens`));
+               logger.info(
+                    colors.green(
+                         `📱 FCM sent: ${response.successCount} success, ${response.failureCount} failed out of ${tokens.length} tokens`,
+                    ),
+               );
           } catch (error) {
                logger.error(colors.red('FCM Send Error:'), error);
           }
@@ -168,7 +194,12 @@ export class NotificationHelper {
       */
      private static async saveToDatabase(userIds: any[], payload: INotificationPayload) {
           try {
-               const referenceId = payload.data?.bookingId || payload.data?.orderId || payload.data?.chatId || payload.data?.userId || null;
+               const referenceId =
+                    payload.data?.bookingId ||
+                    payload.data?.orderId ||
+                    payload.data?.chatId ||
+                    payload.data?.userId ||
+                    null;
                const notifications = userIds.map((userId) => ({
                     receiver: userId,
                     title: payload.title,
@@ -180,7 +211,9 @@ export class NotificationHelper {
                }));
 
                await Notification.insertMany(notifications);
-               logger.info(colors.cyan(`💾 Saved ${notifications.length} notifications to database`));
+               logger.info(
+                    colors.cyan(`💾 Saved ${notifications.length} notifications to database`),
+               );
           } catch (error) {
                logger.error(colors.red('DB Save Error:'), error);
           }

@@ -14,7 +14,9 @@ const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> =>
      }
 
      const hasDiscount = payload.discount && payload.discount > 0;
-     const finalPrice = hasDiscount ? payload.price - (payload.price * payload.discount!) / 100 : payload.price;
+     const finalPrice = hasDiscount
+          ? payload.price - (payload.price * payload.discount!) / 100
+          : payload.price;
 
      payload.price = finalPrice;
 
@@ -23,7 +25,6 @@ const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> =>
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Package');
      }
 
-     
      if (hasDiscount) {
           await NotificationQueueHelper.sendBroadcastNotification(
                `🎉 Special offer! Get ${payload.discount}% off on "${payload.name}". Limited time only — grab it now!`,
@@ -34,7 +35,10 @@ const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> =>
 
      return result;
 };
-const updatePackageToDB = async (id: string, payload: Partial<IPackage>): Promise<IPackage | null> => {
+const updatePackageToDB = async (
+     id: string,
+     payload: Partial<IPackage>,
+): Promise<IPackage | null> => {
      const isExistPackage = await Package.findById(id);
 
      if (!isExistPackage) {
@@ -47,7 +51,10 @@ const updatePackageToDB = async (id: string, payload: Partial<IPackage>): Promis
           payload.provider = 'apple';
      }
 
-     const finalPrice = payload.discount && payload.price ? payload.price - (payload.price * payload.discount) / 100 : payload.price;
+     const finalPrice =
+          payload.discount && payload.price
+               ? payload.price - (payload.price * payload.discount) / 100
+               : payload.price;
 
      payload.price = finalPrice;
      const updatedPackage = await Package.findByIdAndUpdate(id, payload, {
@@ -74,7 +81,10 @@ const getPackageFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getPackageByUserFromDB = async (query: Record<string, unknown>) => {
-     const queryBuilder = new QueryBuilder(Package.find({ status: 'active', isDeleted: false }), query);
+     const queryBuilder = new QueryBuilder(
+          Package.find({ status: 'active', isDeleted: false }),
+          query,
+     );
      const packages = await queryBuilder.filter().sort().paginate().fields().modelQuery.exec();
      const meta = await queryBuilder.countTotal();
      return {

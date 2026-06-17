@@ -37,7 +37,11 @@ async function startServer(): Promise<void> {
           // Start HTTP server
           await new Promise<void>((resolve, reject) => {
                httpServer.listen(httpPort, ipAddress, () => {
-                    logger.info(colors.bgCyan.bold.white(`♻️  Server (PID: ${process.pid}) listening on http://${ipAddress}:${httpPort}`));
+                    logger.info(
+                         colors.bgCyan.bold.white(
+                              `♻️  Server (PID: ${process.pid}) listening on http://${ipAddress}:${httpPort}`,
+                         ),
+                    );
                     resolve();
                });
                httpServer.on('error', reject);
@@ -83,7 +87,11 @@ async function main() {
           if (config.node_env === 'production') {
                startRealtimeMonitoring();
           }
-          logger.info(colors.green.bold(`✅ Server bootstrap completed successfully (PID: ${process.pid})`));
+          logger.info(
+               colors.green.bold(
+                    `✅ Server bootstrap completed successfully (PID: ${process.pid})`,
+               ),
+          );
      } catch (error) {
           logger.error(colors.red('❌ Bootstrap failed:'), error);
           process.exit(1);

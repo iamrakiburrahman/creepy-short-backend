@@ -6,8 +6,6 @@ import { Subscription } from './subscription.model';
 
 import { StatusCodes } from 'http-status-codes';
 
-
-
 // Send trial expiry warning notification
 const sendTrialExpiryWarning = async (userId: string, daysLeft: number) => {
      try {
@@ -32,9 +30,9 @@ const sendTrialExpiryWarning = async (userId: string, daysLeft: number) => {
                to: user.email,
                subject,
                html: body,
-          }
+          };
           await emailHelper.sendEmail(data);
-          
+
           logger.info(`Trial expiry warning sent to user ${user.email} - ${daysLeft} days left`);
      } catch (error: any) {
           errorLogger.error('Error sending trial expiry warning:', error.message);
@@ -64,9 +62,9 @@ const sendSubscriptionExpiryNotification = async (userId: string) => {
                to: user.email,
                subject,
                html: body,
-          }
+          };
           await emailHelper.sendEmail(data);
-          
+
           logger.info(`Subscription expiry notification sent to user ${user.email}`);
      } catch (error: any) {
           errorLogger.error('Error sending subscription expiry notification:', error.message);
@@ -78,7 +76,7 @@ const sendAutoRenewalSuccessNotification = async (userId: string, subscriptionId
      try {
           const user = await User.findById(userId);
           const subscription = await Subscription.findOne({ subscriptionId }).populate('package');
-          
+
           if (!user || !subscription) {
                throw new AppError(StatusCodes.NOT_FOUND, 'User or subscription not found');
           }
@@ -102,9 +100,9 @@ const sendAutoRenewalSuccessNotification = async (userId: string, subscriptionId
                to: user.email,
                subject,
                html: body,
-          }
+          };
           await emailHelper.sendEmail(data);
-          
+
           logger.info(`Auto-renewal success notification sent to user ${user.email}`);
      } catch (error: any) {
           errorLogger.error('Error sending auto-renewal success notification:', error.message);
@@ -136,9 +134,9 @@ const sendPaymentFailureNotification = async (userId: string, reason?: string) =
                to: user.email,
                subject,
                html: body,
-          }
+          };
           await emailHelper.sendEmail(data);
-          
+
           logger.info(`Payment failure notification sent to user ${user.email}`);
      } catch (error: any) {
           errorLogger.error('Error sending payment failure notification:', error.message);
@@ -149,16 +147,16 @@ const sendPaymentFailureNotification = async (userId: string, reason?: string) =
 const checkAndSendTrialWarnings = async () => {
      try {
           const now = new Date();
-          const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-          const oneDayFromNow = new Date(now.getTime() + (1 * 24 * 60 * 60 * 1000));
+          const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+          const oneDayFromNow = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000);
 
           // Find users whose trial expires in 3 days
           const usersExpiring3Days = await User.find({
                isFreeTrial: true,
                trialExpireAt: {
                     $gte: now,
-                    $lte: threeDaysFromNow
-               }
+                    $lte: threeDaysFromNow,
+               },
           });
 
           // Find users whose trial expires in 1 day
@@ -166,8 +164,8 @@ const checkAndSendTrialWarnings = async () => {
                isFreeTrial: true,
                trialExpireAt: {
                     $gte: now,
-                    $lte: oneDayFromNow
-               }
+                    $lte: oneDayFromNow,
+               },
           });
 
           // Send 3-day warnings
@@ -180,7 +178,9 @@ const checkAndSendTrialWarnings = async () => {
                await sendTrialExpiryWarning(user._id.toString(), 1);
           }
 
-          logger.info(`Trial warning check completed: ${usersExpiring3Days.length} users notified (3 days), ${usersExpiring1Day.length} users notified (1 day)`);
+          logger.info(
+               `Trial warning check completed: ${usersExpiring3Days.length} users notified (3 days), ${usersExpiring1Day.length} users notified (1 day)`,
+          );
      } catch (error: any) {
           errorLogger.error('Error checking trial warnings:', error.message);
      }

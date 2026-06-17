@@ -17,7 +17,9 @@ const createSeasonToDB = async (payload: ISeason) => {
 
      // 🔔 Broadcast notification to all users — new season added
      await NotificationQueueHelper.sendBroadcastNotification(
-          payload.title ? `New season just added: "${payload.title}". Watch it now!` : 'A new season has just been added. Check it out!',
+          payload.title
+               ? `New season just added: "${payload.title}". Watch it now!`
+               : 'A new season has just been added. Check it out!',
           '🎬 New Season Available',
           'ADMIN',
      );
@@ -30,7 +32,13 @@ const getAllSeasonsFromDB = async (query: Record<string, unknown>) => {
           query,
           async () => {
                const queryBuilder = new QueryBuilder(SeasonModel.find(), query);
-               const result = await queryBuilder.fields().paginate().sort().filter().search(['title']).modelQuery.exec();
+               const result = await queryBuilder
+                    .fields()
+                    .paginate()
+                    .sort()
+                    .filter()
+                    .search(['title'])
+                    .modelQuery.exec();
                const meta = await queryBuilder.countTotal();
                return {
                     meta,

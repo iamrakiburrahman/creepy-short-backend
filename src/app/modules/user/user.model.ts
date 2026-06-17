@@ -29,12 +29,22 @@ const userSchema = new Schema<IUser, UserModel>(
           },
           password: {
                type: String,
-               required: function () {
-                    // Password is only required for non-OAuth users
+               required: function (this: IUser) {
                     return !this.oauthProvider;
                },
                select: false,
                minlength: 8,
+          },
+          gender: {
+               type: String,
+               enum: ['male', 'female'],
+               default: 'male',
+          },
+          age: {
+               type: Number,
+               min: 0,
+               max: 120,
+               default: 0,
           },
           image: {
                type: String,
@@ -163,7 +173,10 @@ userSchema.statics.isExistUserByPhone = async (contact: string) => {
      return await User.findOne({ contact });
 };
 // Password Matching
-userSchema.statics.isMatchPassword = async (password: string, hashPassword: string): Promise<boolean> => {
+userSchema.statics.isMatchPassword = async (
+     password: string,
+     hashPassword: string,
+): Promise<boolean> => {
      return await bcrypt.compare(password, hashPassword);
 };
 
@@ -213,7 +226,9 @@ userSchema.statics.updateHeartbeat = async (userId: string) => {
 };
 
 userSchema.statics.getOnlineUsers = async () => {
-     return await User.find({ 'onlineStatus.isOnline': true }).select('name userName profile onlineStatus');
+     return await User.find({ 'onlineStatus.isOnline': true }).select(
+          'name userName profile onlineStatus',
+     );
 };
 
 userSchema.statics.bulkUserStatus = async (userIds: string[]) => {

@@ -1,10 +1,18 @@
-import { IBlockAccount, IContact, ICreateAccount, IHelpContact, IHelpReplay, IResetPassword, IResetPasswordByEmail } from '../types/emailTemplate';
+import {
+     IBlockAccount,
+     IContact,
+     ICreateAccount,
+     IHelpContact,
+     IHelpReplay,
+     IResetPassword,
+     IResetPasswordByEmail,
+} from '../types/emailTemplate';
 
 const createAccount = (values: ICreateAccount) => {
-    const data = {
-        to: values.email,
-        subject: 'Verify your account',
-        html: `<body style="margin:0;padding:0;background-color:#f5f5f5;font-family:Arial,sans-serif;">
+     const data = {
+          to: values.email,
+          subject: 'Verify your account',
+          html: `<body style="margin:0;padding:0;background-color:#f5f5f5;font-family:Arial,sans-serif;">
 
   <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.08);">
 
@@ -71,14 +79,14 @@ const createAccount = (values: ICreateAccount) => {
   </div>
 
 </body>`,
-    };
-    return data;
+     };
+     return data;
 };
 const contact = (values: IContact) => {
-    const data = {
-        to: values.email,
-        subject: 'We’ve Received Your Message – Thank You!',
-        html: `<!DOCTYPE html>
+     const data = {
+          to: values.email,
+          subject: 'We’ve Received Your Message – Thank You!',
+          html: `<!DOCTYPE html>
 <html>
 <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
 
@@ -144,14 +152,14 @@ const contact = (values: IContact) => {
 </body>
 </html>
 `,
-    };
-    return data;
+     };
+     return data;
 };
 const resetPassword = (values: IResetPassword) => {
-    const data = {
-        to: values.email,
-        subject: 'Reset your password',
-        html: `<div style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+     const data = {
+          to: values.email,
+          subject: 'Reset your password',
+          html: `<div style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
 
     <div style="background-color: #BE3838; padding: 25px; text-align: center;">
         <img
@@ -225,14 +233,14 @@ const resetPassword = (values: IResetPassword) => {
     </div>
 
 </div>`,
-    };
-    return data;
+     };
+     return data;
 };
 const resetPasswordByUrl = (values: IResetPasswordByEmail) => {
-    const data = {
-        to: values.email,
-        subject: 'Reset Your Password',
-        html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
+     const data = {
+          to: values.email,
+          subject: 'Reset Your Password',
+          html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
       <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
         <img src="https://res.cloudinary.com/dn83fu2pc/image/upload/v1780295427/Logo_uqqpzr.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
         <div style="text-align: center;">
@@ -244,15 +252,15 @@ const resetPasswordByUrl = (values: IResetPasswordByEmail) => {
         </div>
       </div>
     </body>`,
-    };
-    return data;
+     };
+     return data;
 };
 
 const contactFormTemplate = (values: IHelpContact) => {
-    const data = {
-        to: values.email,
-        subject: 'Thank you for reaching out to us',
-        html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
+     const data = {
+          to: values.email,
+          subject: 'Thank you for reaching out to us',
+          html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 50px; padding: 20px; color: #555;">
     <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
         <img src="https://res.cloudinary.com/dn83fu2pc/image/upload/v1780295427/Logo_uqqpzr.png" alt="Logo" style="display: block; margin: 0 auto 20px; width:150px" />
         <div style="text-align: center;">
@@ -268,14 +276,14 @@ const contactFormTemplate = (values: IHelpContact) => {
         </div>
     </div>
 </body>`,
-    };
-    return data;
+     };
+     return data;
 };
 const helpReplyTemplate = (values: IHelpReplay, adminMessage: string) => {
-    const data = {
-        to: values.email,
-        subject: 'Response to Your Help Request',
-        html: `<body style="font-family: 'Roboto', sans-serif; background-color: #f3f3f3; margin: 0; padding: 0; color: #333;">
+     const data = {
+          to: values.email,
+          subject: 'Response to Your Help Request',
+          html: `<body style="font-family: 'Roboto', sans-serif; background-color: #f3f3f3; margin: 0; padding: 0; color: #333;">
   <div style="max-width: 650px; margin: 40px auto; background-color: #fff; border-radius: 8px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); padding: 25px; color: #333;">
     <img src="https://res.cloudinary.com/dn83fu2pc/image/upload/v1780295427/Logo_uqqpzr.png" alt="Logo" style="display: block; margin: 0 auto 20px; width: 150px;" />
     
@@ -303,14 +311,14 @@ const helpReplyTemplate = (values: IHelpReplay, adminMessage: string) => {
     </div>
   </div>
 </body>`,
-    };
-    return data;
+     };
+     return data;
 };
 const blockAccountTemplate = (values: IBlockAccount) => {
-  const data = {
-    to: values.email,
-    subject: 'Account Blocked Notification',
-    html: `<body style="font-family: 'Roboto', sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; color: #333;">
+     const data = {
+          to: values.email,
+          subject: 'Account Blocked Notification',
+          html: `<body style="font-family: 'Roboto', sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; color: #333;">
 
   <div style="max-width: 650px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); padding: 30px;">
 
@@ -354,15 +362,15 @@ const blockAccountTemplate = (values: IBlockAccount) => {
   </div>
 
 </body>`,
-  };
-  return data;
+     };
+     return data;
 };
 export const emailTemplate = {
-    createAccount,
-    resetPassword,
-    resetPasswordByUrl,
-    contactFormTemplate,
-    contact,
-    helpReplyTemplate,
-    blockAccountTemplate,
+     createAccount,
+     resetPassword,
+     resetPasswordByUrl,
+     contactFormTemplate,
+     contact,
+     helpReplyTemplate,
+     blockAccountTemplate,
 };

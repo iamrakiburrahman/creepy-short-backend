@@ -29,7 +29,11 @@ const getComments = async (postId: string, query: Record<string, unknown>) => {
 };
 // like comments
 const likeComment = async (commentId: string) => {
-     const comment = await Comment.findByIdAndUpdate(commentId, { $inc: { likes: 1 } }, { new: true });
+     const comment = await Comment.findByIdAndUpdate(
+          commentId,
+          { $inc: { likes: 1 } },
+          { new: true },
+     );
 
      if (!comment) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Comment not found');
@@ -61,7 +65,10 @@ const replyToComment = async (commentId: string, userId: string, content: string
      const result = await Comment.updateOne({ _id: commentId }, { $push: { replies: replyId } });
 
      if (!result) {
-          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to update parent comment with the new reply');
+          throw new AppError(
+               StatusCodes.INTERNAL_SERVER_ERROR,
+               'Failed to update parent comment with the new reply',
+          );
      }
 
      await reply.save();

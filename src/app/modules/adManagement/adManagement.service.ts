@@ -16,7 +16,12 @@ const getAllAdds = async (query: Record<string, unknown>) => {
           query,
           async () => {
                const queryBuilder = new QueryBuilder(AdManagement.find(), query);
-               const result = await queryBuilder.filter().sort().fields().paginate().modelQuery.exec();
+               const result = await queryBuilder
+                    .filter()
+                    .sort()
+                    .fields()
+                    .paginate()
+                    .modelQuery.exec();
                const meta = await queryBuilder.countTotal();
                return {
                     meta,
@@ -38,7 +43,10 @@ const getSingleAdd = async (id: string): Promise<IAdManagement> => {
           }
           const result = await AdManagement.findById(id);
           if (!result) {
-               throw new AppError(StatusCodes.NOT_FOUND, 'Requested add not found, please try again with valid id');
+               throw new AppError(
+                    StatusCodes.NOT_FOUND,
+                    'Requested add not found, please try again with valid id',
+               );
           }
           return result;
      });
@@ -53,7 +61,10 @@ const getSingleAddForUser = async (id: string, userId: string) => {
      }
      const result = await AdManagement.findById(id);
      if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Requested add not found, please try again with valid id');
+          throw new AppError(
+               StatusCodes.NOT_FOUND,
+               'Requested add not found, please try again with valid id',
+          );
      }
      if (isUser.role === USER_ROLES.USER) {
           await AdManagement.findByIdAndUpdate(id, { $inc: { views: 1 } });
@@ -77,7 +88,10 @@ const updateAdd = async (id: string, payload: Partial<IAdManagement>) => {
      );
 
      if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Requested add not found, please try again with valid id');
+          throw new AppError(
+               StatusCodes.NOT_FOUND,
+               'Requested add not found, please try again with valid id',
+          );
      }
      await addCacheKey.clearAfterUpdate(id);
      return result;
@@ -90,7 +104,10 @@ const deleteAdd = async (id: string): Promise<IAdManagement> => {
 
      const result = await AdManagement.findByIdAndDelete(id);
      if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Something went wrong while deleting add, please try again with valid id.');
+          throw new AppError(
+               StatusCodes.NOT_FOUND,
+               'Something went wrong while deleting add, please try again with valid id.',
+          );
      }
      await addCacheKey.clearAfterUpdate(id);
      return result;

@@ -16,24 +16,18 @@ const FILE_TYPES: Record<string, FileTypeConfig> = {
      image: {
           mimeTypes: [
                'image/png',
-               'image/jpg', 
+               'image/jpg',
                'image/jpeg',
                'image/svg',
                'image/webp',
                'image/svg+xml',
-               'application/octet-stream'
+               'application/octet-stream',
           ],
-          errorMessage: 'Only .jpeg, .png, .jpg .svg .webp .octet-stream .svg+xml file supported'
+          errorMessage: 'Only .jpeg, .png, .jpg .svg .webp .octet-stream .svg+xml file supported',
      },
      audio: {
-          mimeTypes: [
-               'audio/mpeg',
-               'audio/mp3',
-               'audio/wav',
-               'audio/ogg',
-               'audio/webm'
-          ],
-          errorMessage: 'Only .mp3, .wav, .ogg, .webm audio files are supported'
+          mimeTypes: ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm'],
+          errorMessage: 'Only .mp3, .wav, .ogg, .webm audio files are supported',
      },
      video: {
           mimeTypes: [
@@ -42,9 +36,9 @@ const FILE_TYPES: Record<string, FileTypeConfig> = {
                'video/quicktime',
                'video/x-msvideo',
                'video/x-matroska',
-               'video/mpeg'
+               'video/mpeg',
           ],
-          errorMessage: 'Only .mp4, .webm, .mov, .avi, .mkv, .mpeg video files are supported'
+          errorMessage: 'Only .mp4, .webm, .mov, .avi, .mkv, .mpeg video files are supported',
      },
      document: {
           mimeTypes: [
@@ -59,10 +53,11 @@ const FILE_TYPES: Record<string, FileTypeConfig> = {
                'application/rtf',
                'application/zip',
                'application/x-7z-compressed',
-               'application/x-rar-compressed'
+               'application/x-rar-compressed',
           ],
-          errorMessage: 'Only PDF, Word, Excel, PowerPoint, text, RTF, zip, 7z, and rar files are supported'
-     }
+          errorMessage:
+               'Only PDF, Word, Excel, PowerPoint, text, RTF, zip, 7z, and rar files are supported',
+     },
 };
 
 // Field configurations - Add new fields here easily!
@@ -76,7 +71,12 @@ interface FieldConfig {
 const FIELD_CONFIGS: FieldConfig[] = [
      // Image fields
      { fieldName: 'image', folderName: 'image', fileType: 'image', maxCount: 10 },
-     { fieldName: 'personalityImage', folderName: 'personalityImage', fileType: 'image', maxCount: 10 },
+     {
+          fieldName: 'personalityImage',
+          folderName: 'personalityImage',
+          fileType: 'image',
+          maxCount: 10,
+     },
      { fieldName: 'bodyImage', folderName: 'bodyImage', fileType: 'image', maxCount: 10 },
      { fieldName: 'headShotImage', folderName: 'headShotImage', fileType: 'image', maxCount: 10 },
      { fieldName: 'images', folderName: 'images', fileType: 'image', maxCount: 10 },
@@ -86,19 +86,19 @@ const FIELD_CONFIGS: FieldConfig[] = [
      { fieldName: 'permits', folderName: 'permits', fileType: 'image', maxCount: 1 },
      { fieldName: 'insurance', folderName: 'insurance', fileType: 'image', maxCount: 1 },
      { fieldName: 'driverLicense', folderName: 'driverLicense', fileType: 'image', maxCount: 1 },
-     
+
      // Media fields
      { fieldName: 'audio', folderName: 'audio', fileType: 'audio', maxCount: 5 },
      { fieldName: 'video', folderName: 'video', fileType: 'video', maxCount: 5 },
-     
-     // Document fields  
+
+     // Document fields
      { fieldName: 'document', folderName: 'document', fileType: 'document', maxCount: 10 },
 ];
 
 const fileUploadHandler = (customFields?: FieldConfig[]) => {
      // Use custom fields if provided, otherwise use default
      const fieldsToUse = customFields || FIELD_CONFIGS;
-     
+
      // Create upload folder
      const baseUploadDir = getUploadDirectory();
      if (!fs.existsSync(baseUploadDir)) {
@@ -113,14 +113,12 @@ const fileUploadHandler = (customFields?: FieldConfig[]) => {
      };
 
      // Create a map for quick lookup
-     const fieldConfigMap = new Map(
-          fieldsToUse.map(config => [config.fieldName, config])
-     );
+     const fieldConfigMap = new Map(fieldsToUse.map((config) => [config.fieldName, config]));
 
      const storage = multer.diskStorage({
           destination: (req, file, cb) => {
                const fieldConfig = fieldConfigMap.get(file.fieldname);
-               
+
                let uploadDir;
                if (fieldConfig) {
                     uploadDir = path.join(baseUploadDir, fieldConfig.folderName);
@@ -128,18 +126,17 @@ const fileUploadHandler = (customFields?: FieldConfig[]) => {
                     // Fallback for unknown fields
                     uploadDir = path.join(baseUploadDir, 'others');
                }
-               
+
                createDir(uploadDir);
                cb(null, uploadDir);
           },
 
           filename: (req, file, cb) => {
                const fileExt = path.extname(file.originalname);
-               const fileName = file.originalname
-                    .replace(fileExt, '')
-                    .toLowerCase()
-                    .split(' ')
-                    .join('-') + '-' + Date.now();
+               const fileName =
+                    file.originalname.replace(fileExt, '').toLowerCase().split(' ').join('-') +
+                    '-' +
+                    Date.now();
                cb(null, fileName + fileExt);
           },
      });
@@ -147,7 +144,7 @@ const fileUploadHandler = (customFields?: FieldConfig[]) => {
      // Dynamic file filter
      const fileFilter = (req: Request, file: any, cb: FileFilterCallback) => {
           const fieldConfig = fieldConfigMap.get(file.fieldname);
-          
+
           if (!fieldConfig) {
                // Allow PDF for unknown fields as fallback
                if (file.mimetype === 'application/pdf') {
@@ -159,7 +156,7 @@ const fileUploadHandler = (customFields?: FieldConfig[]) => {
           }
 
           const fileTypeConfig = FILE_TYPES[fieldConfig.fileType];
-          
+
           if (fileTypeConfig.mimeTypes.includes(file.mimetype)) {
                cb(null, true);
           } else {
@@ -168,9 +165,9 @@ const fileUploadHandler = (customFields?: FieldConfig[]) => {
      };
 
      // Generate fields array dynamically
-     const multerFields = fieldsToUse.map(config => ({
+     const multerFields = fieldsToUse.map((config) => ({
           name: config.fieldName,
-          maxCount: config.maxCount
+          maxCount: config.maxCount,
      }));
 
      const upload = multer({

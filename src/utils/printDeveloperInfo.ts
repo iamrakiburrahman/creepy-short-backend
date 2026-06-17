@@ -10,6 +10,12 @@ export function printDeveloperInfo(): void {
 
      // Contact details with emojis
      console.log(chalk.hex('#00FFFF').bold('👤 Name: ') + chalk.white.bold('Md. Rakibur Rahman')); // Changed emoji to 👤
-     console.log(chalk.hex('#00FFFF').bold('✉️  Email: ') + chalk.white.bold('rakiburrahman.dev@gmail.com'));
-     console.log(chalk.hex('#00FFFF').bold('🚀 GitHub: ') + chalk.white.bold('https://github.com/rakiburrahman307'));
+     console.log(
+          chalk.hex('#00FFFF').bold('✉️  Email: ') +
+               chalk.white.bold('rakiburrahman.dev@gmail.com'),
+     );
+     console.log(
+          chalk.hex('#00FFFF').bold('🚀 GitHub: ') +
+               chalk.white.bold('https://github.com/rakiburrahman307'),
+     );
 }

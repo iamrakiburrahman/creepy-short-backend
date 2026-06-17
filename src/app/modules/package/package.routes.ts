@@ -9,10 +9,17 @@ const router = express.Router();
 
 router
      .route('/')
-     .post(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), validateRequest(PackageValidation.createPackageZodSchema), PackageController.createPackage)
+     .post(
+          auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+          validateRequest(PackageValidation.createPackageZodSchema),
+          PackageController.createPackage,
+     )
      .get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), PackageController.getPackage);
 
 router.get('/users-package', auth(USER_ROLES.USER), PackageController.getPackageByUser);
-router.route('/:id').patch(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), PackageController.updatePackage).delete(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), PackageController.deletePackage);
+router
+     .route('/:id')
+     .patch(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), PackageController.updatePackage)
+     .delete(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), PackageController.deletePackage);
 
 export const PackageRoutes = router;

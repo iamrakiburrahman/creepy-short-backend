@@ -5,7 +5,11 @@ import { IDynamicContent } from './dynamicContent.interface';
 import { DynamicContent } from './dynamicContent.model';
 
 const createOrUpdateContent = async (payload: IDynamicContent): Promise<IDynamicContent> => {
-     const result = await DynamicContent.findOneAndUpdate({ key: payload.key }, payload, { new: true, upsert: true, runValidators: true });
+     const result = await DynamicContent.findOneAndUpdate({ key: payload.key }, payload, {
+          new: true,
+          upsert: true,
+          runValidators: true,
+     });
 
      return result;
 };

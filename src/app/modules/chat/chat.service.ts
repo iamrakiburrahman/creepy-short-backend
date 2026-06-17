@@ -98,7 +98,9 @@ const getAllChatsFromDB = async (
 
      // Helper function to process individual chat
      const processChatForUser = async (chat: any): Promise<ProcessedChat | null> => {
-          const otherParticipantIds = chat.participants.filter((participantId: mongoose.Types.ObjectId) => participantId.toString() !== userId);
+          const otherParticipantIds = chat.participants.filter(
+               (participantId: mongoose.Types.ObjectId) => participantId.toString() !== userId,
+          );
 
           const otherParticipants = await User.find({
                _id: { $in: otherParticipantIds },
@@ -107,7 +109,10 @@ const getAllChatsFromDB = async (
                .lean();
 
           // Check if user deleted this chat and get deletion time
-          const userDeletionDetail = chat.deletedByDetails?.find((detail: { userId: mongoose.Types.ObjectId | string }) => detail.userId.toString() === userId);
+          const userDeletionDetail = chat.deletedByDetails?.find(
+               (detail: { userId: mongoose.Types.ObjectId | string }) =>
+                    detail.userId.toString() === userId,
+          );
 
           // Build message query based on user-specific deletion
           let messageQuery: any = {
@@ -156,7 +161,11 @@ const getAllChatsFromDB = async (
           }
 
           const isMuted = chat.mutedBy?.some((id: any) => id.toString() === userId) || false;
-          const isBlocked = chat.blockedUsers?.some((block: any) => block.blocker.toString() === userId || block.blocked.toString() === userId) || false;
+          const isBlocked =
+               chat.blockedUsers?.some(
+                    (block: any) =>
+                         block.blocker.toString() === userId || block.blocked.toString() === userId,
+               ) || false;
 
           // Icon-level unread count - only count if chat is not muted
           const iconUnreadCount = isMuted
@@ -181,22 +190,32 @@ const getAllChatsFromDB = async (
      };
 
      if (searchTerm) {
-          const allChats = await Chat.find(baseChatQuery).populate('lastMessage').lean().sort({ updatedAt: -1 });
+          const allChats = await Chat.find(baseChatQuery)
+               .populate('lastMessage')
+               .lean()
+               .sort({ updatedAt: -1 });
 
-          const allChatLists: (ProcessedChat | null)[] = await Promise.all(allChats.map(processChatForUser));
+          const allChatLists: (ProcessedChat | null)[] = await Promise.all(
+               allChats.map(processChatForUser),
+          );
 
           // Filter out null values (deleted chats with no visible messages)
           const validChats = allChatLists.filter((chat): chat is ProcessedChat => chat !== null);
 
           const filteredChats = validChats.filter((chat) => {
-               return chat.participants.some((participant) => participant.name.toLowerCase().includes(searchTerm));
+               return chat.participants.some((participant) =>
+                    participant.name.toLowerCase().includes(searchTerm),
+               );
           });
 
           totalChats = filteredChats.length;
           chats = filteredChats.slice(skip, skip + limit);
      } else {
           // For non-search queries, we need to filter after processing to get correct counts
-          const allChats = await Chat.find(baseChatQuery).populate('lastMessage').lean().sort({ updatedAt: -1 });
+          const allChats = await Chat.find(baseChatQuery)
+               .populate('lastMessage')
+               .lean()
+               .sort({ updatedAt: -1 });
 
           const processedChats = await Promise.all(allChats.map(processChatForUser));
 
@@ -242,7 +261,9 @@ const softDeleteChatForUser = async (chatId: string, id: string) => {
           throw new AppError(StatusCodes.UNAUTHORIZED, 'User is not authorized');
      }
 
-     const alreadyDeleted = chat.deletedByDetails.some((detail) => detail.userId.toString() === userId.toString());
+     const alreadyDeleted = chat.deletedByDetails.some(
+          (detail) => detail.userId.toString() === userId.toString(),
+     );
 
      if (alreadyDeleted) {
           return {
@@ -277,7 +298,11 @@ const softDeleteChatForUser = async (chatId: string, id: string) => {
           },
      );
 
-     const allParticipantsDeleted = chat.participants.every((participantId) => chat.deletedByDetails.some((detail) => detail.userId.toString() === participantId.toString()));
+     const allParticipantsDeleted = chat.participants.every((participantId) =>
+          chat.deletedByDetails.some(
+               (detail) => detail.userId.toString() === participantId.toString(),
+          ),
+     );
 
      if (allParticipantsDeleted) {
           chat.isDeleted = true;
@@ -357,7 +382,12 @@ const muteUnmuteChat = async (userId: string, chatId: string, action: 'mute' | '
 };
 
 // New feature: Block/Unblock user in chat
-const blockUnblockUser = async (blockerId: string, blockedId: string, chatId: string, action: 'block' | 'unblock') => {
+const blockUnblockUser = async (
+     blockerId: string,
+     blockedId: string,
+     chatId: string,
+     action: 'block' | 'unblock',
+) => {
      const chat = await Chat.findById(chatId);
      if (!chat) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Chat not found');
@@ -366,12 +396,19 @@ const blockUnblockUser = async (blockerId: string, blockedId: string, chatId: st
      // Check if both users are participants
      const participants = chat.participants.map((p) => p.toString());
      if (!participants.includes(blockerId) || !participants.includes(blockedId)) {
-          throw new AppError(StatusCodes.UNAUTHORIZED, 'One or both users are not participants in this chat');
+          throw new AppError(
+               StatusCodes.UNAUTHORIZED,
+               'One or both users are not participants in this chat',
+          );
      }
 
      if (action === 'block') {
           // Check if already blocked
-          const existingBlock = chat.blockedUsers?.find((block: any) => block.blocker.toString() === blockerId && block.blocked.toString() === blockedId);
+          const existingBlock = chat.blockedUsers?.find(
+               (block: any) =>
+                    block.blocker.toString() === blockerId &&
+                    block.blocked.toString() === blockedId,
+          );
 
           if (existingBlock) {
                throw new AppError(StatusCodes.BAD_REQUEST, 'User is already blocked');

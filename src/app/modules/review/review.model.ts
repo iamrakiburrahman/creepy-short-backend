@@ -39,7 +39,10 @@ reviewSchema.post('save', async function () {
      const review = this as IReview;
 
      if (review.rating < 1 || review.rating > 5) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid rating value. Try give rating between 1 to 5');
+          throw new AppError(
+               StatusCodes.BAD_REQUEST,
+               'Invalid rating value. Try give rating between 1 to 5',
+          );
      }
 
      const isExistService = await Service.findById(review.service);
@@ -54,10 +57,17 @@ reviewSchema.post('save', async function () {
           newRating = review.rating;
      } else {
           // Calculate the new rating based on previous ratings
-          newRating = (Number(isExistService.rating) * Number(isExistService.totalRating) + Number(review.rating)) / ratingCount;
+          newRating =
+               (Number(isExistService.rating) * Number(isExistService.totalRating) +
+                    Number(review.rating)) /
+               ratingCount;
      }
 
-     const updatedService = await Service.findByIdAndUpdate({ _id: review.service }, { rating: parseFloat(newRating.toFixed(2)), totalRating: ratingCount }, { new: true });
+     const updatedService = await Service.findByIdAndUpdate(
+          { _id: review.service },
+          { rating: parseFloat(newRating.toFixed(2)), totalRating: ratingCount },
+          { new: true },
+     );
 
      if (!updatedService) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to update service');

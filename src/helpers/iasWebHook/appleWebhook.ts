@@ -5,7 +5,6 @@ import { Subscription } from '../../app/modules/subscription/subscription.model'
 import { User } from '../../app/modules/user/user.model';
 import { NotificationQueueHelper } from '../bullMQ/bullHelper';
 
-
 // ==========================================
 // APPLE WEBHOOK - Renew, Cancel, Refund
 // ==========================================
@@ -74,14 +73,16 @@ const handleAppleWebhook = async (req: Request, res: Response) => {
 
 // ==========================================
 // Helper: Subscription Find
-// originalTransactionId  transactionId 
+// originalTransactionId  transactionId
 // ==========================================
 const findSubscription = async (transactionInfo: any) => {
      const originalTransactionId = transactionInfo?.originalTransactionId;
      const transactionId = transactionInfo?.transactionId;
      const ids = [originalTransactionId, transactionId].filter(Boolean);
      logger.info('🔍 Looking for subscription with ids:', { ids });
-     const allAppleSubs = await Subscription.find({ provider: 'apple' }).select('iapReceipt userId status').limit(5);
+     const allAppleSubs = await Subscription.find({ provider: 'apple' })
+          .select('iapReceipt userId status')
+          .limit(5);
      logger.info('🔍 Existing apple subscriptions in DB:', JSON.stringify(allAppleSubs));
 
      if (ids.length === 0) return null;
@@ -117,7 +118,9 @@ const handleAppleRenewal = async (transactionInfo: any) => {
           subscription.currentPeriodEnd = expiryDate.toISOString();
           subscription.status = 'active';
           subscription.cancelAtPeriodEnd = false;
-          subscription.remaining = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          subscription.remaining = Math.ceil(
+               (expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+          );
           await subscription.save();
 
           await User.findByIdAndUpdate(subscription.userId, {
@@ -365,7 +368,9 @@ const handleAppleRecovered = async (transactionInfo: any) => {
 
           subscription.currentPeriodEnd = expiryDate.toISOString();
           subscription.status = 'active';
-          subscription.remaining = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          subscription.remaining = Math.ceil(
+               (expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+          );
           await subscription.save();
 
           await User.findByIdAndUpdate(subscription.userId, {

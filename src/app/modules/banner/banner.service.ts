@@ -17,9 +17,13 @@ const createBannerToDB = async (payload: IBanner): Promise<IBanner> => {
 };
 
 const getAllBannerFromDB = async (): Promise<IBanner[]> => {
-     return await bannerCache.wrapList({}, async () => {
-          return await Banner.find({});
-     }, CACHE_TTL.VERY_LONG);
+     return await bannerCache.wrapList(
+          {},
+          async () => {
+               return await Banner.find({});
+          },
+          CACHE_TTL.VERY_LONG,
+     );
 };
 
 const updateBannerToDB = async (id: string, payload: IBanner): Promise<IBanner | {}> => {

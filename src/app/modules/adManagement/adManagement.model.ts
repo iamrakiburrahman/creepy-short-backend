@@ -23,4 +23,7 @@ const adManagementSchema = new Schema<IAdManagement, AdManagementModel>(
      },
 );
 
-export const AdManagement = model<IAdManagement, AdManagementModel>('AdManagement', adManagementSchema);
+export const AdManagement = model<IAdManagement, AdManagementModel>(
+     'AdManagement',
+     adManagementSchema,
+);

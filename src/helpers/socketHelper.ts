@@ -19,7 +19,10 @@ const socket = (io: Server) => {
           // ✅ Step 1: Authentication
           socket.on(SOCKET_EVENTS.AUTHENTICATE, async (token: string) => {
                try {
-                    const decoded = (await jwtHelper.verifyToken(token, config.jwt.jwt_secret as string)) as any;
+                    const decoded = (await jwtHelper.verifyToken(
+                         token,
+                         config.jwt.jwt_secret as string,
+                    )) as any;
                     socket.userId = decoded.userId;
 
                     // Store connection

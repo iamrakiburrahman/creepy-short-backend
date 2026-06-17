@@ -1,7 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { IReport, ReportModel } from './report.interface';
 
-
 const reportSchema = new Schema<IReport, ReportModel>(
      {
           customer: {

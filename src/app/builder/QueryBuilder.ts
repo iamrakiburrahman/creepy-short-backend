@@ -2,7 +2,20 @@ import { FilterQuery, Query } from 'mongoose';
 import AppError from '../../errors/AppError';
 import { StatusCodes } from 'http-status-codes';
 export const excludeFields = () => {
-     return ['searchTerm', 'sort', 'limit', 'page', 'fields', 'maxPrice', 'minPrice', 'dateRange', 'year', 'month', 'day', 'dateFilter'];
+     return [
+          'searchTerm',
+          'sort',
+          'limit',
+          'page',
+          'fields',
+          'maxPrice',
+          'minPrice',
+          'dateRange',
+          'year',
+          'month',
+          'day',
+          'dateFilter',
+     ];
 };
 
 class QueryBuilder<T> {
@@ -30,7 +43,20 @@ class QueryBuilder<T> {
      }
 
      filter() {
-          const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields', 'maxPrice', 'minPrice', 'dateRange', 'year', 'month', 'day', 'dateFilter'];
+          const excludeFields = [
+               'searchTerm',
+               'sort',
+               'limit',
+               'page',
+               'fields',
+               'maxPrice',
+               'minPrice',
+               'dateRange',
+               'year',
+               'month',
+               'day',
+               'dateFilter',
+          ];
           const queryObj = { ...this.query };
           excludeFields.forEach((el) => delete queryObj[el]);
 
@@ -116,7 +142,15 @@ class QueryBuilder<T> {
                const monthNum = parseInt(month) - 1;
                const dayNum = parseInt(day);
 
-               if (!isNaN(yearNum) && !isNaN(monthNum) && !isNaN(dayNum) && monthNum >= 0 && monthNum <= 11 && dayNum >= 1 && dayNum <= 31) {
+               if (
+                    !isNaN(yearNum) &&
+                    !isNaN(monthNum) &&
+                    !isNaN(dayNum) &&
+                    monthNum >= 0 &&
+                    monthNum <= 11 &&
+                    dayNum >= 1 &&
+                    dayNum <= 31
+               ) {
                     // Day filter: from start of day to end of day
                     const startOfDay = new Date(yearNum, monthNum, dayNum, 0, 0, 0, 0);
                     const endOfDay = new Date(yearNum, monthNum, dayNum, 23, 59, 59, 999);

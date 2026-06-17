@@ -13,7 +13,7 @@ export type IUser = {
      verified: boolean;
      googleId?: string;
      facebookId?: string;
-     oauthProvider?: 'google' | 'facebook';
+     oauthProvider: 'google' | 'facebook';
      isSubscribed: boolean;
      hasAccess: boolean;
      subscription?: Types.ObjectId;
@@ -26,6 +26,8 @@ export type IUser = {
           access: boolean;
      }[];
      totalWatchTime: number;
+     gender: string;
+     age: number;
      authentication?: {
           isResetPassword: boolean;
           oneTimeCode: number;

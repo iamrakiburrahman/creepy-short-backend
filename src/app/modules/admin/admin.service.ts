@@ -13,7 +13,11 @@ const createAdminToDB = async (payload: IUser): Promise<IUser> => {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Admin');
      }
      if (createAdmin) {
-          await User.findByIdAndUpdate({ _id: createAdmin?._id }, { verified: true }, { new: true });
+          await User.findByIdAndUpdate(
+               { _id: createAdmin?._id },
+               { verified: true },
+               { new: true },
+          );
      }
      await adminCache.clearLists();
      return createAdmin;
@@ -32,7 +36,9 @@ const getAdminFromDB = async (): Promise<IUser[]> => {
      return await adminCache.wrapList(
           {},
           async () => {
-               const admins = await User.find({ role: 'ADMIN' }).select('name email profile phone location pageAccess');
+               const admins = await User.find({ role: 'ADMIN' }).select(
+                    'name email profile phone location pageAccess',
+               );
                return admins;
           },
           CACHE_TTL.VERY_LONG,

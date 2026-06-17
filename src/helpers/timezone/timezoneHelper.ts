@@ -39,9 +39,9 @@ export const calculateMinutesUntil = (date: Date, timezone: string = DEFAULT_TIM
  * - 'DDDD' => "December 25, 2024"
  */
 export const formatDate = (
-     date: Date, 
-     format: string = 'dd LLL yyyy, hh:mm a', 
-     timezone: string = DEFAULT_TIMEZONE
+     date: Date,
+     format: string = 'dd LLL yyyy, hh:mm a',
+     timezone: string = DEFAULT_TIMEZONE,
 ): string => {
      return DateTime.fromJSDate(date).setZone(timezone).toFormat(format);
 };
@@ -154,10 +154,10 @@ export const getEndOfMonth = (date: Date, timezone: string = DEFAULT_TIMEZONE): 
  * Add time to a date
  */
 export const addTime = (
-     date: Date, 
-     amount: number, 
+     date: Date,
+     amount: number,
      unit: 'days' | 'hours' | 'minutes' | 'weeks' | 'months' | 'years',
-     timezone: string = DEFAULT_TIMEZONE
+     timezone: string = DEFAULT_TIMEZONE,
 ): Date => {
      const dt = DateTime.fromJSDate(date).setZone(timezone);
      return dt.plus({ [unit]: amount }).toJSDate();
@@ -167,10 +167,10 @@ export const addTime = (
  * Subtract time from a date
  */
 export const subtractTime = (
-     date: Date, 
-     amount: number, 
+     date: Date,
+     amount: number,
      unit: 'days' | 'hours' | 'minutes' | 'weeks' | 'months' | 'years',
-     timezone: string = DEFAULT_TIMEZONE
+     timezone: string = DEFAULT_TIMEZONE,
 ): Date => {
      const dt = DateTime.fromJSDate(date).setZone(timezone);
      return dt.minus({ [unit]: amount }).toJSDate();
@@ -180,9 +180,9 @@ export const subtractTime = (
  * Calculate leave by time (subtract travel time from event start)
  */
 export const calculateLeaveByTime = (
-     eventStartDate: Date, 
-     travelMinutes: number, 
-     timezone: string = DEFAULT_TIMEZONE
+     eventStartDate: Date,
+     travelMinutes: number,
+     timezone: string = DEFAULT_TIMEZONE,
 ): Date => {
      const dt = DateTime.fromJSDate(eventStartDate).setZone(timezone);
      return dt.minus({ minutes: travelMinutes }).toJSDate();
@@ -192,15 +192,15 @@ export const calculateLeaveByTime = (
  * Check if date is between two dates (inclusive)
  */
 export const isBetween = (
-     date: Date, 
-     startDate: Date, 
-     endDate: Date, 
-     timezone: string = DEFAULT_TIMEZONE
+     date: Date,
+     startDate: Date,
+     endDate: Date,
+     timezone: string = DEFAULT_TIMEZONE,
 ): boolean => {
      const dt = DateTime.fromJSDate(date).setZone(timezone);
      const start = DateTime.fromJSDate(startDate).setZone(timezone);
      const end = DateTime.fromJSDate(endDate).setZone(timezone);
-     
+
      return dt >= start && dt <= end;
 };
 
@@ -208,9 +208,9 @@ export const isBetween = (
  * Parse date string with timezone
  */
 export const parseDate = (
-     dateString: string, 
+     dateString: string,
      format: string = 'yyyy-MM-dd',
-     timezone: string = DEFAULT_TIMEZONE
+     timezone: string = DEFAULT_TIMEZONE,
 ): Date => {
      return DateTime.fromFormat(dateString, format, { zone: timezone }).toJSDate();
 };
@@ -232,7 +232,10 @@ export const convertTimezone = (date: Date, toTimezone: string): Date => {
 /**
  * Get time remaining in detailed format
  */
-export const getTimeRemaining = (date: Date, timezone: string = DEFAULT_TIMEZONE): {
+export const getTimeRemaining = (
+     date: Date,
+     timezone: string = DEFAULT_TIMEZONE,
+): {
      days: number;
      hours: number;
      minutes: number;

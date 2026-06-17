@@ -14,7 +14,15 @@ import { Video } from './videoManagement.model';
 import { createCacheHelper } from '../../builder/RedisCacheHelper';
 const userCache = createCacheHelper('user');
 const getAllVideos = async (query: Record<string, unknown>, seasonId: string) => {
-     const queryBuilder = new QueryBuilder(Video.find({ seasonId: new mongoose.Types.ObjectId(seasonId) }), query).paginate().filter().sort().fields().search(['title', 'description']);
+     const queryBuilder = new QueryBuilder(
+          Video.find({ seasonId: new mongoose.Types.ObjectId(seasonId) }),
+          query,
+     )
+          .paginate()
+          .filter()
+          .sort()
+          .fields()
+          .search(['title', 'description']);
      const result = await queryBuilder.modelQuery.exec();
      const meta = await queryBuilder.countTotal();
 
@@ -27,7 +35,10 @@ const getAllVideos = async (query: Record<string, unknown>, seasonId: string) =>
 const getSingleVideo = async (id: string, userId: string): Promise<IVideo> => {
      const result = await Video.findById(id);
      if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Requested video not found, please try again with valid id');
+          throw new AppError(
+               StatusCodes.NOT_FOUND,
+               'Requested video not found, please try again with valid id',
+          );
      }
      await Video.findByIdAndUpdate(id, { $inc: { views: 1 } });
      if (userId) {
@@ -51,7 +62,10 @@ const updateVideo = async (id: string, payload: Partial<IVideo>): Promise<IVideo
      );
 
      if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Requested trailer not found, please try again with valid id');
+          throw new AppError(
+               StatusCodes.NOT_FOUND,
+               'Requested trailer not found, please try again with valid id',
+          );
      }
      return result;
 };
@@ -63,7 +77,10 @@ const deleteVideo = async (id: string): Promise<IVideo> => {
 
      const result = await Video.findByIdAndDelete(id);
      if (!result) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Something went wrong while deleting trailer, please try again with valid id.');
+          throw new AppError(
+               StatusCodes.NOT_FOUND,
+               'Something went wrong while deleting trailer, please try again with valid id.',
+          );
      }
      return result;
 };
@@ -77,7 +94,17 @@ const uploadThumbnail = async (thumbnailFile: Express.Multer.File) => {
 };
 
 const createVideo = async (id: string, payload: IVideo) => {
-     const { videoId, title, description, thumbnailUrl, duration, movieId, seasonId, episodeNumber, downloadUrls } = payload;
+     const {
+          videoId,
+          title,
+          description,
+          thumbnailUrl,
+          duration,
+          movieId,
+          seasonId,
+          episodeNumber,
+          downloadUrls,
+     } = payload;
 
      if (!videoId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'Video ID is required');
@@ -90,9 +117,14 @@ const createVideo = async (id: string, payload: IVideo) => {
      const libraryId = config.bunnyCDN.stream_library_id as string;
 
      // ঐ season এর last video এর episodeNumber খুঁজে বের করা
-     const lastVideo = await Video.findOne({ seasonId }).sort({ episodeNumber: -1 }).select('episodeNumber');
+     const lastVideo = await Video.findOne({ seasonId })
+          .sort({ episodeNumber: -1 })
+          .select('episodeNumber');
 
-     const newEpisodeNumber = lastVideo && typeof lastVideo.episodeNumber === 'number' ? lastVideo.episodeNumber + 1 : 1;
+     const newEpisodeNumber =
+          lastVideo && typeof lastVideo.episodeNumber === 'number'
+               ? lastVideo.episodeNumber + 1
+               : 1;
 
      const finalEpisodeNumber = episodeNumber || newEpisodeNumber;
 
@@ -112,7 +144,9 @@ const createVideo = async (id: string, payload: IVideo) => {
 
      // 🔔 Broadcast notification to all users — new episode added
      await NotificationQueueHelper.sendBroadcastNotification(
-          title ? `New episode just dropped: "${title}" (Episode ${finalEpisodeNumber}). Watch it now!` : `Episode ${finalEpisodeNumber} has just been added. Watch it now!`,
+          title
+               ? `New episode just dropped: "${title}" (Episode ${finalEpisodeNumber}). Watch it now!`
+               : `Episode ${finalEpisodeNumber} has just been added. Watch it now!`,
           '🎬 New Episode Available',
           'ADMIN',
      );
@@ -204,7 +238,10 @@ const getSortVideos = async (userId?: string) => {
      let likedVideoSet = new Set<string>();
 
      if (userId) {
-          const [user, likedVideos] = await Promise.all([User.findById(userId).select('isSubscribed'), Like.find({ userId }).select('videoId')]);
+          const [user, likedVideos] = await Promise.all([
+               User.findById(userId).select('isSubscribed'),
+               Like.find({ userId }).select('videoId'),
+          ]);
 
           if (user) {
                isSubscribed = user.isSubscribed;
@@ -219,7 +256,10 @@ const getSortVideos = async (userId?: string) => {
           query.$or = [{ episodeNumber: 1 }, { seasonId: { $exists: false } }];
      }
 
-     const videos = await Video.find(query).populate('seasonId', 'title seasonNumber').populate('movieId', 'title').sort({ seasonId: 1, episodeNumber: 1, createdAt: -1 });
+     const videos = await Video.find(query)
+          .populate('seasonId', 'title seasonNumber')
+          .populate('movieId', 'title')
+          .sort({ seasonId: 1, episodeNumber: 1, createdAt: -1 });
 
      return videos.map((video) => {
           const videoId = video._id.toString();

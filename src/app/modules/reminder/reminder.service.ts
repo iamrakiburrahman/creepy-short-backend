@@ -19,7 +19,12 @@ const getAllRemindersFromDB = async (query: Record<string, unknown>) => {
           query,
           async () => {
                const queryBuilder = new QueryBuilder(ReminderModel.find(), query);
-               const result = await queryBuilder.filter().fields().paginate().sort().modelQuery.exec();
+               const result = await queryBuilder
+                    .filter()
+                    .fields()
+                    .paginate()
+                    .sort()
+                    .modelQuery.exec();
                const meta = await queryBuilder.countTotal();
                return {
                     meta,
@@ -33,8 +38,16 @@ const getAllRemindersForUserFromDB = async (query: Record<string, unknown>) => {
      return await createReminderCache.wrapList(
           query,
           async () => {
-               const queryBuilder = new QueryBuilder(ReminderModel.find({ status: 'active' }), query);
-               const result = await queryBuilder.filter().fields().paginate().sort().modelQuery.exec();
+               const queryBuilder = new QueryBuilder(
+                    ReminderModel.find({ status: 'active' }),
+                    query,
+               );
+               const result = await queryBuilder
+                    .filter()
+                    .fields()
+                    .paginate()
+                    .sort()
+                    .modelQuery.exec();
                const meta = await queryBuilder.countTotal();
                return {
                     meta,

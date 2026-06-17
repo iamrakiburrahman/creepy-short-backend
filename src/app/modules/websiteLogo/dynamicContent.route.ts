@@ -17,7 +17,11 @@ router.post(
      DynamicContentController.createOrUpdate,
 );
 router.get('/', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), DynamicContentController.getAll);
-router.delete('/:key', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), DynamicContentController.deleteContent);
+router.delete(
+     '/:key',
+     auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+     DynamicContentController.deleteContent,
+);
 
 // public route
 router.get('/key/:key', DynamicContentController.getByKey);

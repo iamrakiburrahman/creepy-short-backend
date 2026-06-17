@@ -31,7 +31,11 @@ const createReviewToDB = async (payload: IReview): Promise<IReview> => {
                newRating = (user.rating * user.ratingCount + rating) / ratingCount;
           }
 
-          await User.findByIdAndUpdate({ _id: payload.barber }, { rating: parseFloat(newRating.toFixed(2)), ratingCount: ratingCount }, { new: true });
+          await User.findByIdAndUpdate(
+               { _id: payload.barber },
+               { rating: parseFloat(newRating.toFixed(2)), ratingCount: ratingCount },
+               { new: true },
+          );
      }
 
      const result = await Review.create(payload);

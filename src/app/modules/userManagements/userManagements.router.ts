@@ -7,27 +7,23 @@ import { USER_ROLES } from '../../../enums/user';
 
 const router = express.Router();
 
+router.get('/', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), DashboardUserController.getAllUser);
 router.get(
-  '/',
-  auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
-  DashboardUserController.getAllUser,
-);
-router.get(
-  '/:id',
-  auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
-  DashboardUserController.getSingleUser,
+     '/:id',
+     auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+     DashboardUserController.getSingleUser,
 );
 router.patch(
-  '/status/:id',
-  auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
-  validateRequest(userManagementsValidations.updateStatus),
-  DashboardUserController.updateStatus,
+     '/status/:id',
+     auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+     validateRequest(userManagementsValidations.updateStatus),
+     DashboardUserController.updateStatus,
 );
 
 router.delete(
-  '/delete/:id',
-  auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
-  DashboardUserController.deleteUser,
+     '/delete/:id',
+     auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+     DashboardUserController.deleteUser,
 );
 
 export const UserManagementsRouter = router;

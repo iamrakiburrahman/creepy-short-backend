@@ -15,7 +15,7 @@ const createPackageZodSchema = z.object({
           }),
           paymentType: z.enum(['Monthly', 'Yearly'], {
                required_error: 'Payment type is required',
-          })
+          }),
      }),
 });
 

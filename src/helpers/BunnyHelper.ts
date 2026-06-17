@@ -3,7 +3,11 @@ import AppError from '../errors/AppError';
 import BunnyStorage from 'bunnycdn-storage';
 import config from '../config';
 import { getBunnyUrl } from '../utils/getUrlFromBunny';
-const bunnyStorage = new BunnyStorage(config.bunnyCDN.apiKey as string, config.bunnyCDN.storageZone as string, config.bunnyCDN.region || undefined);
+const bunnyStorage = new BunnyStorage(
+     config.bunnyCDN.apiKey as string,
+     config.bunnyCDN.storageZone as string,
+     config.bunnyCDN.region || undefined,
+);
 const extractFileKeyFromUrl = (url: string): string => {
      try {
           const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
@@ -22,7 +26,10 @@ const uploadToBunny = async (file: Express.Multer.File, folderName: string): Pro
           await bunnyStorage.upload(file.buffer, fileKey);
           return getBunnyUrl(fileKey);
      } catch (error: any) {
-          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, `Error uploading file to BunnyCDN: ${error.message}`);
+          throw new AppError(
+               StatusCodes.INTERNAL_SERVER_ERROR,
+               `Error uploading file to BunnyCDN: ${error.message}`,
+          );
      }
 };
 // const uploadVideoToBunny = async (file: Express.Multer.File, folderName: string): Promise<string> => {
@@ -34,7 +41,11 @@ const uploadToBunny = async (file: Express.Multer.File, folderName: string): Pro
 //           throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, `Error uploading file to BunnyCDN: ${error.message}`);
 //      }
 // };
-const uploadVideoToBunny = async (fileBuffer: Buffer, originalFileName: string, folderName: string): Promise<string> => {
+const uploadVideoToBunny = async (
+     fileBuffer: Buffer,
+     originalFileName: string,
+     folderName: string,
+): Promise<string> => {
      // Use the original file name provided by multer (file.originalname)
      const fileKey = `${folderName}/${Date.now().toString()}-${originalFileName}`;
 
@@ -45,10 +56,12 @@ const uploadVideoToBunny = async (fileBuffer: Buffer, originalFileName: string, 
           // Return the URL for the uploaded file
           return getBunnyUrl(fileKey);
      } catch (error: any) {
-          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, `Error uploading file to BunnyCDN: ${error.message}`);
+          throw new AppError(
+               StatusCodes.INTERNAL_SERVER_ERROR,
+               `Error uploading file to BunnyCDN: ${error.message}`,
+          );
      }
 };
-
 
 const deleteFromBunny = async (fileUrl: string): Promise<boolean> => {
      try {
@@ -56,7 +69,10 @@ const deleteFromBunny = async (fileUrl: string): Promise<boolean> => {
           await bunnyStorage.delete(filePath);
           return true;
      } catch (error: any) {
-          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, `Error deleting file from BunnyCDN: ${error.message}`);
+          throw new AppError(
+               StatusCodes.INTERNAL_SERVER_ERROR,
+               `Error deleting file from BunnyCDN: ${error.message}`,
+          );
      }
 };
 const downloadVideoFromBunny = async (fileKey: string): Promise<Buffer> => {
@@ -69,7 +85,10 @@ const downloadVideoFromBunny = async (fileKey: string): Promise<Buffer> => {
 
           return buffer;
      } catch (error: any) {
-          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, `Error downloading file from BunnyCDN: ${error.message}`);
+          throw new AppError(
+               StatusCodes.INTERNAL_SERVER_ERROR,
+               `Error downloading file from BunnyCDN: ${error.message}`,
+          );
      }
 };
 export const BunnyStorageHandeler = {

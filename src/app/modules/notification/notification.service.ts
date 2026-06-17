@@ -10,7 +10,10 @@ import { EmailQueueHelper, NotificationQueueHelper } from '../../../helpers/bull
 
 // get notifications
 const getNotificationFromDB = async (user: JwtPayload, query: Record<string, unknown>) => {
-     const queryBuilder = new QueryBuilder(Notification.find({ receiver: user.id }).populate('receiver', 'name email image'), query);
+     const queryBuilder = new QueryBuilder(
+          Notification.find({ receiver: user.id }).populate('receiver', 'name email image'),
+          query,
+     );
      const result = await queryBuilder.filter().sort().paginate().fields().modelQuery.exec();
      const meta = await queryBuilder.countTotal();
      const unreadCount = await Notification.countDocuments({
@@ -28,7 +31,10 @@ const getNotificationFromDB = async (user: JwtPayload, query: Record<string, unk
 
 // read notifications only for user
 const readAllNotificationToDB = async (user: JwtPayload): Promise<INotification | undefined> => {
-     const result: any = await Notification.updateMany({ receiver: user.id, read: false }, { $set: { read: true } });
+     const result: any = await Notification.updateMany(
+          { receiver: user.id, read: false },
+          { $set: { read: true } },
+     );
      return result;
 };
 
@@ -39,7 +45,11 @@ const adminNotificationFromDB = async (userId: string, query: Record<string, unk
           throw new AppError(StatusCodes.NOT_FOUND, 'Admin not found');
      }
      if (user.role === USER_ROLES.SUPER_ADMIN || user.role === USER_ROLES.ADMIN) {
-          const queryBuilder = new QueryBuilder(Notification.find({ receiver: user.id }), query).filter().sort().paginate().fields();
+          const queryBuilder = new QueryBuilder(Notification.find({ receiver: user.id }), query)
+               .filter()
+               .sort()
+               .paginate()
+               .fields();
           const result = await queryBuilder.modelQuery.exec();
           const meta = await queryBuilder.countTotal();
           return {
@@ -50,7 +60,9 @@ const adminNotificationFromDB = async (userId: string, query: Record<string, unk
 };
 
 // read notifications only for admin
-const readSingleNotificationToDB = async (notificationId: string): Promise<INotification | null> => {
+const readSingleNotificationToDB = async (
+     notificationId: string,
+): Promise<INotification | null> => {
      const result: any = await Notification.findByIdAndUpdate(
           notificationId,
           { $set: { read: true } },
@@ -62,7 +74,7 @@ const readSingleNotificationToDB = async (notificationId: string): Promise<INoti
      return result;
 };
 
- const fakeNotificationToDB = async (userId: string) => {
+const fakeNotificationToDB = async (userId: string) => {
      if (!userId) {
           throw new AppError(StatusCodes.BAD_REQUEST, 'User ID is required');
      }

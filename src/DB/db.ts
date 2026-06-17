@@ -20,11 +20,10 @@ export function setupMongooseListeners(): void {
 
      mongoose.connection.on('disconnected', () => {
           logger.warn(colors.yellow('MongoDB disconnected. Attempting to reconnect...'));
-        
      });
 
      mongoose.connection.on('reconnected', async () => {
-          logger.info(colors.green('MongoDB reconnected successfully'));        
+          logger.info(colors.green('MongoDB reconnected successfully'));
      });
 
      mongoose.connection.on('reconnectFailed', () => {

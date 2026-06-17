@@ -3,7 +3,6 @@ import { ISubscription, SubscriptionModel } from './subscription.interface';
 
 const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
      {
-        
           price: {
                type: Number,
                required: true,
@@ -52,11 +51,20 @@ const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
           },
           status: {
                type: String,
-               enum: ['expired', 'active', 'cancel', 'deactivated', 'trialing', 'past_due', 'unpaid', 'incomplete'],
+               enum: [
+                    'expired',
+                    'active',
+                    'cancel',
+                    'deactivated',
+                    'trialing',
+                    'past_due',
+                    'unpaid',
+                    'incomplete',
+               ],
                default: 'active',
                required: true,
           },
-          
+
           cancelAtPeriodEnd: {
                type: Boolean,
                default: false,
@@ -81,4 +89,7 @@ const subscriptionSchema = new Schema<ISubscription, SubscriptionModel>(
      },
 );
 
-export const Subscription = model<ISubscription, SubscriptionModel>('Subscription', subscriptionSchema);
+export const Subscription = model<ISubscription, SubscriptionModel>(
+     'Subscription',
+     subscriptionSchema,
+);

@@ -74,7 +74,10 @@ export const emailWorker = new Worker<EmailJobData>(
                          break;
 
                     default:
-                         throw new AppError(StatusCodes.BAD_REQUEST, `Unknown email template: ${template}`);
+                         throw new AppError(
+                              StatusCodes.BAD_REQUEST,
+                              `Unknown email template: ${template}`,
+                         );
                }
 
                // Send email (emailData already has to, subject, html)
@@ -100,7 +103,17 @@ export const notificationWorker = new Worker<NotificationJobData>(
      'notification-queue',
      async (job) => {
           try {
-               const { userId, title, message, type, channels, data, reference, referenceModel, screen } = job.data;
+               const {
+                    userId,
+                    title,
+                    message,
+                    type,
+                    channels,
+                    data,
+                    reference,
+                    referenceModel,
+                    screen,
+               } = job.data;
 
                logger.info(colors.blue(`🔔 Processing notification job ${job.id}`));
 
@@ -133,7 +146,9 @@ export const notificationWorker = new Worker<NotificationJobData>(
 
                          if (userIds.length > 0) {
                               await NotificationHelper.sendToBatch(userIds, payload);
-                              logger.info(colors.cyan(`📢 Broadcast sent to ${userIds.length} users`));
+                              logger.info(
+                                   colors.cyan(`📢 Broadcast sent to ${userIds.length} users`),
+                              );
                          }
                     }
                }
@@ -233,7 +248,9 @@ export const cleanupWorker = new Worker<CleanupJobData>(
                          });
 
                          deletedCount = allResult.deletedCount || 0;
-                         logger.info(colors.cyan(`🗑️  Deleted ${deletedCount} very old notifications`));
+                         logger.info(
+                              colors.cyan(`🗑️  Deleted ${deletedCount} very old notifications`),
+                         );
                          break;
 
                     default:

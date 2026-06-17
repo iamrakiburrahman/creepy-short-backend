@@ -25,7 +25,12 @@ const getFeedbacks = async (query: Record<string, unknown>) => {
           query,
           async () => {
                const queryBuilder = new QueryBuilder(Feedback.find(), query);
-               const result = await queryBuilder.paginate().sort().fields().modelQuery.populate('userId', 'name image').exec();
+               const result = await queryBuilder
+                    .paginate()
+                    .sort()
+                    .fields()
+                    .modelQuery.populate('userId', 'name image')
+                    .exec();
                const meta = await queryBuilder.countTotal();
                return {
                     meta,

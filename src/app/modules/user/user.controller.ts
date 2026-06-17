@@ -50,7 +50,10 @@ const updateProfile = catchAsync(async (req, res) => {
      }
      // If password is provided
      if (req.body.password) {
-          req.body.password = await bcrypt.hash(req.body.password, Number(config.bcrypt_salt_rounds));
+          req.body.password = await bcrypt.hash(
+               req.body.password,
+               Number(config.bcrypt_salt_rounds),
+          );
      }
 
      const result = await UserService.updateProfileToDB(user, req.body);

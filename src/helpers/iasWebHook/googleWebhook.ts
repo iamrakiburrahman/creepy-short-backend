@@ -6,7 +6,6 @@ import { User } from '../../app/modules/user/user.model';
 import config from '../../config';
 import { NotificationQueueHelper } from '../bullMQ/bullHelper';
 
-
 // ==========================================
 // GOOGLE WEBHOOK - Renew, Cancel, Refund
 // ==========================================
@@ -72,7 +71,9 @@ const handleGoogleWebhook = async (req: Request, res: Response) => {
                     break;
 
                case 8: // SUBSCRIPTION_PRICE_CHANGE_CONFIRMED
-                    logger.info('💵 Google Price Change Confirmed:', { token: purchaseToken.substring(0, 20) + '...' });
+                    logger.info('💵 Google Price Change Confirmed:', {
+                         token: purchaseToken.substring(0, 20) + '...',
+                    });
                     break;
 
                default:
@@ -87,7 +88,11 @@ const handleGoogleWebhook = async (req: Request, res: Response) => {
 };
 
 // Google Renewal
-const handleGoogleRenewal = async (packageName: string, subscriptionId: string, purchaseToken: string) => {
+const handleGoogleRenewal = async (
+     packageName: string,
+     subscriptionId: string,
+     purchaseToken: string,
+) => {
      try {
           logger.info('✅ Google Renewed:', {
                packageName,
@@ -99,7 +104,10 @@ const handleGoogleRenewal = async (packageName: string, subscriptionId: string, 
           const auth = new google.auth.GoogleAuth({
                credentials: {
                     client_email: config.iap.google_play_email as string,
-                    private_key: config.iap.google_play_private_key?.replace(/\\n/g, '\n') as string,
+                    private_key: config.iap.google_play_private_key?.replace(
+                         /\\n/g,
+                         '\n',
+                    ) as string,
                },
                scopes: ['https://www.googleapis.com/auth/androidpublisher'],
           });
@@ -130,7 +138,9 @@ const handleGoogleRenewal = async (packageName: string, subscriptionId: string, 
           subscription.currentPeriodEnd = expiryDate.toISOString();
           subscription.status = 'active';
           subscription.cancelAtPeriodEnd = false;
-          subscription.remaining = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          subscription.remaining = Math.ceil(
+               (expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+          );
           await subscription.save();
 
           // Update user
@@ -205,7 +215,10 @@ const handleGoogleExpired = async (purchaseToken: string) => {
           });
 
           // 🔔 Notification
-          await NotificationQueueHelper.sendAlert(subscription.userId.toString(), 'Your subscription has expired. Please renew to continue enjoying premium features.');
+          await NotificationQueueHelper.sendAlert(
+               subscription.userId.toString(),
+               'Your subscription has expired. Please renew to continue enjoying premium features.',
+          );
 
           logger.info('⏰ Google subscription expired:', subscription._id);
      } catch (error: any) {
@@ -298,7 +311,10 @@ const handleGoogleOnHold = async (purchaseToken: string) => {
           });
 
           // 🔔 Notification
-          await NotificationQueueHelper.sendAlert(subscription.userId.toString(), 'Your subscription is on hold due to a payment failure. Please update your payment method to restore access.');
+          await NotificationQueueHelper.sendAlert(
+               subscription.userId.toString(),
+               'Your subscription is on hold due to a payment failure. Please update your payment method to restore access.',
+          );
 
           logger.info('🔄 Google subscription on hold, access removed:', subscription._id);
      } catch (error: any) {
@@ -307,7 +323,11 @@ const handleGoogleOnHold = async (purchaseToken: string) => {
 };
 
 // Google Recovered (Payment success after retry)
-const handleGoogleRecovered = async (packageName: string, subscriptionId: string, purchaseToken: string) => {
+const handleGoogleRecovered = async (
+     packageName: string,
+     subscriptionId: string,
+     purchaseToken: string,
+) => {
      try {
           logger.info('🎉 Google Recovered:', {
                packageName,
@@ -319,7 +339,10 @@ const handleGoogleRecovered = async (packageName: string, subscriptionId: string
           const auth = new google.auth.GoogleAuth({
                credentials: {
                     client_email: config.iap.google_play_email as string,
-                    private_key: config.iap.google_play_private_key?.replace(/\\n/g, '\n') as string,
+                    private_key: config.iap.google_play_private_key?.replace(
+                         /\\n/g,
+                         '\n',
+                    ) as string,
                },
                scopes: ['https://www.googleapis.com/auth/androidpublisher'],
           });
@@ -346,7 +369,9 @@ const handleGoogleRecovered = async (packageName: string, subscriptionId: string
           // Payment success, subscription recovered
           subscription.currentPeriodEnd = expiryDate.toISOString();
           subscription.status = 'active';
-          subscription.remaining = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          subscription.remaining = Math.ceil(
+               (expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+          );
           await subscription.save();
 
           // Restore user access
@@ -370,7 +395,11 @@ const handleGoogleRecovered = async (packageName: string, subscriptionId: string
 };
 
 // Google Restarted (After pause বা cancel restart)
-const handleGoogleRestarted = async (packageName: string, subscriptionId: string, purchaseToken: string) => {
+const handleGoogleRestarted = async (
+     packageName: string,
+     subscriptionId: string,
+     purchaseToken: string,
+) => {
      try {
           logger.info('🔄 Google Restarted:', {
                packageName,
@@ -382,7 +411,10 @@ const handleGoogleRestarted = async (packageName: string, subscriptionId: string
           const auth = new google.auth.GoogleAuth({
                credentials: {
                     client_email: config.iap.google_play_email as string,
-                    private_key: config.iap.google_play_private_key?.replace(/\\n/g, '\n') as string,
+                    private_key: config.iap.google_play_private_key?.replace(
+                         /\\n/g,
+                         '\n',
+                    ) as string,
                },
                scopes: ['https://www.googleapis.com/auth/androidpublisher'],
           });
@@ -410,7 +442,9 @@ const handleGoogleRestarted = async (packageName: string, subscriptionId: string
           subscription.currentPeriodEnd = expiryDate.toISOString();
           subscription.status = 'active';
           subscription.cancelAtPeriodEnd = false;
-          subscription.remaining = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          subscription.remaining = Math.ceil(
+               (expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+          );
           await subscription.save();
 
           // Restore user access
@@ -420,7 +454,12 @@ const handleGoogleRestarted = async (packageName: string, subscriptionId: string
           });
 
           // 🔔 Notification
-          await NotificationQueueHelper.sendNotification(subscription.userId.toString(), 'Your subscription has been restarted successfully. Welcome back!', '🔄 Subscription Restarted', 'SYSTEM');
+          await NotificationQueueHelper.sendNotification(
+               subscription.userId.toString(),
+               'Your subscription has been restarted successfully. Welcome back!',
+               '🔄 Subscription Restarted',
+               'SYSTEM',
+          );
 
           logger.info('🔄 Google subscription restarted:', subscription._id);
      } catch (error: any) {

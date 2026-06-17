@@ -21,4 +21,3 @@ export function printBanner(title: string): void {
           printFooter();
      });
 }
-

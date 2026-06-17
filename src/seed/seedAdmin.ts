@@ -43,7 +43,9 @@ const seedUsers = async () => {
 
           // Insert users into the database
           await User.insertMany(hashedUsersData);
-          logger.info(colors.green('✨ --------------> Users seeded successfully <-------------- ✨'));
+          logger.info(
+               colors.green('✨ --------------> Users seeded successfully <-------------- ✨'),
+          );
      } catch (err) {
           logger.error(colors.red('💥 Error seeding users: 💥'), err);
      }
@@ -58,7 +60,9 @@ const seedSuperAdmin = async () => {
 
           // Start seeding users
           await seedUsers();
-          logger.info(colors.green('🎉 --------------> Database seeding completed <--------------- 🎉'));
+          logger.info(
+               colors.green('🎉 --------------> Database seeding completed <--------------- 🎉'),
+          );
      } catch (error) {
           logger.error(colors.red('🔥 Error creating Super Admin: 🔥'), error);
      } finally {

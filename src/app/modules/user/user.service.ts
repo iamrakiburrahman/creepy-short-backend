@@ -84,7 +84,10 @@ const getUserProfileFromDB = async (user: JwtPayload): Promise<Partial<IUser>> =
           user.id,
           async () => {
                const { id } = user;
-               const isExistUser = await User.findById(id).populate('subscription', 'price name packageName currentPeriodStart currentPeriodEnd remaining status provider');
+               const isExistUser = await User.findById(id).populate(
+                    'subscription',
+                    'price name packageName currentPeriodStart currentPeriodEnd remaining status provider',
+               );
                if (!isExistUser) {
                     throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
                }
@@ -95,7 +98,10 @@ const getUserProfileFromDB = async (user: JwtPayload): Promise<Partial<IUser>> =
 };
 
 // update user profile
-const updateProfileToDB = async (user: JwtPayload, payload: Partial<IUser>): Promise<Partial<IUser | null>> => {
+const updateProfileToDB = async (
+     user: JwtPayload,
+     payload: Partial<IUser>,
+): Promise<Partial<IUser | null>> => {
      const { id } = user;
      const isExistUser = await User.isExistUserById(id);
      if (!isExistUser) {
@@ -296,7 +302,10 @@ const getUserStats = async () => {
           isDeleted: { $ne: true },
      });
      const verifiedUsers = await User.countDocuments({ verified: true, isDeleted: { $ne: true } });
-     const blockedUsers = await User.countDocuments({ status: 'blocked', isDeleted: { $ne: true } });
+     const blockedUsers = await User.countDocuments({
+          status: 'blocked',
+          isDeleted: { $ne: true },
+     });
 
      return {
           totalUsers,
@@ -309,7 +318,11 @@ const getUserStats = async () => {
 };
 
 // Link OAuth account to existing user
-const linkOAuthAccount = async (userId: string, provider: 'google' | 'facebook', providerId: string) => {
+const linkOAuthAccount = async (
+     userId: string,
+     provider: 'google' | 'facebook',
+     providerId: string,
+) => {
      const user = await User.findById(userId);
      if (!user) {
           throw new AppError(StatusCodes.NOT_FOUND, 'User not found');

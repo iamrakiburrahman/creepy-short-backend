@@ -5,10 +5,18 @@ import auth from '../../middleware/auth';
 const router = express.Router();
 
 router.get('/', auth(USER_ROLES.USER), NotificationController.getNotificationFromDB);
-router.get('/admin', auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), NotificationController.adminNotificationFromDB);
+router.get(
+     '/admin',
+     auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+     NotificationController.adminNotificationFromDB,
+);
 router.patch('/', auth(USER_ROLES.USER), NotificationController.readAllNotification);
-router.patch('/:notificationId/read', auth(USER_ROLES.USER), NotificationController.readSingleNotification);
+router.patch(
+     '/:notificationId/read',
+     auth(USER_ROLES.USER),
+     NotificationController.readSingleNotification,
+);
 
-router.post("/fake", auth(USER_ROLES.USER), NotificationController.fakeNotification);
+router.post('/fake', auth(USER_ROLES.USER), NotificationController.fakeNotification);
 
 export const NotificationRoutes = router;

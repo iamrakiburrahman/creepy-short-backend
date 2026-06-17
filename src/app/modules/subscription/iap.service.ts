@@ -36,7 +36,11 @@ interface IValidationResult {
 // ==========================================
 // 1. Google Validation (Dynamic Package Name)
 // ==========================================
-export const validateGoogleReceipt = async (token: string, productId: string, packageName: string): Promise<IValidationResult> => {
+export const validateGoogleReceipt = async (
+     token: string,
+     productId: string,
+     packageName: string,
+): Promise<IValidationResult> => {
      try {
           const authClient = await getGoogleAuthClient();
           const response = await androidPublisher.purchases.subscriptions.get({
@@ -122,7 +126,9 @@ const processAppleProducts = (products: any): IValidationResult => {
           return { isValid: false, newExpiryDate: null, isTrial: false };
      }
 
-     const latestReceipt = products.sort((a: any, b: any) => b.expirationDate - a.expirationDate)[0];
+     const latestReceipt = products.sort(
+          (a: any, b: any) => b.expirationDate - a.expirationDate,
+     )[0];
 
      const expiryDate = new Date(latestReceipt.expirationDate);
      const isSandbox = process.env.NODE_ENV !== 'production';

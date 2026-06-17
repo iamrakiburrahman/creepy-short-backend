@@ -23,12 +23,16 @@ export async function gracefulShutdown(signal: string): Promise<void> {
      global.isShuttingDown = true;
 
      logger.info(colors.bgYellow.black(`\n${'='.repeat(60)}`));
-     logger.info(colors.bgYellow.black(`  WORKER ${process.pid} - GRACEFUL SHUTDOWN (${signal})  `));
+     logger.info(
+          colors.bgYellow.black(`  WORKER ${process.pid} - GRACEFUL SHUTDOWN (${signal})  `),
+     );
      logger.info(colors.bgYellow.black(`${'='.repeat(60)}\n`));
 
      // Set a force shutdown timer (safety net)
      const forceShutdownTimer = setTimeout(() => {
-          errorLogger.error(colors.bgRed.white(`\n⚠️  FORCE SHUTDOWN after ${SHUTDOWN_TIMEOUT_MS}ms\n`));
+          errorLogger.error(
+               colors.bgRed.white(`\n⚠️  FORCE SHUTDOWN after ${SHUTDOWN_TIMEOUT_MS}ms\n`),
+          );
           process.exit(1);
      }, SHUTDOWN_TIMEOUT_MS);
 
@@ -45,7 +49,7 @@ export async function gracefulShutdown(signal: string): Promise<void> {
                                    httpServer.close(() => resolve());
                               });
                          }
-                    }
+                    },
                },
                {
                     name: 'Socket.IO Server',
@@ -57,19 +61,19 @@ export async function gracefulShutdown(signal: string): Promise<void> {
                                    socketServer.close(() => resolve());
                               });
                          }
-                    }
+                    },
                },
                {
                     name: 'BullMQ (Job Queue)',
                     action: async () => {
                          await closeBullMQ();
-                    }
+                    },
                },
                {
                     name: 'Redis Connection',
                     action: async () => {
                          await disconnectRedis();
-                    }
+                    },
                },
                {
                     name: 'MongoDB Connection',
@@ -77,8 +81,8 @@ export async function gracefulShutdown(signal: string): Promise<void> {
                          if (mongoose.connection.readyState !== 0) {
                               await mongoose.connection.close(false);
                          }
-                    }
-               }
+                    },
+               },
           ];
 
           // Execute shutdown steps sequentially
@@ -101,7 +105,6 @@ export async function gracefulShutdown(signal: string): Promise<void> {
           logger.info(colors.bgGreen.black(`${'='.repeat(60)}\n`));
 
           process.exit(0);
-
      } catch (error) {
           clearTimeout(forceShutdownTimer);
           errorLogger.error(colors.bgRed.white('\n❌ CRITICAL ERROR DURING SHUTDOWN:\n'), error);

@@ -43,7 +43,7 @@ export default {
           pass: process.env.EMAIL_PASS,
      },
      express_session: process.env.EXPRESS_SESSION_SECRET_KEY,
- 
+
      redis: {
           password: process.env.REDIS_PASSWORD,
           url: process.env.REDIS_URL,

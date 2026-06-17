@@ -2,7 +2,12 @@ import { ErrorRequestHandler, Request, Response, NextFunction } from 'express';
 import processError from './processError';
 import config from '../config';
 
-export const globalErrorHandler: ErrorRequestHandler = (error: any, req: Request, res: Response, _next: NextFunction) => {
+export const globalErrorHandler: ErrorRequestHandler = (
+     error: any,
+     req: Request,
+     res: Response,
+     _next: NextFunction,
+) => {
      // Process the all error function
      const { statusCode, message, errorSources } = processError(error);
 

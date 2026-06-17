@@ -28,7 +28,7 @@ const deviceTokenSchema = new Schema<IDeviceTokenModel>(
                type: String,
                required: true,
                trim: true,
-          }
+          },
      },
      {
           timestamps: true,

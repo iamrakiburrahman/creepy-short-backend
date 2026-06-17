@@ -73,7 +73,10 @@ export function setupSecurity() {
 
                               // Remove potential XSS vectors
                               obj[key] = obj[key]
-                                   .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                                   .replace(
+                                        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+                                        '',
+                                   )
                                    .replace(/javascript:/gi, '')
                                    .replace(/on\w+\s*=/gi, '');
 
@@ -97,7 +100,9 @@ export function setupSecurity() {
           ExpressMongoSanitize({
                replaceWith: '_',
                onSanitize: ({ req, key }) => {
-                    logger.warn(`⚠️ Sanitized MongoDB operator injection at key: ${key} from IP: ${req.ip}`);
+                    logger.warn(
+                         `⚠️ Sanitized MongoDB operator injection at key: ${key} from IP: ${req.ip}`,
+                    );
                },
           }),
      );
@@ -114,8 +119,14 @@ export function setupSecurity() {
           res.setHeader('X-Content-Type-Options', 'nosniff');
           res.setHeader('X-Frame-Options', 'DENY');
           res.setHeader('X-XSS-Protection', '1; mode=block');
-          res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=()');
-          res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+          res.setHeader(
+               'Permissions-Policy',
+               'geolocation=(), microphone=(), camera=(), payment=()',
+          );
+          res.setHeader(
+               'Strict-Transport-Security',
+               'max-age=31536000; includeSubDomains; preload',
+          );
           res.setHeader('X-Download-Options', 'noopen');
           res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
           res.removeHeader('X-Powered-By');
@@ -155,7 +166,9 @@ export function setupSecurity() {
           const maxSize = 10 * 1024 * 1024; // 10MB
 
           if (contentLength > maxSize) {
-               logger.warn(`⚠️ Payload too large from IP: ${req.ip} - Size: ${contentLength} bytes`);
+               logger.warn(
+                    `⚠️ Payload too large from IP: ${req.ip} - Size: ${contentLength} bytes`,
+               );
                res.status(413).json({
                     success: false,
                     message: 'Payload too large',
@@ -182,7 +195,9 @@ export function setupSecurity() {
 
           for (const pattern of suspiciousPatterns) {
                if (pattern.test(queryString) || pattern.test(bodyString)) {
-                    logger.error(`🚨 SECURITY ALERT: Suspicious request from IP: ${req.ip} - Path: ${req.path}`);
+                    logger.error(
+                         `🚨 SECURITY ALERT: Suspicious request from IP: ${req.ip} - Path: ${req.path}`,
+                    );
                     res.status(403).json({
                          success: false,
                          message: 'Forbidden - Suspicious request detected',
@@ -277,7 +292,7 @@ export const corsOptions: cors.CorsOptions = {
                // Allow requests with no origin (mobile apps, Postman, server-to-server)
                return callback(null, true);
           }
-          
+
           if (allowedOrigins === '*' || allowedOrigins.includes(origin)) {
                callback(null, true);
           } else {
@@ -287,7 +302,15 @@ export const corsOptions: cors.CorsOptions = {
      },
      credentials: true, // Allow cookies
      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-CSRF-Token', 'token'],
+     allowedHeaders: [
+          'Content-Type',
+          'Authorization',
+          'X-Requested-With',
+          'Accept',
+          'Origin',
+          'X-CSRF-Token',
+          'token',
+     ],
      exposedHeaders: ['Content-Range', 'X-Content-Range', 'Set-Cookie'],
      maxAge: 86400, // 24 hours
      preflightContinue: false,

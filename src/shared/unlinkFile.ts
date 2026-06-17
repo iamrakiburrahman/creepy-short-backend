@@ -10,7 +10,6 @@
 
 // export default unlinkFile;
 
-
 import fs from 'fs';
 import path from 'path';
 import getUploadDirectory from '../utils/getUploadDirectory';
@@ -30,7 +29,7 @@ const unlinkFile = (file: string | string[]) => {
      } else if (Array.isArray(file)) {
           // If it's an array of file paths, loop through the array and unlink each file
           file.forEach((singleFile) => {
-                const baseUploadDir = getUploadDirectory();
+               const baseUploadDir = getUploadDirectory();
                const filePath = path.join(baseUploadDir, singleFile);
                if (fs.existsSync(filePath)) {
                     fs.unlinkSync(filePath);

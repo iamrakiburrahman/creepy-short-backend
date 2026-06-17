@@ -12,7 +12,14 @@ import { User } from '../user/user.model';
 import { Video } from '../videoManagement/videoManagement.model';
 import { IMovie } from './movieManagement.interface';
 import { MovieModel } from './movieManagement.model';
-import { buildCategoryFilter, buildMeta, getFieldsParam, getPaginationParams, getSortParam, TMovieQuery } from './movieManagement.helper';
+import {
+     buildCategoryFilter,
+     buildMeta,
+     getFieldsParam,
+     getPaginationParams,
+     getSortParam,
+     TMovieQuery,
+} from './movieManagement.helper';
 const movieCache = createCacheHelper('movieCache');
 
 const createMovieToDB = async (payload: IMovie) => {
@@ -32,7 +39,9 @@ const createMovieToDB = async (payload: IMovie) => {
      await movieCache.clearAll();
 
      await NotificationQueueHelper.sendBroadcastNotification(
-          payload.title ? `New movie just added: "${payload.title}". Watch it now!` : 'A new movie has just been added. Check it out!',
+          payload.title
+               ? `New movie just added: "${payload.title}". Watch it now!`
+               : 'A new movie has just been added. Check it out!',
           '🎬 New Movie Available',
           'ADMIN',
      );
@@ -105,7 +114,11 @@ const getSingleMovieFromDBWithUser = async (id: string, userId?: string) => {
      // Increment views if it's a guest OR a regular user (not an admin)
      // This ensures views are counted even for guest mood
      if (!isUser || isUser.role === USER_ROLES.USER) {
-          await MovieModel.findByIdAndUpdate(id, { $inc: { totalViews: 1 } }, { timestamps: false });
+          await MovieModel.findByIdAndUpdate(
+               id,
+               { $inc: { totalViews: 1 } },
+               { timestamps: false },
+          );
           await movieCache.clearAfterUpdate(id);
      }
 
@@ -120,22 +133,19 @@ const updateMovieFromDB = async (id: string, payload: IMovie) => {
      if (payload.thumbnail && existingMovie.thumbnail) {
           unlinkFile(existingMovie.thumbnail);
      }
-     console.log(payload)
+     console.log(payload);
      if (payload.categoryIds && payload.categoryIds.length) {
-        const categories = await Category.find({
-          _id: { $in: payload.categoryIds },
-     });
+          const categories = await Category.find({
+               _id: { $in: payload.categoryIds },
+          });
 
-     if (!categories.length) {
-          throw new AppError(
-               StatusCodes.BAD_REQUEST,
-               'No categories found'
-          );
-     }
+          if (!categories.length) {
+               throw new AppError(StatusCodes.BAD_REQUEST, 'No categories found');
+          }
           payload.categories = categories.map((cat) => cat.name);
      }
      if (!payload.thumbnail) {
-          delete payload.thumbnail
+          delete payload.thumbnail;
      }
      const result = await MovieModel.findByIdAndUpdate(id, payload, { new: true });
      if (!result) {
@@ -291,7 +301,11 @@ const getSingleMovieFromDBWithSession = async (userId: string | undefined, id: s
           throw new AppError(StatusCodes.NOT_FOUND, 'Movie not found');
      }
      if (!isUser || isUser.role === USER_ROLES.USER) {
-          await MovieModel.findByIdAndUpdate(id, { $inc: { totalViews: 1 } }, { timestamps: false });
+          await MovieModel.findByIdAndUpdate(
+               id,
+               { $inc: { totalViews: 1 } },
+               { timestamps: false },
+          );
           await movieCache.clearAfterUpdate(id);
      }
 

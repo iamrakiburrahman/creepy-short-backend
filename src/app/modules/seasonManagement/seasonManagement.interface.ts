@@ -1,8 +1,8 @@
-import { Types } from "mongoose";
+import { Types } from 'mongoose';
 
 export interface ISeason {
      title: string;
-     seasonNumber: number; 
+     seasonNumber: number;
      movieId: Types.ObjectId;
      description?: string;
 }

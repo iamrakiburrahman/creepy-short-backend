@@ -2,7 +2,11 @@ import AppError from '../../../errors/AppError';
 import { Bookmark } from './bookmark.model'; // Import the Bookmark model
 
 // Toggle bookmark (add or remove)
-const toggleBookmark = async (payload: { userId: string; referenceId: string; referenceType: string }) => {
+const toggleBookmark = async (payload: {
+     userId: string;
+     referenceId: string;
+     referenceType: string;
+}) => {
      const { userId, referenceId, referenceType } = payload;
      const existingBookmark = await Bookmark.findOne({ userId, referenceId });
 
@@ -11,7 +15,12 @@ const toggleBookmark = async (payload: { userId: string; referenceId: string; re
           return { message: 'Bookmark removed successfully' };
      } else {
           // If it doesn't exist, create a new bookmark
-          const newBookmark = new Bookmark({ userId, referenceId, referenceType, isBookmarked: true });
+          const newBookmark = new Bookmark({
+               userId,
+               referenceId,
+               referenceType,
+               isBookmarked: true,
+          });
           await newBookmark.save();
           return { message: 'Bookmark added successfully' };
      }

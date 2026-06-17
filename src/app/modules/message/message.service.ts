@@ -13,7 +13,10 @@ const getUserPinnedMessages = async (
      try {
           // Validate inputs
           if (!userId || !chatId) {
-               console.warn('getUserPinnedMessages called with invalid parameters', { userId, chatId });
+               console.warn('getUserPinnedMessages called with invalid parameters', {
+                    userId,
+                    chatId,
+               });
                return [];
           }
 
@@ -35,7 +38,12 @@ const getUserPinnedMessages = async (
                return userPin.userId.toString() === userId;
           });
 
-          if (!userPinnedData || !userPinnedData.pinnedMessages || !Array.isArray(userPinnedData.pinnedMessages) || !userPinnedData.pinnedMessages.length) {
+          if (
+               !userPinnedData ||
+               !userPinnedData.pinnedMessages ||
+               !Array.isArray(userPinnedData.pinnedMessages) ||
+               !userPinnedData.pinnedMessages.length
+          ) {
                console.log(`No pinned messages found for user: ${userId} in chat: ${chatId}`);
                return [];
           }
@@ -95,7 +103,9 @@ const sendMessageToDB = async (payload: IMessage): Promise<IMessage> => {
      console.log('✅ Chat found in:', Date.now() - startTime, 'ms');
 
      // Verify sender is participant
-     const isSenderParticipant = chat.participants.some((p) => p.toString() === payload.sender.toString());
+     const isSenderParticipant = chat.participants.some(
+          (p) => p.toString() === payload.sender.toString(),
+     );
 
      if (!isSenderParticipant) {
           throw new AppError(StatusCodes.FORBIDDEN, 'Sender is not a participant in this chat');
@@ -104,8 +114,10 @@ const sendMessageToDB = async (payload: IMessage): Promise<IMessage> => {
      // Check if sender is blocked
      const isBlocked = chat.blockedUsers?.some(
           (block: any) =>
-               (block.blocker.toString() === payload.sender.toString() && chat.participants.some((p) => p.toString() === block.blocked.toString())) ||
-               (block.blocked.toString() === payload.sender.toString() && chat.participants.some((p) => p.toString() === block.blocker.toString())),
+               (block.blocker.toString() === payload.sender.toString() &&
+                    chat.participants.some((p) => p.toString() === block.blocked.toString())) ||
+               (block.blocked.toString() === payload.sender.toString() &&
+                    chat.participants.some((p) => p.toString() === block.blocker.toString())),
      );
 
      if (isBlocked) {
@@ -115,7 +127,9 @@ const sendMessageToDB = async (payload: IMessage): Promise<IMessage> => {
      // Handle chat reactivation
      let chatUpdated = false;
      const originalDeletedCount = chat.deletedByDetails.length;
-     chat.deletedByDetails = chat.deletedByDetails.filter((detail) => detail.userId.toString() !== payload.sender.toString());
+     chat.deletedByDetails = chat.deletedByDetails.filter(
+          (detail) => detail.userId.toString() !== payload.sender.toString(),
+     );
 
      if (originalDeletedCount > chat.deletedByDetails.length) {
           chat.status = 'active';
@@ -159,8 +173,13 @@ const sendMessageToDB = async (payload: IMessage): Promise<IMessage> => {
      // Get populated data
      const populationStart = Date.now();
      const [populatedMessage, populatedChat] = await Promise.all([
-          Message.findById(response._id).populate('sender', 'firstName lastName email image').lean(),
-          Chat.findById(response.chatId).populate('participants', 'firstName lastName email image').populate('lastMessage').lean(),
+          Message.findById(response._id)
+               .populate('sender', 'firstName lastName email image')
+               .lean(),
+          Chat.findById(response.chatId)
+               .populate('participants', 'firstName lastName email image')
+               .populate('lastMessage')
+               .lean(),
      ]);
 
      console.log('✅ Data populated in:', Date.now() - populationStart, 'ms');
@@ -176,7 +195,9 @@ const sendMessageToDB = async (payload: IMessage): Promise<IMessage> => {
           chat.participants.forEach((participantId, index) => {
                const participantIdStr = participantId.toString();
 
-               console.log(`📨 Emitting to participant ${index + 1}/${chat.participants.length}: ${participantIdStr}`);
+               console.log(
+                    `📨 Emitting to participant ${index + 1}/${chat.participants.length}: ${participantIdStr}`,
+               );
 
                // Emit new message immediately
                io.emit(`newMessage::${participantIdStr}`, populatedMessage);
@@ -258,7 +279,9 @@ const getMessagesFromDB = async (
           }
 
           // Find when user deleted the chat (if they did)
-          const userDeletionDetail = chat.deletedByDetails.find((detail) => detail.userId.toString() === userId);
+          const userDeletionDetail = chat.deletedByDetails.find(
+               (detail) => detail.userId.toString() === userId,
+          );
 
           // Build message query - filter out messages deleted specifically for this user
           let messageQuery: any = {
@@ -339,7 +362,11 @@ const getMessagesFromDB = async (
      }
 };
 
-const addReactionToMessage = async (id: string, messageId: string, reactionType: 'like' | 'love' | 'thumbs_up' | 'laugh' | 'angry' | 'sad') => {
+const addReactionToMessage = async (
+     id: string,
+     messageId: string,
+     reactionType: 'like' | 'love' | 'thumbs_up' | 'laugh' | 'angry' | 'sad',
+) => {
      const userId = new Types.ObjectId(id);
      // Validate the reaction type
      const validReactions = ['like', 'love', 'thumbs_up', 'laugh', 'angry', 'sad'];
@@ -359,17 +386,24 @@ const addReactionToMessage = async (id: string, messageId: string, reactionType:
           if (chat) {
                const isBlocked = chat.blockedUsers?.some(
                     (block: any) =>
-                         (block.blocker.toString() === userId.toString() && block.blocked.toString() === message.sender.toString()) ||
-                         (block.blocked.toString() === userId.toString() && block.blocker.toString() === message.sender.toString()),
+                         (block.blocker.toString() === userId.toString() &&
+                              block.blocked.toString() === message.sender.toString()) ||
+                         (block.blocked.toString() === userId.toString() &&
+                              block.blocker.toString() === message.sender.toString()),
                );
 
                if (isBlocked) {
-                    throw new AppError(StatusCodes.FORBIDDEN, 'Cannot react to messages from blocked users');
+                    throw new AppError(
+                         StatusCodes.FORBIDDEN,
+                         'Cannot react to messages from blocked users',
+                    );
                }
           }
 
           // Check if the user has already reacted to the message
-          const existingReaction = message.reactions.find((reaction) => reaction.userId.toString() === userId.toString());
+          const existingReaction = message.reactions.find(
+               (reaction) => reaction.userId.toString() === userId.toString(),
+          );
 
           if (existingReaction) {
                // Update the existing reaction
@@ -405,7 +439,9 @@ const addReactionToMessage = async (id: string, messageId: string, reactionType:
 const deleteMessage = async (userId: string, messageId: string) => {
      try {
           // Find the message by messageId with necessary fields only
-          const message = (await Message.findById(messageId).select('sender chatId isPinned').lean()) as IMessage;
+          const message = (await Message.findById(messageId)
+               .select('sender chatId isPinned')
+               .lean()) as IMessage;
 
           if (!message) {
                throw new AppError(StatusCodes.NOT_FOUND, 'Message not found');
@@ -499,14 +535,19 @@ const pinUnpinMessage = async (userId: string, messageId: string, action: 'pin' 
           // Now get the chat using message.chatId
           const chatData = await Chat.findById(message.chatId);
           if (!chatData || !chatData.participants.some((p) => p.toString() === userId)) {
-               throw new AppError(StatusCodes.FORBIDDEN, 'You are not authorized to pin messages in this chat');
+               throw new AppError(
+                    StatusCodes.FORBIDDEN,
+                    'You are not authorized to pin messages in this chat',
+               );
           }
 
           // Check if users are blocked
           const isBlocked = chatData.blockedUsers?.some(
                (block: any) =>
-                    (block.blocker.toString() === userId && block.blocked.toString() === message.sender.toString()) ||
-                    (block.blocked.toString() === userId && block.blocker.toString() === message.sender.toString()),
+                    (block.blocker.toString() === userId &&
+                         block.blocked.toString() === message.sender.toString()) ||
+                    (block.blocked.toString() === userId &&
+                         block.blocker.toString() === message.sender.toString()),
           );
 
           if (isBlocked) {
@@ -515,19 +556,26 @@ const pinUnpinMessage = async (userId: string, messageId: string, action: 'pin' 
 
           if (action === 'pin') {
                // Check if message is already pinned by this user
-               const isAlreadyPinned = message.pinnedByUsers?.some((pin: any) => pin.userId.toString() === userId);
+               const isAlreadyPinned = message.pinnedByUsers?.some(
+                    (pin: any) => pin.userId.toString() === userId,
+               );
 
                if (isAlreadyPinned) {
                     throw new AppError(StatusCodes.BAD_REQUEST, 'Message is already pinned by you');
                }
 
                // Check user's pinned messages limit
-               const userPinnedData = chatData.userPinnedMessages?.find((userPin: any) => userPin.userId.toString() === userId);
+               const userPinnedData = chatData.userPinnedMessages?.find(
+                    (userPin: any) => userPin.userId.toString() === userId,
+               );
 
                const currentPinnedCount = userPinnedData?.pinnedMessages?.length || 0;
 
                if (currentPinnedCount >= 10) {
-                    throw new AppError(StatusCodes.BAD_REQUEST, 'Maximum 10 messages can be pinned per chat');
+                    throw new AppError(
+                         StatusCodes.BAD_REQUEST,
+                         'Maximum 10 messages can be pinned per chat',
+                    );
                }
 
                // Use session for transaction
@@ -585,7 +633,10 @@ const pinUnpinMessage = async (userId: string, messageId: string, action: 'pin' 
                }
 
                // Get updated message
-               const updatedMessage = await Message.findById(messageId).populate('sender', 'firstName lastName email image');
+               const updatedMessage = await Message.findById(messageId).populate(
+                    'sender',
+                    'firstName lastName email image',
+               );
 
                // Emit socket event
                const io = (global as any).io;
@@ -601,7 +652,9 @@ const pinUnpinMessage = async (userId: string, messageId: string, action: 'pin' 
                return updatedMessage;
           } else {
                // Unpin the message
-               const isPinnedByUser = message.pinnedByUsers?.some((pin: any) => pin.userId.toString() === userId);
+               const isPinnedByUser = message.pinnedByUsers?.some(
+                    (pin: any) => pin.userId.toString() === userId,
+               );
 
                if (!isPinnedByUser) {
                     throw new AppError(StatusCodes.BAD_REQUEST, 'Message is not pinned by you');
@@ -642,7 +695,10 @@ const pinUnpinMessage = async (userId: string, messageId: string, action: 'pin' 
                }
 
                // Get updated message
-               const updatedMessage = await Message.findById(messageId).populate('sender', 'firstName lastName email image');
+               const updatedMessage = await Message.findById(messageId).populate(
+                    'sender',
+                    'firstName lastName email image',
+               );
 
                // Emit socket event
                const io = (global as any).io;
@@ -701,8 +757,10 @@ const replyToMessage = async (payload: Partial<IMessage>) => {
      // Check if sender is blocked
      const isBlocked = chat.blockedUsers?.some(
           (block: any) =>
-               (block.blocker.toString() === payload.sender?.toString() && chat.participants.some((p) => p.toString() === block.blocked.toString())) ||
-               (block.blocked.toString() === payload.sender?.toString() && chat.participants.some((p) => p.toString() === block.blocker.toString())),
+               (block.blocker.toString() === payload.sender?.toString() &&
+                    chat.participants.some((p) => p.toString() === block.blocked.toString())) ||
+               (block.blocked.toString() === payload.sender?.toString() &&
+                    chat.participants.some((p) => p.toString() === block.blocker.toString())),
      );
 
      if (isBlocked) {
@@ -731,7 +789,10 @@ const replyToMessage = async (payload: Partial<IMessage>) => {
      });
 
      // Get populated message for socket
-     const populatedMessage = await Message.findById(message._id).populate('sender', 'firstName lastName email image').populate('replySender', 'firstName lastName email image').lean();
+     const populatedMessage = await Message.findById(message._id)
+          .populate('sender', 'firstName lastName email image')
+          .populate('replySender', 'firstName lastName email image')
+          .lean();
 
      // Get updated chat with populated data for chat list update
      const populatedChat = await Chat.findById(payload.chatId)
@@ -745,7 +806,10 @@ const replyToMessage = async (payload: Partial<IMessage>) => {
      const io = global.io;
 
      if (chat.participants && io) {
-          const otherParticipants = chat.participants.filter((participant) => participant && participant.toString() !== payload.sender?.toString());
+          const otherParticipants = chat.participants.filter(
+               (participant) =>
+                    participant && participant.toString() !== payload.sender?.toString(),
+          );
 
           // Emit to each participant
           otherParticipants.forEach((participantId) => {

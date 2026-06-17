@@ -54,7 +54,10 @@ class APIFeatures {
 
           // Other filters can be added similarly, e.g., category, brand, etc.
           Object.keys(queryCopy).forEach((key) => {
-               if (!removeFields.includes(key) && !['minPrice', 'maxPrice', 'rating'].includes(key)) {
+               if (
+                    !removeFields.includes(key) &&
+                    !['minPrice', 'maxPrice', 'rating'].includes(key)
+               ) {
                     query[key] = queryCopy[key];
                }
           });

@@ -12,9 +12,18 @@ const allUser = async (query: Record<string, unknown>) => {
      return await userCache.wrapList(
           query,
           async () => {
-               const queryBuilder = new QueryBuilder(User.find({ role: USER_ROLES.USER }).lean(), query);
+               const queryBuilder = new QueryBuilder(
+                    User.find({ role: USER_ROLES.USER }).lean(),
+                    query,
+               );
 
-               const users = await queryBuilder.search(['name', 'phone', 'email', 'address']).filter().sort().paginate().fields().modelQuery.exec();
+               const users = await queryBuilder
+                    .search(['name', 'phone', 'email', 'address'])
+                    .filter()
+                    .sort()
+                    .paginate()
+                    .fields()
+                    .modelQuery.exec();
 
                const meta = await queryBuilder.countTotal();
 
@@ -90,7 +99,10 @@ const updateUserStatus = async (id: string, status: string) => {
                     error: err.message,
                     email: result.email,
                });
-               throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to send block account email');
+               throw new AppError(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    'Failed to send block account email',
+               );
           }
      }
 

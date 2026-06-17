@@ -9,8 +9,12 @@ import { validateAppleReceipt, validateGoogleReceipt } from './iap.service';
 import { createCacheHelper } from '../../builder/RedisCacheHelper';
 import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 const userCache = createCacheHelper('user');
-const subscriptionDetailsFromDB = async (id: string): Promise<{ subscription: ISubscription | object }> => {
-     const subscription = await Subscription.findOne({ userId: id, status: 'active' }).populate('package', 'title credit duration').lean();
+const subscriptionDetailsFromDB = async (
+     id: string,
+): Promise<{ subscription: ISubscription | object }> => {
+     const subscription = await Subscription.findOne({ userId: id, status: 'active' })
+          .populate('package', 'title credit duration')
+          .lean();
 
      if (!subscription) {
           return { subscription: {} };
@@ -24,7 +28,10 @@ const subscriptionsFromDB = async (query: Record<string, unknown>): Promise<ISub
      if (searchTerm && typeof searchTerm === 'string' && searchTerm.trim()) {
           const trimmedSearchTerm = searchTerm.trim();
           const matchingPackageIds = await Package.find({
-               $or: [{ title: { $regex: trimmedSearchTerm, $options: 'i' } }, { paymentType: { $regex: trimmedSearchTerm, $options: 'i' } }],
+               $or: [
+                    { title: { $regex: trimmedSearchTerm, $options: 'i' } },
+                    { paymentType: { $regex: trimmedSearchTerm, $options: 'i' } },
+               ],
           }).distinct('_id');
           const matchingUserIds = await User.find({
                $or: [
@@ -97,7 +104,9 @@ const subscriptionsFromDB = async (query: Record<string, unknown>): Promise<ISub
                          select: 'email name contact company',
                     },
                ])
-               .select('userId package price trxId currentPeriodStart currentPeriodEnd status createdAt updatedAt')
+               .select(
+                    'userId package price trxId currentPeriodStart currentPeriodEnd status createdAt updatedAt',
+               )
                .sort({ createdAt: -1 }) // Add sorting by creation date
                .skip(skip)
                .limit(size)
@@ -141,7 +150,9 @@ const getTransactionHistory = async (userId: string): Promise<any> => {
      try {
           const transactions = await Subscription.find({ userId })
                .populate('package', 'title paymentType credit duration')
-               .select('package price trxId currentPeriodStart currentPeriodEnd status createdAt trialStart trialEnd')
+               .select(
+                    'package price trxId currentPeriodStart currentPeriodEnd status createdAt trialStart trialEnd',
+               )
                .sort({ createdAt: -1 })
                .lean();
 
@@ -172,7 +183,10 @@ const getTransactionHistory = async (userId: string): Promise<any> => {
                totalTransactions: formattedTransactions.length,
           };
      } catch (error: any) {
-          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, `Failed to fetch transaction history: ${error.message}`);
+          throw new AppError(
+               StatusCodes.INTERNAL_SERVER_ERROR,
+               `Failed to fetch transaction history: ${error.message}`,
+          );
      }
 };
 const createIAPSubscription = async (
@@ -198,7 +212,11 @@ const createIAPSubscription = async (
           if (!targetPackageName) {
                throw new AppError(StatusCodes.BAD_REQUEST, 'Package Name is required for Google');
           }
-          validation = await validateGoogleReceipt(payload.purchaseToken, payload.productId, targetPackageName);
+          validation = await validateGoogleReceipt(
+               payload.purchaseToken,
+               payload.productId,
+               targetPackageName,
+          );
           targetPackage = await Package.findOne({
                googleProductId: payload.productId,
           }).select('title duration price');
@@ -236,10 +254,12 @@ const createIAPSubscription = async (
 
      const remainingDays = isTrial
           ? 7
-          : Math.ceil((currentPeriodEnd.getTime() - currentPeriodStart.getTime()) / (1000 * 60 * 60 * 24));
+          : Math.ceil(
+                 (currentPeriodEnd.getTime() - currentPeriodStart.getTime()) /
+                      (1000 * 60 * 60 * 24),
+            );
 
      const status = isTrial ? 'trialing' : 'active';
-
 
      // 7. Create Subscription
      const newSub = await Subscription.create({
@@ -264,7 +284,8 @@ const createIAPSubscription = async (
           status: status,
      });
 
-     if (!newSub) throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to create subscription');
+     if (!newSub)
+          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to create subscription');
      // 8. Update User Access
      await User.findByIdAndUpdate(
           userId,
@@ -277,7 +298,12 @@ const createIAPSubscription = async (
      );
      await userCache.clearAfterUpdate(userId);
      if (isTrial) {
-          await NotificationQueueHelper.sendNotification(userId, `Your free trial for "${targetPackage?.name}" has started! You have 7 days of full access.`, '🎉 Free Trial Started', 'SYSTEM');
+          await NotificationQueueHelper.sendNotification(
+               userId,
+               `Your free trial for "${targetPackage?.name}" has started! You have 7 days of full access.`,
+               '🎉 Free Trial Started',
+               'SYSTEM',
+          );
      } else {
           await NotificationQueueHelper.sendPaymentNotification(
                userId,

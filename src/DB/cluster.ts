@@ -51,7 +51,7 @@
 //           // Don't restart during shutdown
 //           if (shuttingDown) {
 //                logger.info(colors.blue(`Worker ${pid} exited during shutdown (not restarting)`));
-               
+
 //                // Check if all workers are dead
 //                const remainingWorkers = Object.keys(cluster.workers || {}).length;
 //                if (remainingWorkers === 0) {
@@ -86,7 +86,7 @@
 //                }, delay);
 //           } else {
 //                errorLogger.error(colors.bgRed.white(`❌ Worker ${pid} FAILED after ${CONFIG.MAX_RESTART_ATTEMPTS} restart attempts`));
-               
+
 //                // If too many workers have failed, exit master
 //                const aliveWorkers = Object.keys(cluster.workers || {}).length;
 //                if (aliveWorkers === 0) {

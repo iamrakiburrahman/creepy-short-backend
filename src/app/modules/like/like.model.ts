@@ -18,4 +18,3 @@ const likeSchema = new Schema<ILike>(
 );
 
 export const Like = model<ILike>('Like', likeSchema);
-

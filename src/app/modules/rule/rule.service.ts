@@ -10,7 +10,11 @@ const createPrivacyPolicyToDB = async (payload: IRule) => {
 
      if (isExistPrivacy) {
           // update privacy is exist
-          const result = await Rule.findOneAndUpdate({ type: 'privacy' }, { content: payload?.content }, { new: true });
+          const result = await Rule.findOneAndUpdate(
+               { type: 'privacy' },
+               { content: payload?.content },
+               { new: true },
+          );
           const message = 'Privacy & Policy Updated successfully';
           return { message, result };
      } else {
@@ -33,7 +37,11 @@ const getPrivacyPolicyFromDB = async () => {
 const createTermsAndConditionToDB = async (payload: IRule) => {
      const isExistTerms = await Rule.findOne({ type: 'terms' });
      if (isExistTerms) {
-          const result = await Rule.findOneAndUpdate({ type: 'terms' }, { content: payload?.content }, { new: true });
+          const result = await Rule.findOneAndUpdate(
+               { type: 'terms' },
+               { content: payload?.content },
+               { new: true },
+          );
           const message = 'Terms And Condition Updated successfully';
           return { message, result };
      } else {
@@ -55,7 +63,11 @@ const getTermsAndConditionFromDB = async () => {
 const createAboutToDB = async (payload: IRule) => {
      const isExistAbout = await Rule.findOne({ type: 'about' });
      if (isExistAbout) {
-          const result = await Rule.findOneAndUpdate({ type: 'about' }, { content: payload?.content }, { new: true });
+          const result = await Rule.findOneAndUpdate(
+               { type: 'about' },
+               { content: payload?.content },
+               { new: true },
+          );
           const message = 'About Us Updated successfully';
           return { message, result };
      } else {

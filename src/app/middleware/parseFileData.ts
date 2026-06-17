@@ -3,7 +3,7 @@ import { getSingleFilePath, getMultipleFilesPath, IFolderName } from '../../shar
 
 interface FileFieldConfig {
      fieldName: IFolderName;
-     forceMultiple?: boolean; 
+     forceMultiple?: boolean;
      forceSingle?: boolean;
 }
 
@@ -14,7 +14,7 @@ const parseFileData = (...fields: FieldInput[]) => {
           try {
                const fileData: Record<string, string | string[] | null> = {};
                let fieldsToProcess: FileFieldConfig[] = [];
-               fields.forEach(field => {
+               fields.forEach((field) => {
                     if (typeof field === 'string') {
                          fieldsToProcess.push({ fieldName: field });
                     } else {
@@ -46,46 +46,68 @@ const parseFileData = (...fields: FieldInput[]) => {
                               try {
                                    const filePath = getSingleFilePath(req.files, fieldName);
                                    fileData[fieldName] = filePath || null;
-                                   console.log(`Single file processed (forced) for field: ${fieldName}`);
+                                   console.log(
+                                        `Single file processed (forced) for field: ${fieldName}`,
+                                   );
                               } catch (error) {
                                    fileData[fieldName] = null;
-                                   console.log(`Error in forced single file processing for field: ${fieldName}`);
+                                   console.log(
+                                        `Error in forced single file processing for field: ${fieldName}`,
+                                   );
                               }
                          } else if (forceMultiple) {
                               try {
                                    const filePaths = getMultipleFilesPath(req.files, fieldName);
                                    fileData[fieldName] = filePaths || null;
-                                   console.log(`Multiple files processed (forced) for field: ${fieldName}`);
+                                   console.log(
+                                        `Multiple files processed (forced) for field: ${fieldName}`,
+                                   );
                               } catch (error) {
                                    fileData[fieldName] = null;
-                                   console.log(`Error in forced multiple file processing for field: ${fieldName}`);
+                                   console.log(
+                                        `Error in forced multiple file processing for field: ${fieldName}`,
+                                   );
                               }
                          } else {
                               if (Array.isArray(filesForField) && filesForField.length > 1) {
                                    // Multiple files detected
                                    try {
-                                        const filePaths = getMultipleFilesPath(req.files, fieldName);
+                                        const filePaths = getMultipleFilesPath(
+                                             req.files,
+                                             fieldName,
+                                        );
                                         fileData[fieldName] = filePaths || null;
-                                        console.log(`Multiple files processed for field: ${fieldName} (${filesForField.length} files)`);
+                                        console.log(
+                                             `Multiple files processed for field: ${fieldName} (${filesForField.length} files)`,
+                                        );
                                    } catch (error) {
                                         fileData[fieldName] = null;
-                                        console.log(`Error in multiple file processing for field: ${fieldName}`);
+                                        console.log(
+                                             `Error in multiple file processing for field: ${fieldName}`,
+                                        );
                                    }
                               } else {
                                    // Single file detected (either single file or array with one file)
                                    try {
                                         const filePath = getSingleFilePath(req.files, fieldName);
                                         fileData[fieldName] = filePath || null;
-                                        console.log(`Single file processed for field: ${fieldName}`);
+                                        console.log(
+                                             `Single file processed for field: ${fieldName}`,
+                                        );
                                    } catch (error) {
                                         fileData[fieldName] = null;
-                                        console.log(`Error in single file processing for field: ${fieldName}`);
+                                        console.log(
+                                             `Error in single file processing for field: ${fieldName}`,
+                                        );
                                    }
                               }
                          }
                     } catch (error: any) {
                          fileData[fieldName] = null;
-                         console.log(`Error processing files for field: ${fieldName}`, error.message);
+                         console.log(
+                              `Error processing files for field: ${fieldName}`,
+                              error.message,
+                         );
                     }
                });
 

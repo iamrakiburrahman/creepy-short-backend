@@ -31,7 +31,11 @@ const createSubCategoryToDB = async (payload: ISubCategory) => {
 
 const getSubCategoriesFromDB = async (categoryId?: string): Promise<ISubCategory[]> => {
      const query = categoryId ? { categoryId, status: 'active' } : { status: 'active' };
-     const result = await subCategoryCache.wrapList({}, async () => await SubCategory.find(query), CACHE_TTL.VERY_LONG);
+     const result = await subCategoryCache.wrapList(
+          {},
+          async () => await SubCategory.find(query),
+          CACHE_TTL.VERY_LONG,
+     );
      return result;
 };
 

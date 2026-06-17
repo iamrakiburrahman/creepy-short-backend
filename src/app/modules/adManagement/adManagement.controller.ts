@@ -80,7 +80,6 @@ const generateUploadUrl = catchAsync(async (req, res) => {
      });
 });
 
-
 const createAdd = catchAsync(async (req, res) => {
      const { id: userId } = req.user as { id: string }; // Assuming you have auth middleware that sets req.user
 
@@ -101,6 +100,6 @@ export const AdManagementController = {
      deleteAdd,
      generateUploadUrl,
      createAdd,
-     getSingleAddForUser,     
+     getSingleAddForUser,
      getRandomAd,
 };

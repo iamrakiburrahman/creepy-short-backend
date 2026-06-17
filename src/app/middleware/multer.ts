@@ -1,6 +1,6 @@
-import { StatusCodes } from "http-status-codes";
-import AppError from "../../errors/AppError";
-import multer from "multer";
+import { StatusCodes } from 'http-status-codes';
+import AppError from '../../errors/AppError';
+import multer from 'multer';
 const storage = multer.memoryStorage();
 // Only images allowed
 const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {

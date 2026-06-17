@@ -50,5 +50,5 @@ export const AdminController = {
      deleteAdmin,
      createAdmin,
      getAdmin,
-     updateAdmin
+     updateAdmin,
 };

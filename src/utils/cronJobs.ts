@@ -32,7 +32,7 @@ const setupCleanupScheduler = () => {
      });
 
      logger.info(colors.bgCyan.black('⏰ Cleanup scheduler initialized'));
-}
+};
 const setupTimeManagement = () => {
      logger.info(colors.bgCyan.black('🚀 Setting up trial management cron jobs...'));
      // Start all cron jobs
