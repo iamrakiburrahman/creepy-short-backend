@@ -93,11 +93,7 @@ const forgetPasswordToDB = async (email: string) => {
 
      //send mail
      const otp = generateOTP(6);
-     // const value = { otp, email: isExistUser.email };
-     // const forgetPassword = emailTemplate.resetPassword(value);
-     // emailHelper.sendEmail(forgetPassword);
      await EmailQueueHelper.sendPasswordResetEmail(isExistUser.email!, otp);
-
      //save to DB
      const authentication = { oneTimeCode: otp, expireAt: new Date(Date.now() + 3 * 60000) };
      await User.findOneAndUpdate({ email }, { $set: { authentication } });
@@ -112,9 +108,6 @@ const resendOtpFromDb = async (email: string) => {
 
      // send email
      const otp = generateOTP(6);
-     // const values = { name: isExistUser.name, otp: otp, email: isExistUser.email! };
-     // const createAccountTemplate = emailTemplate.createAccount(values);
-     // emailHelper.sendEmail(createAccountTemplate);
      await EmailQueueHelper.sendWelcomeEmail(isExistUser.email!, isExistUser.name, otp);
 
      //save to DB
@@ -141,16 +134,8 @@ const forgetPasswordByUrlToDB = async (email: string) => {
           config.jwt.jwt_secret as string,
           config.reset_pass_expire_time as string,
      );
-
      // Construct password reset URL
      const resetUrl = `${config.frontend_url}/auth/login/set_password?email=${isExistUser.email}&token=${resetToken}`;
-
-     // // Prepare email template
-     // const forgetPasswordEmail = emailTemplate.resetPasswordByUrl({ email: isExistUser.email, resetUrl });
-
-     // // Send reset email
-     // await emailHelper.sendEmail(forgetPasswordEmail);
-
      await EmailQueueHelper.sendPasswordResetUrlEmail(isExistUser.email!, resetUrl);
 };
 

@@ -162,22 +162,22 @@ const userSchema = new Schema<IUser, UserModel>(
 );
 
 // Exist User Check
-userSchema.statics.isExistUserById = async (id: string) => {
-     return await User.findById(id);
+userSchema.statics.isExistUserById = (id: string) => {
+     return User.findById(id);
 };
 
-userSchema.statics.isExistUserByEmail = async (email: string) => {
-     return await User.findOne({ email });
+userSchema.statics.isExistUserByEmail = (email: string) => {
+     return User.findOne({ email });
 };
-userSchema.statics.isExistUserByPhone = async (contact: string) => {
-     return await User.findOne({ contact });
+userSchema.statics.isExistUserByPhone = (contact: string) => {
+     return User.findOne({ contact });
 };
 // Password Matching
-userSchema.statics.isMatchPassword = async (
+userSchema.statics.isMatchPassword = (
      password: string,
      hashPassword: string,
 ): Promise<boolean> => {
-     return await bcrypt.compare(password, hashPassword);
+     return bcrypt.compare(password, hashPassword);
 };
 
 // Pre-Save Hook for Hashing Password & Checking Email Uniqueness
