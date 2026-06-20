@@ -951,18 +951,53 @@ const getRevenueData = async (query: Record<string, unknown>) => {
      const currRange = { $gte: finalStartDate, $lte: finalEndDate };
      const prevRange = { $gte: prevStartDate, $lte: prevEndDate };
 
-     const [currRevenueRes, prevRevenueRes, totalRevenueRes, breakdown] = await Promise.all([
-          Subscription.aggregate([
-               { $match: { createdAt: currRange } },
-               { $group: { _id: null, total: { $sum: '$price' } } },
-          ]),
-          Subscription.aggregate([
-               { $match: { createdAt: prevRange } },
-               { $group: { _id: null, total: { $sum: '$price' } } },
-          ]),
-          Subscription.aggregate([{ $group: { _id: null, total: { $sum: '$price' } } }]),
-          getRevenueBreakdown(view, year, monthIndex, day, startDate, endDate),
-     ]);
+     const [currRevenueRes, prevRevenueRes, totalRevenueRes, breakdown, packageWiseRevenue] =
+          await Promise.all([
+               Subscription.aggregate([
+                    { $match: { createdAt: currRange } },
+                    { $group: { _id: null, total: { $sum: '$price' } } },
+               ]),
+               Subscription.aggregate([
+                    { $match: { createdAt: prevRange } },
+                    { $group: { _id: null, total: { $sum: '$price' } } },
+               ]),
+               Subscription.aggregate([{ $group: { _id: null, total: { $sum: '$price' } } }]),
+               getRevenueBreakdown(view, year, monthIndex, day, startDate, endDate),
+               Subscription.aggregate([
+                    { $match: { createdAt: currRange } },
+                    {
+                         $lookup: {
+                              from: 'packages', // mongoose default collection name (lowercase + plural)
+                              localField: 'package',
+                              foreignField: '_id',
+                              as: 'packageInfo',
+                         },
+                    },
+                    { $unwind: { path: '$packageInfo', preserveNullAndEmptyArrays: true } },
+                    {
+                         $group: {
+                              _id: {
+                                   packageId: '$package',
+                                   packageName: { $ifNull: ['$packageInfo.name', '$packageName'] },
+                                   paymentType: '$packageInfo.paymentType', // Weekly / Monthly / Yearly
+                              },
+                              totalRevenue: { $sum: '$price' },
+                              totalSubscriptions: { $sum: 1 },
+                         },
+                    },
+                    {
+                         $project: {
+                              _id: 0,
+                              packageId: '$_id.packageId',
+                              packageName: '$_id.packageName',
+                              paymentType: '$_id.paymentType',
+                              totalRevenue: 1,
+                              totalSubscriptions: 1,
+                         },
+                    },
+                    { $sort: { totalRevenue: -1 } },
+               ]),
+          ]);
 
      // const currentRevenue = currRevenueRes[0]?.total ?? 0;
      // const previousRevenue = prevRevenueRes[0]?.total ?? 0;
@@ -971,6 +1006,7 @@ const getRevenueData = async (query: Record<string, unknown>) => {
      return {
           filter: filterMeta,
           breakdown,
+          packageWiseRevenue,
      };
 };
 
