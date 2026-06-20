@@ -219,12 +219,12 @@ const createIAPSubscription = async (
           );
           targetPackage = await Package.findOne({
                googleProductId: payload.productId,
-          }).select('title duration price');
+          }).select('name duration price');
      } else {
           validation = await validateAppleReceipt(payload.purchaseToken);
           targetPackage = await Package.findOne({
                appleProductId: payload.productId,
-          }).select('title duration price');
+          }).select('name duration price');
      }
 
      // 3. Validation Check
