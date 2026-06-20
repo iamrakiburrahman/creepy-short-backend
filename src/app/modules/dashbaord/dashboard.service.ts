@@ -734,8 +734,8 @@ async function getRevenueMonthlyBreakdown(year: number, monthIndex: number) {
 
 async function getRevenueWeeklyBreakdown(year?: number, monthIndex?: number, day?: number) {
      const anchor =
-          year !== undefined && monthIndex !== undefined && day !== undefined
-               ? moment([year, monthIndex, day]).utc()
+          year !== undefined && monthIndex !== undefined
+               ? moment([year, monthIndex, day ?? 1]).utc()
                : moment().utc();
 
      const weekStart = anchor.clone().startOf('week');
@@ -773,8 +773,8 @@ async function getRevenueWeeklyBreakdown(year?: number, monthIndex?: number, day
 
 async function getRevenueDailyBreakdown(year?: number, monthIndex?: number, day?: number) {
      const target =
-          year !== undefined && monthIndex !== undefined && day !== undefined
-               ? moment([year, monthIndex, day]).utc()
+          year !== undefined && monthIndex !== undefined
+               ? moment([year, monthIndex, day ?? 1]).utc()
                : moment().utc();
 
      const dayStart = target.clone().startOf('day');
