@@ -639,7 +639,6 @@ const getProductionReportStats = async (query: Record<string, unknown>) => {
 };
 
 // ─── Revenue Specific Functions ───────────────────────────────────────────────
-
 async function getRevenueYearlyBreakdown(year: number) {
      const months = Array.from({ length: 12 }, (_, i) => i);
 
@@ -751,6 +750,194 @@ async function getRevenueDailyBreakdown(year?: number, monthIndex?: number, day?
      return ranges.map(({ label }, i) => ({
           period: label,
           revenue: results[i][0]?.total ?? 0,
+     }));
+}
+
+async function getPackageRevenueForRange(start: Date, end: Date) {
+     const range = { $gte: start, $lte: end };
+     return Subscription.aggregate([
+          { $match: { createdAt: range } },
+          {
+               $lookup: {
+                    from: 'packages',
+                    localField: 'package',
+                    foreignField: '_id',
+                    as: 'packageInfo',
+               },
+          },
+          { $unwind: { path: '$packageInfo', preserveNullAndEmptyArrays: true } },
+          {
+               $group: {
+                    _id: {
+                         packageId: '$package',
+                         packageName: { $ifNull: ['$packageInfo.name', '$packageName'] },
+                         paymentType: '$packageInfo.paymentType',
+                    },
+                    totalRevenue: { $sum: '$price' },
+                    totalSubscriptions: { $sum: 1 },
+               },
+          },
+          {
+               $project: {
+                    _id: 0,
+                    packageId: '$_id.packageId',
+                    packageName: '$_id.packageName',
+                    paymentType: '$_id.paymentType',
+                    totalRevenue: 1,
+                    totalSubscriptions: 1,
+               },
+          },
+          { $sort: { totalRevenue: -1 } },
+     ]);
+}
+
+async function getPackageWiseYearlyBreakdown(year: number) {
+     const months = Array.from({ length: 12 }, (_, i) => i);
+
+     const ranges = months.map((monthIndex) => ({
+          label: moment([year, monthIndex]).utc().format('MMMM'),
+          start: moment([year, monthIndex]).utc().startOf('month').toDate(),
+          end: moment([year, monthIndex]).utc().endOf('month').toDate(),
+     }));
+
+     const results = await Promise.all(
+          ranges.map(({ start, end }) => getPackageRevenueForRange(start, end)),
+     );
+
+     return ranges.map(({ label }, i) => ({
+          period: label,
+          packages: results[i],
+     }));
+}
+
+async function getPackageWiseMonthlyBreakdown(year: number, monthIndex: number) {
+     const daysInMonth = moment([year, monthIndex]).utc().daysInMonth();
+     const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+     const ranges = days.map((day) => ({
+          label: moment([year, monthIndex, day]).utc().format('YYYY-MM-DD'),
+          start: moment([year, monthIndex, day]).utc().startOf('day').toDate(),
+          end: moment([year, monthIndex, day]).utc().endOf('day').toDate(),
+     }));
+
+     const results = await Promise.all(
+          ranges.map(({ start, end }) => getPackageRevenueForRange(start, end)),
+     );
+
+     return ranges.map(({ label }, i) => ({
+          period: label,
+          packages: results[i],
+     }));
+}
+
+async function getPackageWiseWeeklyBreakdown(year?: number, monthIndex?: number, day?: number) {
+     const anchor =
+          year !== undefined && monthIndex !== undefined && day !== undefined
+               ? moment([year, monthIndex, day]).utc()
+               : moment().utc();
+
+     const weekStart = anchor.clone().startOf('week');
+     const days = Array.from({ length: 7 }, (_, i) => i);
+
+     const ranges = days.map((i) => ({
+          label: weekStart.clone().add(i, 'days').format('dddd'),
+          start: weekStart.clone().add(i, 'days').startOf('day').toDate(),
+          end: weekStart.clone().add(i, 'days').endOf('day').toDate(),
+     }));
+
+     const results = await Promise.all(
+          ranges.map(({ start, end }) => getPackageRevenueForRange(start, end)),
+     );
+
+     return ranges.map(({ label }, i) => ({
+          period: label,
+          packages: results[i],
+     }));
+}
+
+async function getPackageWiseDailyBreakdown(year?: number, monthIndex?: number, day?: number) {
+     const target =
+          year !== undefined && monthIndex !== undefined && day !== undefined
+               ? moment([year, monthIndex, day]).utc()
+               : moment().utc();
+
+     const dayStart = target.clone().startOf('day');
+     const hours = Array.from({ length: 24 }, (_, i) => i);
+
+     const ranges = hours.map((hour) => ({
+          label: dayStart.clone().add(hour, 'hours').format('HH:00'),
+          start: dayStart.clone().add(hour, 'hours').toDate(),
+          end: dayStart.clone().add(hour, 'hours').endOf('hour').toDate(),
+     }));
+
+     const results = await Promise.all(
+          ranges.map(({ start, end }) => getPackageRevenueForRange(start, end)),
+     );
+
+     return ranges.map(({ label }, i) => ({
+          period: label,
+          packages: results[i],
+     }));
+}
+
+async function getPackageWiseCustomRangeBreakdown(view: ViewType, startDate: Date, endDate: Date) {
+     const startMoment = moment(startDate).utc();
+     const endMoment = moment(endDate).utc();
+     const ranges: { label: string; start: Date; end: Date }[] = [];
+     let current = startMoment.clone();
+
+     while (current.isSameOrBefore(endMoment)) {
+          let startOfPeriod, endOfPeriod, label;
+
+          switch (view) {
+               case 'year':
+                    startOfPeriod = current.startOf('month');
+                    endOfPeriod = current.endOf('month');
+                    label = startOfPeriod.format('MMMM');
+                    current = endOfPeriod.clone().add(1, 'day');
+                    break;
+               case 'month':
+                    startOfPeriod = current.startOf('day');
+                    endOfPeriod = current.endOf('day');
+                    label = startOfPeriod.format('YYYY-MM-DD');
+                    current = endOfPeriod.clone().add(1, 'day');
+                    break;
+               case 'week':
+                    startOfPeriod = current.startOf('day');
+                    endOfPeriod = current.endOf('day');
+                    label = startOfPeriod.format('YYYY-MM-DD');
+                    current.add(1, 'day');
+                    break;
+               case 'day':
+               default:
+                    startOfPeriod = current.startOf('hour');
+                    endOfPeriod = current.endOf('hour');
+                    label = startOfPeriod.format('HH:00');
+                    current.add(1, 'hour');
+                    break;
+          }
+
+          if (
+               ranges.length > 0 &&
+               ranges[ranges.length - 1].start.getTime() === startOfPeriod.toDate().getTime()
+          ) {
+               continue;
+          }
+
+          ranges.push({
+               label,
+               start: startOfPeriod.toDate(),
+               end: endOfPeriod.toDate(),
+          });
+     }
+
+     const results = await Promise.all(
+          ranges.map(({ start, end }) => getPackageRevenueForRange(start, end)),
+     );
+
+     return ranges.map(({ label }, i) => ({
+          period: label,
+          packages: results[i],
      }));
 }
 
@@ -935,67 +1122,44 @@ function getRevenueBreakdown(
      }
 }
 
+function getPackageWiseBreakdown(
+     view: ViewType,
+     year: number,
+     monthIndex: number,
+     day?: number,
+     customStartDate?: Date,
+     customEndDate?: Date,
+) {
+     if (customStartDate && customEndDate) {
+          return getPackageWiseCustomRangeBreakdown(view, customStartDate, customEndDate);
+     }
+     switch (view) {
+          case 'year':
+               return getPackageWiseYearlyBreakdown(year);
+          case 'month':
+               return getPackageWiseMonthlyBreakdown(year, monthIndex);
+          case 'week':
+               return getPackageWiseWeeklyBreakdown(year, monthIndex, day);
+          case 'day':
+               return getPackageWiseDailyBreakdown(year, monthIndex, day);
+     }
+}
+
 const getRevenueData = async (query: Record<string, unknown>) => {
      const { view, year, monthIndex, day, startDate, endDate } = parseQueryParams(query);
-     const {
-          startDate: finalStartDate,
-          endDate: finalEndDate,
-          filterMeta,
-     } = buildFilter(view, year, monthIndex, day, startDate, endDate);
+     const { filterMeta } = buildFilter(view, year, monthIndex, day, startDate, endDate);
 
-     const unit =
-          view === 'year' ? 'year' : view === 'month' ? 'month' : view === 'week' ? 'week' : 'day';
-     const prevStartDate = moment(finalStartDate).subtract(1, unit).toDate();
-     const prevEndDate = moment(finalEndDate).subtract(1, unit).toDate();
+     const [breakdown, packageWiseRevenue] = await Promise.all([
+          getRevenueBreakdown(view, year, monthIndex, day, startDate, endDate),
+          getPackageWiseBreakdown(view, year, monthIndex, day, startDate, endDate),
+     ]);
 
-     const currRange = { $gte: finalStartDate, $lte: finalEndDate };
-     const prevRange = { $gte: prevStartDate, $lte: prevEndDate };
-
-     const [breakdown, packageWiseRevenue] =
-          await Promise.all([
-               getRevenueBreakdown(view, year, monthIndex, day, startDate, endDate),
-               Subscription.aggregate([
-                    { $match: { createdAt: currRange } },
-                    {
-                         $lookup: {
-                              from: 'packages', // mongoose default collection name (lowercase + plural)
-                              localField: 'package',
-                              foreignField: '_id',
-                              as: 'packageInfo',
-                         },
-                    },
-                    { $unwind: { path: '$packageInfo', preserveNullAndEmptyArrays: true } },
-                    {
-                         $group: {
-                              _id: {
-                                   packageId: '$package',
-                                   packageName: { $ifNull: ['$packageInfo.name', '$packageName'] },
-                                   paymentType: '$packageInfo.paymentType', // Weekly / Monthly / Yearly
-                              },
-                              totalRevenue: { $sum: '$price' },
-                              totalSubscriptions: { $sum: 1 },
-                         },
-                    },
-                    {
-                         $project: {
-                              _id: 0,
-                              packageId: '$_id.packageId',
-                              packageName: '$_id.packageName',
-                              paymentType: '$_id.paymentType',
-                              totalRevenue: 1,
-                              totalSubscriptions: 1,
-                         },
-                    },
-                    { $sort: { totalRevenue: -1 } },
-               ]),
-          ]);
      return {
           filter: filterMeta,
           breakdown,
           packageWiseRevenue,
      };
 };
-
 export const DashboardService = {
      getOverview,
      getUserGrowth,
