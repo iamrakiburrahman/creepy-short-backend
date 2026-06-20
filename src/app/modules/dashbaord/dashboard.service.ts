@@ -639,6 +639,34 @@ const getProductionReportStats = async (query: Record<string, unknown>) => {
 };
 
 // ─── Revenue Specific Functions ───────────────────────────────────────────────
+async function getPaymentTypeRevenueForRange(start: Date, end: Date) {
+     const range = { $gte: start, $lte: end };
+     const results = await Subscription.aggregate([
+          { $match: { createdAt: range } },
+          {
+               $lookup: {
+                    from: 'packages',
+                    localField: 'package',
+                    foreignField: '_id',
+                    as: 'packageInfo',
+               },
+          },
+          { $unwind: { path: '$packageInfo', preserveNullAndEmptyArrays: true } },
+          {
+               $group: {
+                    _id: '$packageInfo.paymentType',
+                    totalRevenue: { $sum: '$price' },
+               },
+          },
+     ]);
+
+     const weekly = results.find((r) => r._id === 'Weekly')?.totalRevenue ?? 0;
+     const monthly = results.find((r) => r._id === 'Monthly')?.totalRevenue ?? 0;
+     const yearly = results.find((r) => r._id === 'Yearly')?.totalRevenue ?? 0;
+
+     return { weekly, monthly, yearly };
+}
+
 async function getRevenueYearlyBreakdown(year: number) {
      const months = Array.from({ length: 12 }, (_, i) => i);
 
@@ -658,9 +686,16 @@ async function getRevenueYearlyBreakdown(year: number) {
           }),
      );
 
+     const typeResults = await Promise.all(
+          ranges.map(({ start, end }) => getPaymentTypeRevenueForRange(start, end)),
+     );
+
      return ranges.map(({ label }, i) => ({
           period: label,
           revenue: results[i][0]?.total ?? 0,
+          weekly: typeResults[i].weekly,
+          monthly: typeResults[i].monthly,
+          yearly: typeResults[i].yearly,
      }));
 }
 
@@ -684,9 +719,16 @@ async function getRevenueMonthlyBreakdown(year: number, monthIndex: number) {
           }),
      );
 
+     const typeResults = await Promise.all(
+          ranges.map(({ start, end }) => getPaymentTypeRevenueForRange(start, end)),
+     );
+
      return ranges.map(({ label }, i) => ({
           period: label,
           revenue: results[i][0]?.total ?? 0,
+          weekly: typeResults[i].weekly,
+          monthly: typeResults[i].monthly,
+          yearly: typeResults[i].yearly,
      }));
 }
 
@@ -716,9 +758,16 @@ async function getRevenueWeeklyBreakdown(year?: number, monthIndex?: number, day
           }),
      );
 
+     const typeResults = await Promise.all(
+          ranges.map(({ start, end }) => getPaymentTypeRevenueForRange(start, end)),
+     );
+
      return ranges.map(({ label }, i) => ({
           period: label,
           revenue: results[i][0]?.total ?? 0,
+          weekly: typeResults[i].weekly,
+          monthly: typeResults[i].monthly,
+          yearly: typeResults[i].yearly,
      }));
 }
 
@@ -747,9 +796,90 @@ async function getRevenueDailyBreakdown(year?: number, monthIndex?: number, day?
           }),
      );
 
+     const typeResults = await Promise.all(
+          ranges.map(({ start, end }) => getPaymentTypeRevenueForRange(start, end)),
+     );
+
      return ranges.map(({ label }, i) => ({
           period: label,
           revenue: results[i][0]?.total ?? 0,
+          weekly: typeResults[i].weekly,
+          monthly: typeResults[i].monthly,
+          yearly: typeResults[i].yearly,
+     }));
+}
+
+async function getRevenueCustomRangeBreakdown(view: ViewType, startDate: Date, endDate: Date) {
+     const startMoment = moment(startDate).utc();
+     const endMoment = moment(endDate).utc();
+     const ranges: { label: string; start: Date; end: Date }[] = [];
+     let current = startMoment.clone();
+
+     while (current.isSameOrBefore(endMoment)) {
+          let startOfPeriod, endOfPeriod, label;
+
+          switch (view) {
+               case 'year':
+                    startOfPeriod = current.startOf('month');
+                    endOfPeriod = current.endOf('month');
+                    label = startOfPeriod.format('MMMM');
+                    current = endOfPeriod.clone().add(1, 'day');
+                    break;
+               case 'month':
+                    startOfPeriod = current.startOf('day');
+                    endOfPeriod = current.endOf('day');
+                    label = startOfPeriod.format('YYYY-MM-DD');
+                    current = endOfPeriod.clone().add(1, 'day');
+                    break;
+               case 'week':
+                    startOfPeriod = current.startOf('day');
+                    endOfPeriod = current.endOf('day');
+                    label = startOfPeriod.format('YYYY-MM-DD');
+                    current.add(1, 'day');
+                    break;
+               case 'day':
+               default:
+                    startOfPeriod = current.startOf('hour');
+                    endOfPeriod = current.endOf('hour');
+                    label = startOfPeriod.format('HH:00');
+                    current.add(1, 'hour');
+                    break;
+          }
+
+          if (
+               ranges.length > 0 &&
+               ranges[ranges.length - 1].start.getTime() === startOfPeriod.toDate().getTime()
+          ) {
+               continue;
+          }
+
+          ranges.push({
+               label,
+               start: startOfPeriod.toDate(),
+               end: endOfPeriod.toDate(),
+          });
+     }
+
+     const results = await Promise.all(
+          ranges.map(({ start, end }) => {
+               const range = { $gte: start, $lte: end };
+               return Subscription.aggregate([
+                    { $match: { createdAt: range } },
+                    { $group: { _id: null, total: { $sum: '$price' } } },
+               ]);
+          }),
+     );
+
+     const typeResults = await Promise.all(
+          ranges.map(({ start, end }) => getPaymentTypeRevenueForRange(start, end)),
+     );
+
+     return ranges.map(({ label }, i) => ({
+          period: label,
+          revenue: results[i][0]?.total ?? 0,
+          weekly: typeResults[i].weekly,
+          monthly: typeResults[i].monthly,
+          yearly: typeResults[i].yearly,
      }));
 }
 
@@ -1029,74 +1159,6 @@ async function getCustomRangeBreakdown(
                trailers: trailerCount ?? 0,
           };
      });
-}
-
-async function getRevenueCustomRangeBreakdown(view: ViewType, startDate: Date, endDate: Date) {
-     const startMoment = moment(startDate).utc();
-     const endMoment = moment(endDate).utc();
-     const ranges: { label: string; start: Date; end: Date }[] = [];
-     let current = startMoment.clone();
-
-     while (current.isSameOrBefore(endMoment)) {
-          let startOfPeriod, endOfPeriod, label;
-
-          switch (view) {
-               case 'year':
-                    startOfPeriod = current.startOf('month');
-                    endOfPeriod = current.endOf('month');
-                    label = startOfPeriod.format('MMMM');
-                    current = endOfPeriod.clone().add(1, 'day');
-                    break;
-               case 'month':
-                    startOfPeriod = current.startOf('day');
-                    endOfPeriod = current.endOf('day');
-                    label = startOfPeriod.format('YYYY-MM-DD');
-                    current = endOfPeriod.clone().add(1, 'day');
-                    break;
-               case 'week':
-                    startOfPeriod = current.startOf('day');
-                    endOfPeriod = current.endOf('day');
-                    label = startOfPeriod.format('YYYY-MM-DD');
-                    current.add(1, 'day');
-                    break;
-               case 'day':
-               default:
-                    startOfPeriod = current.startOf('hour');
-                    endOfPeriod = current.endOf('hour');
-                    label = startOfPeriod.format('HH:00');
-                    current.add(1, 'hour');
-                    break;
-          }
-
-          // Avoid duplicate ranges
-          if (
-               ranges.length > 0 &&
-               ranges[ranges.length - 1].start.getTime() === startOfPeriod.toDate().getTime()
-          ) {
-               continue;
-          }
-
-          ranges.push({
-               label,
-               start: startOfPeriod.toDate(),
-               end: endOfPeriod.toDate(),
-          });
-     }
-
-     const results = await Promise.all(
-          ranges.map(({ start, end }) => {
-               const range = { $gte: start, $lte: end };
-               return Subscription.aggregate([
-                    { $match: { createdAt: range } },
-                    { $group: { _id: null, total: { $sum: '$price' } } },
-               ]);
-          }),
-     );
-
-     return ranges.map(({ label }, i) => ({
-          period: label,
-          revenue: results[i][0]?.total ?? 0,
-     }));
 }
 
 function getRevenueBreakdown(

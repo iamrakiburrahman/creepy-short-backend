@@ -164,7 +164,6 @@ const getShareVideo = catchAsync(async (req, res) => {
             <meta property="og:image" content="${imageUrl}" />
             <meta property="og:type" content="video.other" />
             <meta property="og:url" content="https://api.creepy-shorts.com/shorts/${videoId}" />
-
             <meta name="twitter:card" content="summary_large_image">
             <meta name="twitter:title" content="${title}">
             <meta name="twitter:description" content="${description}">
