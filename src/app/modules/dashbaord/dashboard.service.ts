@@ -951,17 +951,8 @@ const getRevenueData = async (query: Record<string, unknown>) => {
      const currRange = { $gte: finalStartDate, $lte: finalEndDate };
      const prevRange = { $gte: prevStartDate, $lte: prevEndDate };
 
-     const [currRevenueRes, prevRevenueRes, totalRevenueRes, breakdown, packageWiseRevenue] =
+     const [breakdown, packageWiseRevenue] =
           await Promise.all([
-               Subscription.aggregate([
-                    { $match: { createdAt: currRange } },
-                    { $group: { _id: null, total: { $sum: '$price' } } },
-               ]),
-               Subscription.aggregate([
-                    { $match: { createdAt: prevRange } },
-                    { $group: { _id: null, total: { $sum: '$price' } } },
-               ]),
-               Subscription.aggregate([{ $group: { _id: null, total: { $sum: '$price' } } }]),
                getRevenueBreakdown(view, year, monthIndex, day, startDate, endDate),
                Subscription.aggregate([
                     { $match: { createdAt: currRange } },
@@ -998,11 +989,6 @@ const getRevenueData = async (query: Record<string, unknown>) => {
                     { $sort: { totalRevenue: -1 } },
                ]),
           ]);
-
-     // const currentRevenue = currRevenueRes[0]?.total ?? 0;
-     // const previousRevenue = prevRevenueRes[0]?.total ?? 0;
-     // const totalRevenue = totalRevenueRes[0]?.total ?? 0;
-
      return {
           filter: filterMeta,
           breakdown,
