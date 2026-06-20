@@ -820,29 +820,29 @@ async function getRevenueCustomRangeBreakdown(view: ViewType, startDate: Date, e
 
           switch (view) {
                case 'year':
-                    startOfPeriod = current.startOf('month');
-                    endOfPeriod = current.endOf('month');
+                    startOfPeriod = current.clone().startOf('month');
+                    endOfPeriod = current.clone().endOf('month');
                     label = startOfPeriod.format('MMMM');
                     current = endOfPeriod.clone().add(1, 'day');
                     break;
                case 'month':
-                    startOfPeriod = current.startOf('day');
-                    endOfPeriod = current.endOf('day');
+                    startOfPeriod = current.clone().startOf('day');
+                    endOfPeriod = current.clone().endOf('day');
                     label = startOfPeriod.format('YYYY-MM-DD');
                     current = endOfPeriod.clone().add(1, 'day');
                     break;
                case 'week':
-                    startOfPeriod = current.startOf('day');
-                    endOfPeriod = current.endOf('day');
+                    startOfPeriod = current.clone().startOf('day');
+                    endOfPeriod = current.clone().endOf('day');
                     label = startOfPeriod.format('YYYY-MM-DD');
-                    current.add(1, 'day');
+                    current = current.clone().add(1, 'day');
                     break;
                case 'day':
                default:
-                    startOfPeriod = current.startOf('hour');
-                    endOfPeriod = current.endOf('hour');
+                    startOfPeriod = current.clone().startOf('hour');
+                    endOfPeriod = current.clone().endOf('hour');
                     label = startOfPeriod.format('HH:00');
-                    current.add(1, 'hour');
+                    current = current.clone().add(1, 'hour');
                     break;
           }
 
@@ -1021,29 +1021,29 @@ async function getPackageWiseCustomRangeBreakdown(view: ViewType, startDate: Dat
 
           switch (view) {
                case 'year':
-                    startOfPeriod = current.startOf('month');
-                    endOfPeriod = current.endOf('month');
+                    startOfPeriod = current.clone().startOf('month');
+                    endOfPeriod = current.clone().endOf('month');
                     label = startOfPeriod.format('MMMM');
                     current = endOfPeriod.clone().add(1, 'day');
                     break;
                case 'month':
-                    startOfPeriod = current.startOf('day');
-                    endOfPeriod = current.endOf('day');
+                    startOfPeriod = current.clone().startOf('day');
+                    endOfPeriod = current.clone().endOf('day');
                     label = startOfPeriod.format('YYYY-MM-DD');
                     current = endOfPeriod.clone().add(1, 'day');
                     break;
                case 'week':
-                    startOfPeriod = current.startOf('day');
-                    endOfPeriod = current.endOf('day');
+                    startOfPeriod = current.clone().startOf('day');
+                    endOfPeriod = current.clone().endOf('day');
                     label = startOfPeriod.format('YYYY-MM-DD');
-                    current.add(1, 'day');
+                    current = current.clone().add(1, 'day');
                     break;
                case 'day':
                default:
-                    startOfPeriod = current.startOf('hour');
-                    endOfPeriod = current.endOf('hour');
+                    startOfPeriod = current.clone().startOf('hour');
+                    endOfPeriod = current.clone().endOf('hour');
                     label = startOfPeriod.format('HH:00');
-                    current.add(1, 'hour');
+                    current = current.clone().add(1, 'hour');
                     break;
           }
 

@@ -36,7 +36,7 @@ const allUser = async (query: Record<string, unknown>) => {
                     status: 'active',
                })
                     .select(
-                         'userId subscriptionId package packageName currentPeriodStart currentPeriodEnd remaining provider price',
+                         'userId subscriptionId package packageName currentPeriodStart currentPeriodEnd remaining provider price name',
                     )
                     .lean();
 

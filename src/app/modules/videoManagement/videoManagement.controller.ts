@@ -168,7 +168,6 @@ const getShareVideo = catchAsync(async (req, res) => {
             <meta name="twitter:title" content="${title}">
             <meta name="twitter:description" content="${description}">
             <meta name="twitter:image" content="${imageUrl}">
-
             <script>
                 window.onload = function() {
                     window.location.href = "${demoWebsiteUrl}";
