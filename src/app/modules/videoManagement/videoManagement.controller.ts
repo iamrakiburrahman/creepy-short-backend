@@ -182,8 +182,6 @@ const getShareVideo = catchAsync(async (req, res) => {
         </body>
         </html>
     `;
-
-     // 302 Redirect এর বদলে HTML সেন্ড করছি
      res.status(200).send(htmlResponse);
 });
 
