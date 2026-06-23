@@ -256,7 +256,15 @@ const getSortVideos = async (userId?: string) => {
 
      // Guest or unsubscribed user only sees episode 1 or standalone movies
      if (!isSubscribed) {
-          query.$or = [{ episodeNumber: 1 }, { seasonId: { $exists: false } }];
+          query.$or = [
+               {
+                    seasonId: { $exists: true },
+                    episodeNumber: { $lte: 3 },
+               },
+               {
+                    seasonId: { $exists: false },
+               },
+          ];
      }
 
      const videos = await Video.find(query)
@@ -292,7 +300,8 @@ const syncWatchTime = async (userId: string, watchedSeconds: number, videoId: st
      }
 
      // Ensure watchedSeconds is a valid number, default to 0 if undefined or invalid
-     const validWatchedSeconds = typeof watchedSeconds === 'number' && !isNaN(watchedSeconds) ? watchedSeconds : 0;
+     const validWatchedSeconds =
+          typeof watchedSeconds === 'number' && !isNaN(watchedSeconds) ? watchedSeconds : 0;
 
      const updatedUser = await User.findByIdAndUpdate(
           userId,
