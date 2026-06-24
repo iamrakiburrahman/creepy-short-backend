@@ -249,26 +249,18 @@ const getSortVideos = async (userId?: string) => {
           if (user) {
                isSubscribed = user.isSubscribed;
           }
+
           likedVideoSet = new Set(likedVideos.map((like) => like.videoId.toString()));
      }
 
-     const query: any = { isDeleted: false };
+     const query: any = {
+          isDeleted: false,
+          $or: [
+               { episodeNumber: 1 }, // Only Episode 1
+               { seasonId: { $exists: false } }, // Standalone movies
+          ],
+     };
 
-     // // Guest or unsubscribed user only sees episode 1 or standalone movies
-     // if (!isSubscribed) {
-     //      query.$or = [
-     //           {
-     //                seasonId: { $exists: true },
-     //                episodeNumber: { $lte: 1 },
-     //           },
-     //           {
-     //                seasonId: { $exists: false },
-     //           },
-     //      ];
-     // }
-     if (!isSubscribed) {
-          query.$or = [{ episodeNumber: 1 }, { seasonId: { $exists: false } }];
-     }
      const videos = await Video.find(query)
           .populate('seasonId', 'title seasonNumber')
           .populate('movieId', 'title')
@@ -281,7 +273,7 @@ const getSortVideos = async (userId?: string) => {
                ...video.toObject(),
                isSubscribed,
                isLiked: likedVideoSet.has(videoId),
-               isAccess: isSubscribed || video.episodeNumber === 1 || !video.seasonId,
+               isAccess: true,
           };
      });
 };
