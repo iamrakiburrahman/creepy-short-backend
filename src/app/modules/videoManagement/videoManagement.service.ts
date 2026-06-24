@@ -254,19 +254,21 @@ const getSortVideos = async (userId?: string) => {
 
      const query: any = { isDeleted: false };
 
-     // Guest or unsubscribed user only sees episode 1 or standalone movies
+     // // Guest or unsubscribed user only sees episode 1 or standalone movies
+     // if (!isSubscribed) {
+     //      query.$or = [
+     //           {
+     //                seasonId: { $exists: true },
+     //                episodeNumber: { $lte: 1 },
+     //           },
+     //           {
+     //                seasonId: { $exists: false },
+     //           },
+     //      ];
+     // }
      if (!isSubscribed) {
-          query.$or = [
-               {
-                    seasonId: { $exists: true },
-                    episodeNumber: { $lte: 3 },
-               },
-               {
-                    seasonId: { $exists: false },
-               },
-          ];
+          query.$or = [{ episodeNumber: 1 }, { seasonId: { $exists: false } }];
      }
-
      const videos = await Video.find(query)
           .populate('seasonId', 'title seasonNumber')
           .populate('movieId', 'title')

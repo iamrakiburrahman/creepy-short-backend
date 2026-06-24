@@ -40,9 +40,9 @@ const createMovieToDB = async (payload: IMovie) => {
 
      await NotificationQueueHelper.sendBroadcastNotification(
           payload.title
-               ? `New movie just added: "${payload.title}". Watch it now!`
-               : 'A new movie has just been added. Check it out!',
-          '🎬 New Movie Available',
+               ? `New session just added: "${payload.title}". Watch it now!`
+               : 'A new session has just been added. Check it out!',
+          '🎬 New Session Available',
           'ADMIN',
      );
 

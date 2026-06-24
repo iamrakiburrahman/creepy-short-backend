@@ -279,7 +279,7 @@ const getTopWatchedVideos = async (query: Record<string, unknown>) => {
           createdAt: { $gte: finalStartDate, $lte: finalEndDate },
      })
           .sort({ totalViews: -1 })
-          .limit(5)
+          .limit(Number(query.limit) ?? 10)
           .select('title totalViews')
           .lean();
 
