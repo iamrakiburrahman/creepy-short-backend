@@ -1,5 +1,4 @@
 import cron from 'node-cron';
-import { User } from '../app/modules/user/user.model';
 import colors from 'colors';
 import { printBanner } from './printBanner';
 import config from '../config';
