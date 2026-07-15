@@ -14,13 +14,6 @@ const usersData = [
           password: config.super_admin.password,
           verified: true,
      },
-     {
-          name: 'User',
-          email: 'user@gmail.com',
-          role: USER_ROLES.USER,
-          password: 'hello123',
-          verified: true,
-     },
 ];
 
 // Function to hash passwords

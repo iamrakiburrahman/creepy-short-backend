@@ -13,6 +13,10 @@ const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> =>
           payload.provider = 'apple';
      }
 
+     if (payload.discount && payload.discount > 0) {
+          payload.originalPrice = payload.price;
+     }
+
      const hasDiscount = payload.discount && payload.discount > 0;
      const finalPrice = hasDiscount
           ? payload.price - (payload.price * payload.discount!) / 100
@@ -43,6 +47,10 @@ const updatePackageToDB = async (
 
      if (!isExistPackage) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Package not found');
+     }
+
+     if (payload.discount && payload.discount > 0 && !payload.originalPrice) {
+          payload.originalPrice = isExistPackage?.price;
      }
 
      if (payload.isGoogle) {

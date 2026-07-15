@@ -15,6 +15,10 @@ const packageSchema = new Schema<IPackage, PackageModel>(
                type: Number,
                required: true,
           },
+          originalPrice: {
+               type: Number,
+               required: true,
+          },
           duration: {
                type: String,
                enum: ['1 week', '1 month', '3 months', '6 months', '1 year'],
