@@ -7,31 +7,32 @@ import { Package } from './package.model';
 import { NotificationQueueHelper } from '../../../helpers/bullMQ/bullHelper';
 
 const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> => {
-     if (payload.isGoogle) {
-          payload.provider = 'google';
-     } else {
-          payload.provider = 'apple';
-     }
+     payload.provider = payload.isGoogle ? 'google' : 'apple';
 
-     if (payload.discount && payload.discount > 0) {
-          payload.originalPrice = Number(payload.price.toFixed(2));
-     }
+     const originalPrice = Number(payload.price.toFixed(2));
 
-     const hasDiscount = payload.discount && payload.discount > 0;
-     const finalPrice = hasDiscount
-          ? Number((payload.price - (payload.price * payload.discount!) / 100).toFixed(2))
-          : Number(payload.price.toFixed(2));
+     payload.originalPrice = originalPrice;
 
-     payload.price = Number(finalPrice.toFixed(2));
+     const hasDiscount = (payload.discount ?? 0) > 0;
+
+     payload.price = hasDiscount
+          ? Number(
+                 (
+                      originalPrice -
+                      (originalPrice * payload.discount!) / 100
+                 ).toFixed(2),
+            )
+          : originalPrice;
 
      const result = await Package.create(payload);
+
      if (!result) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create Package');
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create package');
      }
 
      if (hasDiscount) {
           await NotificationQueueHelper.sendBroadcastNotification(
-               `🎉 Special offer! Get ${payload.discount}% off on "${payload.name}". Limited time only — grab it now!`,
+               `🎉 Special offer! Get ${payload.discount}% off on "${payload.name}". Limited time only. Grab it now!`,
                `🏷️ ${payload.discount}% Discount Available!`,
                'ADMIN',
           );
@@ -43,28 +44,32 @@ const updatePackageToDB = async (
      id: string,
      payload: Partial<IPackage>,
 ): Promise<IPackage | null> => {
-     const isExistPackage = await Package.findById(id);
+     const packageData = await Package.findById(id);
 
-     if (!isExistPackage) {
+     if (!packageData) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Package not found');
      }
 
-     if (payload.discount && payload.discount > 0 && !payload.originalPrice) {
-          payload.originalPrice = Number(isExistPackage?.price.toFixed(2));
-     }
+     payload.provider = payload.isGoogle ? 'google' : 'apple';
 
-     if (payload.isGoogle) {
-          payload.provider = 'google';
-     } else {
-          payload.provider = 'apple';
-     }
+     const originalPrice = Number(
+          (payload.price ?? packageData.originalPrice).toFixed(2),
+     );
 
-     const finalPrice =
-          payload.discount && payload.price
-               ? Number((payload.price - (payload.price * payload.discount) / 100).toFixed(2))
-               : Number(payload.price?.toFixed(2));
+     payload.originalPrice = originalPrice;
 
-     payload.price = Number(finalPrice.toFixed(2));
+     const discount = payload.discount ?? packageData.discount ?? 0;
+
+     payload.price =
+          discount > 0
+               ? Number(
+                      (
+                           originalPrice -
+                           (originalPrice * discount) / 100
+                      ).toFixed(2),
+                 )
+               : originalPrice;
+
      const updatedPackage = await Package.findByIdAndUpdate(id, payload, {
           new: true,
           runValidators: true,
