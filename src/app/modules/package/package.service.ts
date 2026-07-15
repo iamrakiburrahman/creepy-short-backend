@@ -50,7 +50,7 @@ const updatePackageToDB = async (
      }
 
      if (payload.discount && payload.discount > 0 && !payload.originalPrice) {
-          payload.originalPrice = isExistPackage?.price;
+          payload.originalPrice = Number(isExistPackage?.price.toFixed(2));
      }
 
      if (payload.isGoogle) {
