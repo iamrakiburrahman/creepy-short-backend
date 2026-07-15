@@ -14,15 +14,15 @@ const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> =>
      }
 
      if (payload.discount && payload.discount > 0) {
-          payload.originalPrice = payload.price;
+          payload.originalPrice = Number(payload.price.toFixed(2));
      }
 
      const hasDiscount = payload.discount && payload.discount > 0;
      const finalPrice = hasDiscount
-          ? payload.price - (payload.price * payload.discount!) / 100
-          : payload.price;
+          ? Number((payload.price - (payload.price * payload.discount!) / 100).toFixed(2))
+          : Number(payload.price.toFixed(2));
 
-     payload.price = finalPrice;
+     payload.price = Number(finalPrice.toFixed(2));
 
      const result = await Package.create(payload);
      if (!result) {
@@ -61,10 +61,10 @@ const updatePackageToDB = async (
 
      const finalPrice =
           payload.discount && payload.price
-               ? payload.price - (payload.price * payload.discount) / 100
-               : payload.price;
+               ? Number((payload.price - (payload.price * payload.discount) / 100).toFixed(2))
+               : Number(payload.price?.toFixed(2));
 
-     payload.price = finalPrice;
+     payload.price = Number(finalPrice.toFixed(2));
      const updatedPackage = await Package.findByIdAndUpdate(id, payload, {
           new: true,
           runValidators: true,
